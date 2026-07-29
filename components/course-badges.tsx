@@ -1,10 +1,12 @@
 import { Star } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { Requirement } from "@/lib/mock-data"
+import type { Requirement } from "@/lib/types"
 
 const requirementStyles: Record<Requirement, string> = {
   전공필수: "bg-primary/10 text-primary",
   전공선택: "bg-chart-2/15 text-chart-2",
+  기초필수: "bg-chart-3/15 text-chart-3",
+  계열공통: "bg-chart-4/15 text-chart-4",
   교양: "bg-muted text-muted-foreground",
 }
 

@@ -1,34 +1,9 @@
-// 모든 데이터는 목업(mock)입니다. 실제 DB/API 연동은 이후 IDE 단계에서 진행합니다.
-
-export type Requirement = "전공필수" | "전공선택" | "교양"
-
-export type HashtagStat = {
-  tag: string
-  percent: number
-}
-
-export type Course = {
-  id: string
-  name: string
-  department: string
-  professor: string
-  credits: number
-  requirement: Requirement
-  rating: number
-  reviewCount: number
-  hashtags: HashtagStat[]
-  industry?: string
-  academicField?: string
-  summary: string
-}
-
-export type Review = {
-  id: string
-  rating: number
-  semester: string
-  body: string
-  hashtags: string[]
-}
+// F1/F2(과목·리뷰)는 실제 DB 연동으로 교체됨 — app/page.tsx, app/search/page.tsx,
+// app/courses/[id]/page.tsx는 더 이상 이 파일을 쓰지 않는다.
+// F3(분야 탐색)·F4(커리큘럼 추천)는 industry_tags 연관도 스코어링·curricula 졸업요건 데이터가
+// 아직 없어(AI 태깅 미착수, 학과 요건 데이터 미확보) 당분간 이 목업을 계속 사용한다.
+import type { Requirement, HashtagStat, Course, Review } from "./types"
+export type { Requirement, HashtagStat, Course, Review }
 
 // 공통 목업 과목 데이터 — 여러 화면에서 일관되게 사용
 export const mockCourses: Course[] = [

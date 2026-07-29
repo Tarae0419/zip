@@ -2,7 +2,13 @@ import { Suspense } from "react"
 import { AppHeader } from "@/components/app-header"
 import { SearchResults } from "@/components/search-results"
 
-export default function SearchPage() {
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; sort?: string; credit?: string; grade?: string; requirement?: string }>
+}) {
+  const resolvedSearchParams = await searchParams
+
   return (
     <div className="min-h-svh">
       <AppHeader />
@@ -14,7 +20,7 @@ export default function SearchPage() {
             </div>
           }
         >
-          <SearchResults />
+          <SearchResults searchParams={resolvedSearchParams} />
         </Suspense>
       </main>
     </div>

@@ -3,10 +3,11 @@ import { TrendingUp } from "lucide-react"
 import { AppHeader } from "@/components/app-header"
 import { HeroSearch } from "@/components/hero-search"
 import { CourseCard } from "@/components/course-card"
-import { mockCourses, popularTags } from "@/lib/mock-data"
+import { popularTags } from "@/lib/mock-data"
+import { getPopularCourses } from "@/lib/db/queries"
 
-export default function HomePage() {
-  const popularCourses = mockCourses
+export default async function HomePage() {
+  const popularCourses = await getPopularCourses(6)
 
   return (
     <div className="min-h-svh">
@@ -56,7 +57,7 @@ export default function HomePage() {
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            수강평이 많고 평점이 높은 과목을 모았어요.
+            수강신청 인원이 많은 과목을 모았어요.
           </p>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -78,7 +79,8 @@ function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-8 text-center text-sm text-muted-foreground md:px-6">
         <p className="font-display font-semibold text-foreground">수강길잡이</p>
         <p className="mt-1">
-          대학생을 위한 AI 수강 도우미 · 본 화면은 목업 데이터로 구성된 디자인 초안입니다.
+          대학생을 위한 AI 수강 도우미 · 개설 교과목 정보는 실제 수강편람 데이터를 사용하며,
+          수강평·AI 요약·분야 추천 데이터는 아직 준비 중입니다.
         </p>
       </div>
     </footer>

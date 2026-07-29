@@ -1,34 +1,8 @@
-"use client"
-
-import { useSearchParams } from "next/navigation"
-import { useMemo, useState } from "react"
-import { SlidersHorizontal, SearchX } from "lucide-react"
-import { mockCourses, type Course } from "@/lib/mock-data"
+import { SearchX } from "lucide-react"
+import type { Course } from "@/lib/types"
+import { searchCoursesByFieldTag, searchCoursesByName, type SearchFilters } from "@/lib/db/queries"
 import { CourseCard } from "@/components/course-card"
-
-type SortKey = "relevance" | "rating" | "reviews"
-
-const sortOptions: { key: SortKey; label: string }[] = [
-  { key: "relevance", label: "관련도순" },
-  { key: "rating", label: "평점순" },
-  { key: "reviews", label: "리뷰많은순" },
-]
-
-const creditOptions = ["전체", "1학점", "2학점", "3학점"]
-const gradeOptions = ["전체", "1학년", "2학년", "3학년", "4학년"]
-const requirementOptions = ["전체", "전공필수", "전공선택", "교양"]
-
-function matchesField(course: Course, q: string): boolean {
-  const haystack = [
-    course.industry ?? "",
-    course.academicField ?? "",
-    ...course.hashtags.map((h) => h.tag),
-    course.department,
-  ]
-    .join(" ")
-    .toLowerCase()
-  return haystack.includes(q.toLowerCase())
-}
+import { SearchFilterBar, type SortKey } from "@/components/search-filter-bar"
 
 function sortCourses(list: Course[], sort: SortKey): Course[] {
   const copy = [...list]
@@ -37,26 +11,25 @@ function sortCourses(list: Course[], sort: SortKey): Course[] {
   return copy
 }
 
-export function SearchResults() {
-  const searchParams = useSearchParams()
-  const query = searchParams.get("q") ?? ""
+export async function SearchResults({
+  searchParams,
+}: {
+  searchParams: { q?: string; sort?: string; credit?: string; grade?: string; requirement?: string }
+}) {
+  const query = (searchParams.q ?? "").trim()
+  const sort: SortKey = searchParams.sort === "rating" || searchParams.sort === "reviews" ? searchParams.sort : "relevance"
+  const credit = searchParams.credit ?? "전체"
+  const grade = searchParams.grade ?? "전체"
+  const requirement = searchParams.requirement ?? "전체"
 
-  const [sort, setSort] = useState<SortKey>("relevance")
-  const [credit, setCredit] = useState("전체")
-  const [grade, setGrade] = useState("전체")
-  const [requirement, setRequirement] = useState("전체")
+  const filters: SearchFilters = {
+    credits: credit !== "전체" ? Number(credit) : undefined,
+    grade: grade !== "전체" ? Number(grade) : undefined,
+    requirementType: requirement !== "전체" ? requirement : undefined,
+  }
 
-  const { nameMatches, fieldMatches, fieldLabel } = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    const nameMatches = mockCourses.filter((c) =>
-      c.name.toLowerCase().includes(q),
-    )
-    const nameIds = new Set(nameMatches.map((c) => c.id))
-    const fieldMatches = mockCourses.filter(
-      (c) => !nameIds.has(c.id) && matchesField(c, q),
-    )
-    return { nameMatches, fieldMatches, fieldLabel: query.trim() }
-  }, [query])
+  const { view: nameMatches } = query ? await searchCoursesByName(query, filters) : { view: [] as Course[] }
+  const fieldMatches = query ? await searchCoursesByFieldTag(query, nameMatches.map((c) => c.id), filters) : []
 
   const sortedName = sortCourses(nameMatches, sort)
   const sortedField = sortCourses(fieldMatches, sort)
@@ -74,38 +47,7 @@ export function SearchResults() {
         </h1>
       </div>
 
-      {/* 필터 & 정렬 */}
-      <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
-        <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-          <SlidersHorizontal className="size-4 text-primary" aria-hidden="true" />
-          필터
-        </span>
-        <FilterSelect label="학점" value={credit} onChange={setCredit} options={creditOptions} />
-        <FilterSelect label="학년" value={grade} onChange={setGrade} options={gradeOptions} />
-        <FilterSelect
-          label="이수구분"
-          value={requirement}
-          onChange={setRequirement}
-          options={requirementOptions}
-        />
-
-        <div className="ml-auto flex items-center gap-1 rounded-full bg-secondary p-1">
-          {sortOptions.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => setSort(opt.key)}
-              className={
-                sort === opt.key
-                  ? "rounded-full bg-card px-3 py-1.5 text-sm font-semibold text-primary shadow-sm"
-                  : "rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
-              }
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <SearchFilterBar sort={sort} credit={credit} grade={grade} requirement={requirement} />
 
       {!hasResults ? (
         <div className="mt-16 flex flex-col items-center gap-3 text-center">
@@ -121,11 +63,7 @@ export function SearchResults() {
             <ResultSection title="과목명 일치" count={sortedName.length} courses={sortedName} />
           )}
           {sortedField.length > 0 && (
-            <ResultSection
-              title={`분야 일치: ${fieldLabel}`}
-              count={sortedField.length}
-              courses={sortedField}
-            />
+            <ResultSection title={`분야 일치: ${query}`} count={sortedField.length} courses={sortedField} />
           )}
         </div>
       )}
@@ -156,34 +94,5 @@ function ResultSection({
         ))}
       </div>
     </section>
-  )
-}
-
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  options: string[]
-}) {
-  return (
-    <label className="flex items-center gap-1.5 text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm font-medium text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-    </label>
   )
 }

@@ -1,30 +1,31 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, MessageSquareText } from "lucide-react"
+import { ArrowLeft, MessageSquareText, Sparkles } from "lucide-react"
 import { AppHeader } from "@/components/app-header"
 import { AiSummaryCard } from "@/components/ai-summary-card"
 import { ReviewList } from "@/components/review-list"
 import { ReviewComposer } from "@/components/review-composer"
 import { RatingStars, RequirementBadge } from "@/components/course-badges"
-import { getCourseById, getReviewsByCourseId, mockCourses } from "@/lib/mock-data"
+import { getCourseView } from "@/lib/db/queries"
+import type { Course } from "@/lib/types"
 
-export function generateStaticParams() {
-  return mockCourses.map((c) => ({ id: c.id }))
-}
+// PRD F1 — 요약을 생성하기 위한 최소 리뷰 수
+const MIN_REVIEWS_FOR_SUMMARY = 5
 
+// 개설 과목이 5천 건 이상이라 빌드 시 전량 정적 생성하지 않고 요청 시점에 렌더링한다.
 export default async function CourseDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const course = getCourseById(id)
+  const result = await getCourseView(id)
 
-  if (!course) {
+  if (!result) {
     notFound()
   }
 
-  const reviews = getReviewsByCourseId(course.id)
+  const { course, reviews } = result
 
   return (
     <div className="min-h-svh">
@@ -57,7 +58,7 @@ export default async function CourseDetailPage({
 
         {/* AI 요약 카드 (가장 눈에 띄게 상단 배치) */}
         <div className="mt-6">
-          <AiSummaryCard summary={course.summary} hashtags={course.hashtags} />
+          <CourseAiSummarySection course={course} />
         </div>
 
         {/* 개별 수강평 */}
@@ -82,5 +83,49 @@ export default async function CourseDetailPage({
         </section>
       </main>
     </div>
+  )
+}
+
+// PRD 8.1 Edge Case: 리뷰 0개 / 5개 미만 / 충분(요약 생성 전·후)을 구분해 안내한다.
+function CourseAiSummarySection({ course }: { course: Course }) {
+  if (course.reviewCount === 0) {
+    return (
+      <EmptySummaryNotice
+        title="아직 등록된 수강평이 없어요"
+        description="첫 수강평을 남기면 AI가 다른 학생들을 위해 강의 특징을 요약해드려요."
+      />
+    )
+  }
+
+  if (course.reviewCount < MIN_REVIEWS_FOR_SUMMARY) {
+    return (
+      <EmptySummaryNotice
+        title="리뷰가 아직 충분하지 않습니다"
+        description={`AI 요약은 리뷰 ${MIN_REVIEWS_FOR_SUMMARY}개 이상부터 제공돼요. 지금까지 ${course.reviewCount}개의 수강평이 등록됐어요.`}
+      />
+    )
+  }
+
+  if (!course.summary) {
+    return (
+      <EmptySummaryNotice
+        title="AI 요약을 준비하고 있어요"
+        description="리뷰는 충분히 모였지만 아직 요약이 생성되지 않았어요. 곧 업데이트될 예정이에요."
+      />
+    )
+  }
+
+  return <AiSummaryCard summary={course.summary} hashtags={course.hashtags} />
+}
+
+function EmptySummaryNotice({ title, description }: { title: string; description: string }) {
+  return (
+    <section className="rounded-2xl border border-dashed border-border bg-card p-6 text-center md:p-7">
+      <span className="mx-auto flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <Sparkles className="size-5" aria-hidden="true" />
+      </span>
+      <p className="mt-3 font-display font-semibold text-foreground">{title}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+    </section>
   )
 }

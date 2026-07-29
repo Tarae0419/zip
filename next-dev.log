@@ -25,3 +25,35 @@ Creating turbopack project { dir: 'C:\\zip', testMode: true }
  GET /courses/linear-algebra 200 in 2.4s (next.js: 2.3s, generate-params: 1298ms, application-code: 112ms)
  GET / 200 in 111ms (next.js: 17ms, application-code: 94ms)
  GET / 200 in 256ms (next.js: 8ms, application-code: 249ms)
+  Reload env: .env.local
+  Reload env: .env.local
+✓ Compiled in 193ms
+✓ Compiled in 253ms
+✓ Compiled in 724ms
+✓ Compiled in 160ms
+✓ Compiled in 302ms
+✓ Compiled in 333ms
+✓ Compiled in 135ms
+✓ Compiled in 246ms
+✓ Compiled in 209ms
+  Reload env: .env.local
+ GET / 200 in 1586ms (next.js: 209ms, application-code: 1376ms)
+ GET / 200 in 345ms (next.js: 6ms, application-code: 340ms)
+ GET / 200 in 920ms (next.js: 199ms, application-code: 720ms)
+ GET /search?q=%EC%88%98%ED%95%99 200 in 4.4s (next.js: 1232ms, application-code: 3.2s)
+ GET /search?q=%EC%88%98%ED%95%99 200 in 1653ms (next.js: 6ms, application-code: 1648ms)
+ GET / 200 in 847ms (next.js: 72ms, application-code: 775ms)
+ GET /courses/339028e1-9532-4c5f-a693-d3fb230d604e 200 in 1263ms (next.js: 295ms, generate-params: 20ms, application-code: 968ms)
+ GET /search?q=%EC%88%98%ED%95%99 200 in 1961ms (next.js: 196ms, application-code: 1765ms)
+ GET /search?q=%EC%88%98%ED%95%99&credit=3&requirement=%EC%A0%84%EA%B3%B5%EC%84%A0%ED%83%9D 200 in 1044ms (next.js: 6ms, application-code: 1038ms)
+ GET /search?q=%EC%88%98%ED%95%99&credit=3&requirement=%EC%A0%84%EA%B3%B5%EC%84%A0%ED%83%9D 200 in 1139ms (next.js: 7ms, application-code: 1132ms)
+ GET /search?q=%EC%88%98%ED%95%99&credit=3&requirement=%EC%A0%84%EA%B3%B5%EC%84%A0%ED%83%9D 200 in 1662ms (next.js: 52ms, application-code: 1610ms)
+ GET /search?q=%EC%88%98%ED%95%99&grade=2 200 in 1484ms (next.js: 215ms, application-code: 1269ms)
+ GET /search?q=%EC%88%98%ED%95%99&grade=2 200 in 934ms (next.js: 7ms, application-code: 927ms)
+ GET /search?q=zzznomatchxyz 200 in 261ms (next.js: 7ms, application-code: 253ms)
+ GET /search?q=zzznomatchxyz 200 in 260ms (next.js: 6ms, application-code: 254ms)
+ GET /fields 200 in 393ms (next.js: 121ms, application-code: 272ms)
+ GET /curriculum 200 in 494ms (next.js: 113ms, application-code: 381ms)
+ GET /courses/not-a-uuid 404 in 125ms (next.js: 22ms, application-code: 103ms)
+ GET / 200 in 724ms (next.js: 6ms, application-code: 718ms)
+[?25h
