@@ -5,7 +5,15 @@ import { SearchResults } from "@/components/search-results"
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sort?: string; credit?: string; grade?: string; requirement?: string; tab?: string }>
+  searchParams: Promise<{
+    q?: string
+    sort?: string
+    credit?: string
+    grade?: string
+    requirement?: string
+    semester?: string
+    tab?: string
+  }>
 }) {
   const resolvedSearchParams = await searchParams
 

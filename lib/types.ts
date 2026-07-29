@@ -23,6 +23,9 @@ export type Course = {
   industry?: string
   academicField?: string
   summary: string
+  // "2026-1" | "2026-2" 형태 — 같은 과목명이 학기마다 다른 courses row(= 다른 스케줄)로 존재하므로,
+  // 검색 결과에서 어느 학기 개설분인지 구분하고 학기별로 필터링하는 데 쓴다.
+  semester: string
 }
 
 export type Review = {

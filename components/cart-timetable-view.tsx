@@ -1,18 +1,28 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ShoppingCart, Trash2 } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { WeeklyTimetable } from "@/components/weekly-timetable"
 import { CampusMap } from "@/components/campus-map"
 import { WEEKDAYS } from "@/lib/timetable/types"
 import type { Weekday } from "@/lib/timetable/types"
+import { getSessionsForDay } from "@/lib/timetable/schedule"
 import { cn } from "@/lib/utils"
 
 export function CartTimetableView() {
   const { cart, mounted, totalCredits, removeCourse } = useCart()
   const [selectedDay, setSelectedDay] = useState<Weekday>("월")
+  const [dayManuallySelected, setDayManuallySelected] = useState(false)
+
+  // 기본 선택 요일("월")에 담은 강의가 하나도 없으면 지도가 "이 요일엔 강의가 없어요"만 보여줘
+  // 마치 데이터가 안 뜨는 것처럼 보인다 — 실제로 수업이 있는 첫 요일을 자동으로 선택해준다.
+  useEffect(() => {
+    if (!mounted || dayManuallySelected || cart.length === 0) return
+    const dayWithData = WEEKDAYS.find((day) => getSessionsForDay(cart, day).length > 0)
+    if (dayWithData) setSelectedDay(dayWithData)
+  }, [mounted, cart, dayManuallySelected])
 
   if (!mounted) {
     return (
@@ -92,21 +102,36 @@ export function CartTimetableView() {
         </p>
 
         <div className="mt-3 flex gap-1.5 overflow-x-auto">
-          {WEEKDAYS.map((day) => (
-            <button
-              key={day}
-              type="button"
-              onClick={() => setSelectedDay(day)}
-              className={cn(
-                "shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors",
-                selectedDay === day
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-accent",
-              )}
-            >
-              {day}요일
-            </button>
-          ))}
+          {WEEKDAYS.map((day) => {
+            const hasData = getSessionsForDay(cart, day).length > 0
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  setSelectedDay(day)
+                  setDayManuallySelected(true)
+                }}
+                className={cn(
+                  "shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                  selectedDay === day
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-accent",
+                )}
+              >
+                {day}요일
+                {hasData && (
+                  <span
+                    className={cn(
+                      "ml-1.5 inline-block size-1.5 rounded-full align-middle",
+                      selectedDay === day ? "bg-primary-foreground" : "bg-primary",
+                    )}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
+            )
+          })}
         </div>
 
         <div className="mt-4">

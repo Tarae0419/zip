@@ -35,6 +35,9 @@ export function CourseCard({
             <span className="inline-flex items-center rounded-md bg-secondary px-1.5 py-0.5 text-xs font-bold tabular-nums text-secondary-foreground">
               {course.credits}학점
             </span>
+            <span className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+              {course.semester}학기
+            </span>
           </p>
         </div>
         {ownMajorLabel && (

@@ -23,11 +23,15 @@ export function SearchFilterBar({
   credit,
   grade,
   requirement,
+  semester,
+  availableSemesters,
 }: {
   sort: SortKey
   credit: string
   grade: string
   requirement: string
+  semester: string
+  availableSemesters: string[]
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -68,6 +72,13 @@ export function SearchFilterBar({
         value={requirement}
         onChange={(v) => updateParam("requirement", v)}
         options={requirementOptions}
+      />
+      <FilterSelect
+        label="학기"
+        value={semester}
+        onChange={(v) => updateParam("semester", v)}
+        options={["전체", ...availableSemesters]}
+        formatOption={(o) => (o === "전체" ? o : `${o}학기`)}
       />
 
       <div className="ml-auto flex items-center gap-1 rounded-full bg-secondary p-1">

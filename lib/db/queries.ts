@@ -35,6 +35,7 @@ function toCourseView(
     reviewCount: stats.reviewCount,
     hashtags: stats.hashtags,
     summary,
+    semester: row.semester,
   }
 }
 
@@ -81,8 +82,9 @@ export async function getPopularCourses(limit = 6): Promise<Course[]> {
   const rows = await db
     .select()
     .from(courses)
+    // enrolledCount가 null인 row(수강인원 미집계)가 desc 정렬에서 기본적으로 먼저 나오는 걸 방지 — nulls last로 명시.
     .where(eq(courses.isPublic, true))
-    .orderBy(desc(courses.enrolledCount))
+    .orderBy(sql`${courses.enrolledCount} desc nulls last`)
     .limit(limit)
 
   return attachReviewStats(rows)
@@ -167,13 +169,21 @@ export type SearchFilters = {
   credits?: number
   grade?: number
   requirementType?: string
+  semester?: string
 }
 
 function buildFilterConditions(filters: SearchFilters) {
   const extra = []
   if (filters.credits) extra.push(eq(courses.credits, filters.credits))
   if (filters.requirementType) extra.push(eq(courses.requirementType, filters.requirementType as CourseRow["requirementType"]))
+  if (filters.semester) extra.push(eq(courses.semester, filters.semester))
   return extra
+}
+
+/** 검색 필터의 "학기" 드롭다운용 — 실제 DB에 존재하는 학기 목록(최신순)만 보여준다. */
+export async function getDistinctSemesters(): Promise<string[]> {
+  const rows = await db.selectDistinct({ semester: courses.semester }).from(courses)
+  return rows.map((r) => r.semester).sort((a, b) => b.localeCompare(a))
 }
 
 /** F2 — "과목명 일치": 과목명에 검색어가 포함된 결과 */

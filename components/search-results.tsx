@@ -1,6 +1,6 @@
 import { SearchX } from "lucide-react"
 import type { Course } from "@/lib/types"
-import { searchCoursesByFieldTag, searchCoursesByName, type SearchFilters } from "@/lib/db/queries"
+import { getDistinctSemesters, searchCoursesByFieldTag, searchCoursesByName, type SearchFilters } from "@/lib/db/queries"
 import { SearchFilterBar, type SortKey } from "@/components/search-filter-bar"
 import { SearchResultsView } from "@/components/search-results-view"
 import type { SearchTab } from "@/components/search-tabs"
@@ -15,26 +15,30 @@ function sortCourses(list: Course[], sort: SortKey): Course[] {
 export async function SearchResults({
   searchParams,
 }: {
-  searchParams: { q?: string; sort?: string; credit?: string; grade?: string; requirement?: string; tab?: string }
+  searchParams: { q?: string; sort?: string; credit?: string; grade?: string; requirement?: string; semester?: string; tab?: string }
 }) {
   const query = (searchParams.q ?? "").trim()
   const sort: SortKey = searchParams.sort === "rating" || searchParams.sort === "reviews" ? searchParams.sort : "relevance"
   const credit = searchParams.credit ?? "전체"
   const grade = searchParams.grade ?? "전체"
   const requirement = searchParams.requirement ?? "전체"
+  const semester = searchParams.semester ?? "전체"
 
   const filters: SearchFilters = {
     credits: credit !== "전체" ? Number(credit) : undefined,
     grade: grade !== "전체" ? Number(grade) : undefined,
     requirementType: requirement !== "전체" ? requirement : undefined,
+    semester: semester !== "전체" ? semester : undefined,
   }
 
   // 이름 매칭과 분야 매칭은 서로 독립적으로 조회할 수 있다 — 분야 쪽은 일단 제외 없이 받아온 뒤
   // 이름 매칭 결과와 겹치는 것만 자바스크립트에서 걸러낸다. 두 조회를 순서대로(await 후 await) 하면
   // Neon 서버리스 드라이버 특성상 왕복이 두 번 직렬로 쌓여 느려지므로 Promise.all로 동시에 보낸다.
-  const [{ view: nameMatches }, fieldMatchesRaw] = query
-    ? await Promise.all([searchCoursesByName(query, filters), searchCoursesByFieldTag(query, [], filters)])
-    : [{ view: [] as Course[] }, [] as Course[]]
+  const [{ view: nameMatches }, fieldMatchesRaw, availableSemesters] = await Promise.all([
+    query ? searchCoursesByName(query, filters) : Promise.resolve({ view: [] as Course[], rows: [] }),
+    query ? searchCoursesByFieldTag(query, [], filters) : Promise.resolve([] as Course[]),
+    getDistinctSemesters(),
+  ])
 
   const nameIds = new Set(nameMatches.map((c) => c.id))
   const fieldMatches = fieldMatchesRaw.filter((c) => !nameIds.has(c.id))
@@ -59,7 +63,14 @@ export async function SearchResults({
         </h1>
       </div>
 
-      <SearchFilterBar sort={sort} credit={credit} grade={grade} requirement={requirement} />
+      <SearchFilterBar
+        sort={sort}
+        credit={credit}
+        grade={grade}
+        requirement={requirement}
+        semester={semester}
+        availableSemesters={availableSemesters}
+      />
 
       {!hasResults ? (
         <div className="mt-16 flex flex-col items-center gap-3 text-center">
