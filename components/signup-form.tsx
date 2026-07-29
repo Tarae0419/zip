@@ -183,39 +183,37 @@ export function SignupForm({ departments }: { departments: string[] }) {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label htmlFor="password" className="text-sm font-medium text-foreground">
-                      비밀번호
-                    </label>
-                    <input
-                      id="password"
-                      type="password"
-                      autoComplete="new-password"
-                      required
-                      minLength={8}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="8자 이상"
-                      className={fieldClass}
-                    />
-                  </div>
+                <div className="space-y-1">
+                  <label htmlFor="password" className="text-sm font-medium text-foreground">
+                    비밀번호
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="8자 이상 입력하세요"
+                    className={fieldClass}
+                  />
+                </div>
 
-                  <div className="space-y-1">
-                    <label htmlFor="passwordConfirm" className="text-sm font-medium text-foreground">
-                      비밀번호 확인
-                    </label>
-                    <input
-                      id="passwordConfirm"
-                      type="password"
-                      autoComplete="new-password"
-                      required
-                      value={passwordConfirm}
-                      onChange={(e) => setPasswordConfirm(e.target.value)}
-                      placeholder="다시 입력"
-                      className={fieldClass}
-                    />
-                  </div>
+                <div className="space-y-1">
+                  <label htmlFor="passwordConfirm" className="text-sm font-medium text-foreground">
+                    비밀번호 확인
+                  </label>
+                  <input
+                    id="passwordConfirm"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    placeholder="비밀번호를 한 번 더 입력하세요"
+                    className={fieldClass}
+                  />
                 </div>
 
                 {error ? (
