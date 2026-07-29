@@ -14,7 +14,15 @@ const CHART_COLORS = [
 const DEFAULT_START = 9 * 60
 const DEFAULT_END = 18 * 60
 
-export function WeeklyTimetable({ cart }: { cart: CartCourse[] }) {
+export function WeeklyTimetable({
+  cart,
+  activeCourseId,
+  onSessionClick,
+}: {
+  cart: CartCourse[]
+  activeCourseId?: string | null
+  onSessionClick?: (courseId: string) => void
+}) {
   const colorByCourseId = new Map(cart.map((course, i) => [course.id, CHART_COLORS[i % CHART_COLORS.length]]))
   const allSessions = cart.flatMap((course) => buildSessionsForCourse(course))
 
@@ -30,7 +38,7 @@ export function WeeklyTimetable({ cart }: { cart: CartCourse[] }) {
   const rowHeightPx = 56
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+    <div className="scrollbar-hide overflow-x-auto rounded-2xl border border-border bg-card">
       <div className="flex min-w-[560px]">
         {/* 시간 라벨 열 */}
         <div className="w-14 shrink-0 border-r border-border">
@@ -67,21 +75,26 @@ export function WeeklyTimetable({ cart }: { cart: CartCourse[] }) {
                   const color = colorByCourseId.get(session.courseId) ?? CHART_COLORS[0]
                   const top = ((session.startMinutes - rangeStart) / totalMinutes) * 100
                   const height = ((session.endMinutes - session.startMinutes) / totalMinutes) * 100
+                  const isActive = activeCourseId === session.courseId
                   return (
-                    <div
+                    <button
                       key={`${session.courseId}-${day}-${i}`}
+                      type="button"
+                      onClick={() => onSessionClick?.(session.courseId)}
                       className={cn(
-                        "absolute inset-x-1 overflow-hidden rounded-md border px-1.5 py-1 text-[11px] leading-tight",
+                        "absolute inset-x-1 overflow-hidden rounded-md border px-1.5 py-1 text-left text-[11px] leading-tight transition",
                         color.bg,
                         color.border,
                         color.text,
+                        onSessionClick && "cursor-pointer hover:brightness-95",
+                        isActive && "ring-2 ring-primary ring-offset-1",
                       )}
                       style={{ top: `${top}%`, height: `${height}%` }}
                       title={`${session.courseName} · ${formatMinutes(session.startMinutes)}~${formatMinutes(session.endMinutes)}${session.location ? ` · ${session.location.building} ${session.location.room}` : ""}`}
                     >
                       <p className="truncate font-semibold">{session.courseName}</p>
                       {session.location && <p className="truncate opacity-80">{session.location.building}</p>}
-                    </div>
+                    </button>
                   )
                 })}
               </div>

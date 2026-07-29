@@ -205,4 +205,14 @@
     transform-origin: left;
     animation: grow-bar 0.6s ease-out backwards;
   }
+
+  /* 스크롤은 유지하되(모바일 스와이프 등) 스크롤바 UI만 숨긴다 — 시간표처럼 가로로 넘칠 수 있는 영역용 */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
