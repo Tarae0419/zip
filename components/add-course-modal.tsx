@@ -35,7 +35,7 @@ export function AddCourseModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" onClick={onClose} role="presentation">
       <div
-        className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-t-2xl border border-border bg-card shadow-xl sm:rounded-2xl"
+        className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-t-2xl border border-border bg-card shadow-elevated sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

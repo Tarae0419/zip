@@ -97,7 +97,7 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
             aria-modal="true"
             aria-label="수강평 작성"
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[90svh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-3xl bg-card p-6 shadow-xl sm:rounded-2xl"
+            className="max-h-[90svh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-3xl bg-card p-6 shadow-elevated sm:rounded-2xl"
           >
             <div className="flex items-center justify-between">
               <h2 className="font-display text-lg font-bold text-foreground">

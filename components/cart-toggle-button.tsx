@@ -90,7 +90,7 @@ function TimeConflictModal({ conflict, onClose }: { conflict: TimeConflict; onCl
       role="presentation"
     >
       <div
-        className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-xl"
+        className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-elevated"
         onClick={(e) => e.stopPropagation()}
         role="alertdialog"
         aria-modal="true"

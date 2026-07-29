@@ -49,7 +49,8 @@
 
 :root {
   color-scheme: light;
-  --background: oklch(0.995 0.002 280);
+  /* 살짝 따뜻한 톤의 캔버스 — 카드(--card, 순백)와 대비를 줘서 클리닉한 느낌 대신 종이 같은 느낌을 준다 */
+  --background: oklch(0.973 0.004 75);
   --foreground: oklch(0.21 0.02 275);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.21 0.02 275);
@@ -214,5 +215,14 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* 모달/팝업용 elevation — 진한 그림자 한 겹 대신, 거의 투명한 레이어를 여러 겹 쌓아 "살짝 뜬" 느낌만 준다 */
+  .shadow-elevated {
+    box-shadow:
+      0 0 1px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.03),
+      0 8px 16px rgba(0, 0, 0, 0.04),
+      0 23px 52px rgba(0, 0, 0, 0.05);
   }
 }
