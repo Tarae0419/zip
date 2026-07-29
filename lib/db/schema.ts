@@ -13,6 +13,7 @@ import {
   uniqueIndex,
   uuid,
   varchar,
+  vector,
 } from "drizzle-orm/pg-core"
 
 // 실제 개설 교과목 목록 엑셀(2026_1/2학기_학부전공_개설교과목_목록.xlsx)의 "이수구분" 값 기준.
@@ -97,10 +98,16 @@ export const courseFieldTags = pgTable(
   (table) => [primaryKey({ columns: [table.courseId, table.fieldTagId] })],
 )
 
-/** PRD F3 — 산업/진로 분야 태그 (연관도 스코어는 과목-태그 매핑에 저장) */
+/**
+ * PRD F3 — 산업/진로 분야 태그. description은 화면 표시용이자 임베딩 생성 원문(이름만으로는
+ * 임베딩이 부실해서 짧은 설명을 붙인다). embedding은 pgvector로 과목명 임베딩과 유사도 계산할 때 쓴다(PRD 10.3).
+ */
 export const industryTags = pgTable("industry_tags", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 100 }).notNull().unique(),
+  description: text("description").notNull(),
+  icon: varchar("icon", { length: 50 }).notNull(), // lucide-react 아이콘 이름
+  embedding: vector("embedding", { dimensions: 1536 }),
 })
 
 export const courseIndustryTags = pgTable(
@@ -116,6 +123,17 @@ export const courseIndustryTags = pgTable(
   },
   (table) => [primaryKey({ columns: [table.courseId, table.industryTagId] })],
 )
+
+/**
+ * 학기별 row 대신 "고유 과목"(학수번호 기준, Sprint 3와 동일한 기준) 하나당 임베딩 하나만 저장한다.
+ * courseId는 그 과목군의 대표(canonical) row를 가리킨다(getCanonicalCourseId).
+ */
+export const courseEmbeddings = pgTable("course_embeddings", {
+  courseId: uuid("course_id")
+    .primaryKey()
+    .references(() => courses.id, { onDelete: "cascade" }),
+  embedding: vector("embedding", { dimensions: 1536 }).notNull(),
+})
 
 /** PRD F1 / 9장 Review — 익명 작성, 어뷰징 필터링 플래그 포함 */
 export const reviews = pgTable("reviews", {

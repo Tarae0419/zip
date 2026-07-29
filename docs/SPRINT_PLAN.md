@@ -5,7 +5,7 @@
 | 기준 문서 | `docs/PRD.md` (v1.1), `CLAUDE.md` |
 | 작성일 | 2026-07-29 |
 | 최종 수정일 | 2026-07-29 |
-| 상태 | Sprint 0~2 완료 · Sprint 3 완료(3.5 제외, 교양 데이터 파일 필요) · Sprint 4 진행 대기 |
+| 상태 | Sprint 0~2, 4 완료 · Sprint 3 3.5만 보류(교양 데이터 파일 필요) · Sprint 5 진행 대기 |
 
 ---
 
@@ -27,7 +27,7 @@
 | 1 | 익명 사용자 식별 & 리뷰 작성 | F1 쓰기 경로 | ✅ 완료 |
 | 2 | AI 해시태그 추천 & 리뷰 요약 | F1 AI 경로 | ✅ 완료 |
 | 3 | 분야 통합 검색 마무리 | F2 | 🟡 3.5 보류 (교양과목 파일 필요), 나머지 완료 |
-| 4 | 산업/진로 분야 검색 | F3 | ⬜ 대기 |
+| 4 | 산업/진로 분야 검색 | F3 | ✅ 완료 |
 | 5 | 커리큘럼 데이터 확보 | F4 기반 | ⬜ 대기 |
 | 6 | AI 커리큘럼 추천 엔진 | F4 | ⬜ 대기 |
 | 7 | 배포/운영 정비 & QA | 전체 | ⬜ 대기 |
@@ -152,14 +152,23 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 
 **작업 항목**
 
-- [ ] 4.1 산업/진로 태그셋 정의 — 반도체, AI·데이터사이언스 등 초기 카테고리를 `industry_tags`에 시딩 (PRD 8.3 요구사항 1)
-- [ ] 4.2 연관도 스코어링 파이프라인 — 과목 설명/키워드 임베딩 + pgvector 유사도로 `course_industry_tags.relevance_score` 계산 (PRD 10.3)
+- [x] 4.1 산업/진로 태그셋 정의 — 반도체, AI·데이터사이언스 등 초기 카테고리를 `industry_tags`에 시딩 (PRD 8.3 요구사항 1)
+  - 구현: `lib/db/scripts/seed-industry-tags.ts` — `lib/mock-data.ts`의 옛 `fieldCategories`와 동일한 6개(반도체/AI·데이터사이언스/바이오·헬스케어/금융·핀테크/콘텐츠·미디어/에너지·환경)로 시작, 아이콘도 그대로 재사용해 연속성 유지. `industry_tags`에 `description`·`icon`·`embedding` 컬럼 추가.
+- [x] 4.2 연관도 스코어링 파이프라인 — 과목명 임베딩 + pgvector 유사도로 `course_industry_tags.relevance_score` 계산 (PRD 10.3)
   - DoD: 임의 산업 분야 하나에 대해 연관도 상위 과목 목록이 실제로 채워진다.
-- [ ] 4.3 담당자 검수 반영 — 3.4와 동일한 방식으로 산업 태그 결과 검수
-- [ ] 4.4 `/fields` 페이지 실 DB 전환 — `components/fields-explorer.tsx`의 `fieldCategories`/mock 의존 제거, `lib/db/queries.ts`에 `getIndustryFieldsWithCourses` 등 추가
+  - 구현: pgvector 0.8.1 확장 활성화(`enable-pgvector.ts`) → `course_embeddings` 테이블 추가(과목당 하나, `text-embedding-3-small`) → `embed-courses.ts`로 고유 과목 4,457개 임베딩 생성 → `score-industry-relevance.ts`가 코사인 유사도(`<=>` 연산자)로 태그당 상위 40개를 뽑아 검수용 JSON으로 저장.
+  - **설계 메모**: 강의계획서가 없어(Sprint 0) 과목명만 임베딩했다. 산업 태그 쪽은 이름만으로는 임베딩이 부실해서 짧은 설명 + 키워드 목록을 붙여 임베딩했다(`industryTags.description`/시드 스크립트의 `keywords`). 최종 스코어는 매 요청마다 실시간으로 pgvector를 조회하지 않고 `course_industry_tags.relevance_score`에 캐싱 — pgvector는 이 오프라인 스코어링 단계에서만 쓰인다.
+- [x] 4.3 담당자 검수 반영 — 3.4와 동일한 방식으로 산업 태그 결과 검수
+  - 임계값(코사인 유사도) 0.3으로 처음 돌렸더니 "금속재료분석학"이 금융·핀테크로 잡히는 등 명백한 오탐이 섞여 0.4로 올림(6개 태그 합계 236건→167건). 그 후에도 남아있던 오탐(예: "디지털셰익스피어"가 바이오·헬스케어로 분류) 5건을 육안으로 찾아 JSON에서 직접 제거한 뒤 적용(`apply-industry-relevance.ts`, 최종 197건, 학기 fan-out 포함).
+- [x] 4.4 `/fields` 페이지 실 DB 전환 — `components/fields-explorer.tsx`의 `fieldCategories`/mock 의존 제거, `lib/db/queries.ts`에 `getIndustryFields`/`getIndustryFieldCourses` 추가
   - DoD: 화면에서 카테고리별 과목 수·목록이 실제 DB 값과 일치한다.
-- [ ] 4.5 내 전공 vs 타 전공 구분 — `course_department_tracks`를 이용해 로그인(익명) 사용자의 학과와 비교해 "내 전공 과목"/"타 전공 과목" 라벨 표시 (PRD 8.3 요구사항 5)
+  - `lib/mock-data.ts`에서 이제 아무 화면도 안 쓰는 `mockCourses`/`getCourseById`/`mockReviews`/`getReviewsByCourseId`/`fieldCategories`/`FieldCategory`/`aiSuggestedTags`를 함께 정리했다(F1/F2/F3는 완전히 실 DB로 전환됨 — 남은 mock은 F4용 `departments`/`interestFields`/`mockCurriculum`뿐).
+- [x] 4.5 내 전공 vs 타 전공 구분 — 사용자의 학과와 비교해 "내 전공 과목"/"타 전공 과목" 라벨 표시 (PRD 8.3 요구사항 5)
   - DoD: 사용자의 학과 정보가 있을 때 라벨이 정확히 구분되고, 없을 때는 라벨을 생략한다.
+  - 구현: `/fields`에 실제 개설학과 드롭다운(`components/my-department-select.tsx`) 추가, 선택 시 `lib/actions/user-profile.ts:setMyDepartment`가 `users.department`에 저장. `course_department_tracks`(자유 텍스트 라벨) 대신 `courses.department`(개설학과) 문자열을 그대로 비교 — 전자는 원본 표기가 학과명과 정확히 일치하지 않는 경우가 많아 더 불안정하다고 판단.
+  - 학과 미설정 상태에서는 `ownMajorLabel`이 `undefined`라 라벨이 아예 안 뜨는 것을 확인했고, 테스트 학과를 넣었을 때 정확히 구분되는 것도 DB 스크립트로 확인.
+
+**메모(다음 세션에서 브라우저로 직접 확인할 것)**: 아코디언 펼치기, 학과 드롭다운 선택 시 라벨이 바뀌는 모습은 curl/스크립트로만 검증했다.
 
 **담당 에이전트**: `ai-integration`, `nextjs-frontend`
 
@@ -234,6 +243,9 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 | 2026-07-29 | 홈 "인기 과목" 정렬 기준 | 당분간 `enrolledCount`(수강인원) 유지 | 리뷰 볼륨이 아직 없어 평점 기반 정렬은 무의미. 실사용 리뷰가 쌓이면 재검토(1.5). |
 | 2026-07-29 | 학문분야 분류 체계 | 대분류 10개 · 소분류 66개(자체 구성) | 표준 학문분류표(KECD 등)를 그대로 쓰지 않고, 이 대학 실제 147개 개설학과 이름을 근거로 직접 구성(`lib/db/scripts/seed-field-tags.ts`). 필요하면 이후 스프린트에서 세분화 가능. |
 | 2026-07-29 | 분야 태깅 근거 | 과목명만 사용 (강의계획서 미사용) | 원본 데이터에 강의계획서 본문이 없음(Sprint 0). 정확도 한계가 있을 수 있음 — 강의계획서 확보 시 재분류 고려. |
+| 2026-07-29 | 임베딩 모델 | OpenAI `text-embedding-3-small` (1536차원) | 저렴하고 한국어 짧은 텍스트에 충분한 성능. pgvector 0.8.1을 Neon에 활성화(`enable-pgvector.ts`). |
+| 2026-07-29 | 산업분야 연관도 임계값 | 코사인 유사도 ≥ 0.4, 태그당 상위 40개 후보 | 0.3에서는 오탐(무관한 과목)이 섞여 올림. 여전히 완벽하지 않아 사람이 최종적으로 몇 건 걸러냈다(4.3). |
+| 2026-07-29 | 내 전공 vs 타 전공 비교 기준 | `courses.department`(개설학과) 직접 비교 | `course_department_tracks.department_label`은 원문 자유 텍스트라 학과명과 정확히 일치하지 않는 경우가 많아(예: "기계설계(나노바이오)" vs "나노바이오기계시스템") 더 불안정하다고 판단. 더 정교한 매칭은 필요성이 확인되면 나중에 재검토. |
 | — | 학과 졸업요건 데이터 확보 방식 | 미정 | Sprint 5.1에서 결정 |
 | — | 선수과목 데이터 확보 가능 여부 | 미정 | Sprint 5.3에서 결정, 불가 시 F4 제약사항으로 문서화 |
 | — | 교양 과목 데이터 소스 | 미정, **사용자 확인 필요** | Sprint 3.5 — 교양 개설과목 목록 파일 업로드 필요 |

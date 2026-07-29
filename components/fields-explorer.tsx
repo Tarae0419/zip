@@ -12,7 +12,8 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { fieldCategories, getCourseById } from "@/lib/mock-data"
+import type { Course } from "@/lib/types"
+import type { IndustryFieldSummary } from "@/lib/db/queries"
 import { CourseCard } from "@/components/course-card"
 
 const iconMap: Record<string, LucideIcon> = {
@@ -24,20 +25,22 @@ const iconMap: Record<string, LucideIcon> = {
   Leaf,
 }
 
-// 목업: 현재 사용자의 전공
-const MY_DEPARTMENT = "컴퓨터공학과"
+export type FieldWithCourses = IndustryFieldSummary & { courses: Course[] }
 
-export function FieldsExplorer() {
+export function FieldsExplorer({
+  fields,
+  myDepartment,
+}: {
+  fields: FieldWithCourses[]
+  myDepartment: string | null
+}) {
   const [openId, setOpenId] = useState<string | null>(null)
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {fieldCategories.map((field) => {
+      {fields.map((field) => {
         const Icon = iconMap[field.icon] ?? Cpu
         const isOpen = openId === field.id
-        const courses = field.courseIds
-          .map((id) => getCourseById(id))
-          .filter((c): c is NonNullable<typeof c> => Boolean(c))
 
         return (
           <div
@@ -82,22 +85,32 @@ export function FieldsExplorer() {
 
             {isOpen && (
               <div className="border-t border-border px-5 pb-5 pt-4">
-                <p className="mb-4 text-xs text-muted-foreground">
-                  연관도순으로 정렬되었습니다
-                </p>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {courses.map((course) => (
-                    <CourseCard
-                      key={course.id}
-                      course={course}
-                      ownMajorLabel={
-                        course.department === MY_DEPARTMENT
-                          ? "내 전공 과목"
-                          : "타 전공 과목"
-                      }
-                    />
-                  ))}
-                </div>
+                {field.courses.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    아직 이 분야로 분류된 과목이 없어요.
+                  </p>
+                ) : (
+                  <>
+                    <p className="mb-4 text-xs text-muted-foreground">
+                      연관도순으로 정렬되었습니다
+                    </p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {field.courses.map((course) => (
+                        <CourseCard
+                          key={course.id}
+                          course={course}
+                          ownMajorLabel={
+                            myDepartment
+                              ? course.department === myDepartment
+                                ? "내 전공 과목"
+                                : "타 전공 과목"
+                              : undefined
+                          }
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

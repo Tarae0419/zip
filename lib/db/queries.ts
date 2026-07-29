@@ -2,7 +2,17 @@ import { and, desc, eq, ilike, inArray, notInArray, or, sql } from "drizzle-orm"
 
 import type { Course, HashtagStat, Review } from "@/lib/types"
 import { db } from "./client"
-import { courseDepartmentTracks, courseFieldTags, courses, fieldTags, reviews, summaries } from "./schema"
+import {
+  courseDepartmentTracks,
+  courseFieldTags,
+  courseIndustryTags,
+  courses,
+  fieldTags,
+  industryTags,
+  reviews,
+  summaries,
+  users,
+} from "./schema"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -208,4 +218,54 @@ export async function searchCoursesByFieldTag(
     .limit(60)
 
   return attachReviewStats(joined.map((r) => r.course))
+}
+
+export type IndustryFieldSummary = {
+  id: string
+  name: string
+  description: string
+  icon: string
+  courseCount: number
+}
+
+/** F3 — 산업/진로 분야 목록 + 태깅된 과목 수 (분야 카드 그리드용) */
+export async function getIndustryFields(): Promise<IndustryFieldSummary[]> {
+  const rows = await db
+    .select({
+      id: industryTags.id,
+      name: industryTags.name,
+      description: industryTags.description,
+      icon: industryTags.icon,
+      courseCount: sql<number>`count(${courseIndustryTags.courseId})`,
+    })
+    .from(industryTags)
+    .leftJoin(courseIndustryTags, eq(courseIndustryTags.industryTagId, industryTags.id))
+    .groupBy(industryTags.id)
+    .orderBy(industryTags.name)
+
+  return rows.map((r) => ({ ...r, courseCount: Number(r.courseCount) }))
+}
+
+/** F3 — 특정 산업분야의 연관도 상위 과목 (PRD 8.3 요구사항 4 — 연관도 순 정렬) */
+export async function getIndustryFieldCourses(industryTagId: string, limit = 12): Promise<Course[]> {
+  const rows = await db
+    .select({ course: courses })
+    .from(courseIndustryTags)
+    .innerJoin(courses, eq(courses.id, courseIndustryTags.courseId))
+    .where(and(eq(courseIndustryTags.industryTagId, industryTagId), eq(courses.isPublic, true)))
+    .orderBy(desc(courseIndustryTags.relevanceScore))
+    .limit(limit)
+
+  return attachReviewStats(rows.map((r) => r.course))
+}
+
+/** F3 요구사항 5 — 실제 개설학과 목록(학과 선택 드롭다운용) */
+export async function getDistinctDepartments(): Promise<string[]> {
+  const rows = await db.selectDistinct({ department: courses.department }).from(courses)
+  return rows.map((r) => r.department).sort((a, b) => a.localeCompare(b, "ko"))
+}
+
+export async function getUserDepartment(anonId: string): Promise<string | null> {
+  const [row] = await db.select({ department: users.department }).from(users).where(eq(users.anonId, anonId)).limit(1)
+  return row?.department ?? null
 }

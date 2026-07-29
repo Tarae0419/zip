@@ -15,6 +15,13 @@
       "when": 1785301703852,
       "tag": "0001_melodic_nico_minoru",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785305949371,
+      "tag": "0002_new_elektra",
+      "breakpoints": true
     }
   ]
 }

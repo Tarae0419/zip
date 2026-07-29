@@ -13,7 +13,11 @@
     "db:import-courses": "tsx lib/db/scripts/import-courses.ts",
     "db:seed-field-tags": "tsx --env-file=.env.local lib/db/scripts/seed-field-tags.ts",
     "db:classify-fields": "tsx --env-file=.env.local lib/db/scripts/classify-course-fields.ts",
-    "db:apply-field-classification": "tsx --env-file=.env.local lib/db/scripts/apply-field-classification.ts"
+    "db:apply-field-classification": "tsx --env-file=.env.local lib/db/scripts/apply-field-classification.ts",
+    "db:seed-industry-tags": "tsx --env-file=.env.local lib/db/scripts/seed-industry-tags.ts",
+    "db:embed-courses": "tsx --env-file=.env.local lib/db/scripts/embed-courses.ts",
+    "db:score-industry-relevance": "tsx --env-file=.env.local lib/db/scripts/score-industry-relevance.ts",
+    "db:apply-industry-relevance": "tsx --env-file=.env.local lib/db/scripts/apply-industry-relevance.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -42,11 +46,7 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.1",
     "typescript": "5.7.3",
+    "vercel": "^58.0.0",
     "xlsx": "^0.18.5"
-  },
-  "pnpm": {
-    "overrides": {
-      "hono": "4.12.25"
-    }
   }
 }

@@ -1,0 +1,1136 @@
+[
+  {
+    "tagName": "반도체",
+    "courseId": "86a4a381-bc2f-4336-9174-d94d13bdccbc",
+    "courseName": "반도체소자",
+    "department": "전자공학부",
+    "score": 0.6074371966559641
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "70d4e2db-b559-43bd-a475-8e67232ffd6f",
+    "courseName": "반도체공정",
+    "department": "전자재료공학",
+    "score": 0.6072287139760679
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "6556ed86-faa1-423d-8433-c09e1949d7de",
+    "courseName": "반도체공정",
+    "department": "반도체과학기술학과",
+    "score": 0.6072287139760679
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "7fa009ae-14d8-4789-8775-ff514aa03fc6",
+    "courseName": "반도체소자공학",
+    "department": "정보소재공학",
+    "score": 0.6067459844326089
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "66e7e350-7c06-413f-bdac-6271e262609f",
+    "courseName": "반도체공정개론",
+    "department": "반도체 소재/부품/장비",
+    "score": 0.5722916505004131
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "5fa00981-dd4e-4a27-8268-e6acaedaa16c",
+    "courseName": "반도체소자 1",
+    "department": "반도체과학기술학과",
+    "score": 0.5682549131228515
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "45cb8713-e1f2-4da7-b376-c3be5e59747d",
+    "courseName": "반도체공학개론",
+    "department": "반도체과학기술학과",
+    "score": 0.5650361599794121
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "8efce83d-3aca-4340-be38-638bd1b9918f",
+    "courseName": "반도체화학공학",
+    "department": "나노화학공학",
+    "score": 0.5604038790381937
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "c65bd1aa-03ad-4143-b9ea-b3b48291b129",
+    "courseName": "반도체·바이오센서제작",
+    "department": "나노바이오기계시스템",
+    "score": 0.5575084569103007
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "cf023880-e456-48fa-bbf1-0adf9296cd41",
+    "courseName": "반도체프로젝트",
+    "department": "반도체융합",
+    "score": 0.5549413767182505
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "657aa7eb-c23e-4243-9dc2-b58ef309b7ac",
+    "courseName": "반도체재료및소자 1",
+    "department": "전자재료공학",
+    "score": 0.540075606327045
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "40b75db4-22a5-4fb3-b78d-a98f51cf3fb1",
+    "courseName": "반도체소자 2",
+    "department": "반도체과학기술학과",
+    "score": 0.5351087235250234
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "0242e4e0-3c55-4cbe-ba31-528962139972",
+    "courseName": "반도체물리학",
+    "department": "물리학과",
+    "score": 0.5296634900321581
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "2524d4f7-dc5c-4a0d-8ae8-cef1e79afdf3",
+    "courseName": "반도체물리학",
+    "department": "반도체과학기술학과",
+    "score": 0.5296634900321581
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "6338f6e1-aac3-4515-917e-daedc09ced7e",
+    "courseName": "반도체패키징공학",
+    "department": "정보소재공학",
+    "score": 0.528775164384606
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "7bb9ff81-bfb6-45bb-a0fe-d652d2113963",
+    "courseName": "반도체기초수학",
+    "department": "반도체 소재/부품/장비",
+    "score": 0.5201717432231185
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "19deca5b-e3e8-4cd5-ab4a-9ae2916e18bd",
+    "courseName": "반도체물리전자",
+    "department": "전자공학부",
+    "score": 0.51674981466337
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "13c43811-084d-4fe6-b9f1-b594cb2c22ed",
+    "courseName": "반도체재료및소자 2",
+    "department": "전자재료공학",
+    "score": 0.515620612402972
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "3d803769-1344-49b9-b391-ec4dd3181611",
+    "courseName": "반도체센서기초",
+    "department": "반도체융합",
+    "score": 0.5004598117208839
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "1ad6bac3-d0a5-4bd4-9ced-bb7ea5403da8",
+    "courseName": "나노반도체공학",
+    "department": "반도체과학기술학과",
+    "score": 0.4922127038300841
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "e41ac59b-8f02-4963-8b2f-4e197a520747",
+    "courseName": "반도체공학입문",
+    "department": "정보소재공학",
+    "score": 0.48936231203554703
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "8d660954-0387-4231-abb5-c0e9ff4a4a21",
+    "courseName": "반도체재료성장",
+    "department": "반도체과학기술학과",
+    "score": 0.48656420021973545
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "2322163f-0473-492c-a71b-9f70e5d91254",
+    "courseName": "반도체융합실무",
+    "department": "반도체융합",
+    "score": 0.48206507342164495
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "7c0ebc4d-85b5-4b41-a673-f8da592646bd",
+    "courseName": "모빌리티용시스템반도체설계",
+    "department": "반도체융합",
+    "score": 0.4747282822044081
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "929385a0-4b5b-444e-b714-7c57274c8d70",
+    "courseName": "반도체공정실험 1",
+    "department": "반도체과학기술학과",
+    "score": 0.47319895400730094
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "4c284b4c-bea6-487b-81a8-008da124f3e7",
+    "courseName": "센서반도체",
+    "department": "반도체과학기술학과",
+    "score": 0.4717170489171826
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "c5cf0075-f81b-44c5-8410-a25230e03118",
+    "courseName": "반도체전자공학(JST)",
+    "department": "에너지신산업",
+    "score": 0.4689688980904292
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "fe683c7e-1d6a-4376-9b9f-54f1580ef8a3",
+    "courseName": "반도체연구특론 1",
+    "department": "반도체과학기술학과",
+    "score": 0.4667504172181207
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "ec5df5b8-9dd5-4564-9426-c5f324ae36e7",
+    "courseName": "반도체연구특론 2",
+    "department": "반도체과학기술학과",
+    "score": 0.4643383475791478
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "e87d2b7c-a013-43e7-9182-c26a923bde59",
+    "courseName": "첨단반도체공정",
+    "department": "반도체융합",
+    "score": 0.46224801759199874
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "eac06203-2601-4f92-9393-8c2ffb1a864e",
+    "courseName": "반도체디스플레이공학",
+    "department": "전자공학부",
+    "score": 0.4601623089161403
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "423efad7-117a-4ac5-a375-313445045503",
+    "courseName": "모빌리티용반도체공학개론",
+    "department": "반도체융합",
+    "score": 0.459029030441122
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "cd919353-345c-41bb-b034-e18f2e966d7f",
+    "courseName": "반도체물성실험",
+    "department": "반도체과학기술학과",
+    "score": 0.4552757773217472
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "a7654826-885a-443b-97d4-c5a5ba49d2f4",
+    "courseName": "모빌리티용반도체공정실무",
+    "department": "반도체융합",
+    "score": 0.44928306948265984
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "22da68d7-bd99-4b17-813e-72b406d148d0",
+    "courseName": "반도체인터커넥션공학",
+    "department": "반도체과학기술학과",
+    "score": 0.44848027458755313
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "4be9c959-fc08-41de-a0e3-11d13dd6d58c",
+    "courseName": "반도체테스트알고리즘",
+    "department": "반도체 소재/부품/장비",
+    "score": 0.44591701607547307
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "09732c94-aec1-4b3c-baa6-0325df84d02b",
+    "courseName": "반도체공정실험 2",
+    "department": "반도체과학기술학과",
+    "score": 0.44128135709775906
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "680080c9-2776-4e52-b472-efdb0a284fa5",
+    "courseName": "반도체콜로퀴엄",
+    "department": "반도체융합",
+    "score": 0.4275015113355004
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "9b7e80bd-6659-4107-a375-26cd0a5efe11",
+    "courseName": "반도체표면분석",
+    "department": "반도체과학기술학과",
+    "score": 0.42702531324080295
+  },
+  {
+    "tagName": "반도체",
+    "courseId": "084ad4bd-b834-41cc-8e24-3b494b00e15d",
+    "courseName": "플라즈마반도체공정기초",
+    "department": "양자시스템공학과",
+    "score": 0.42486992974503035
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "88330013-79cd-493a-9aee-722acf25992d",
+    "courseName": "인공지능및딥러닝활용",
+    "department": "통계학과",
+    "score": 0.5324892074539783
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "bf3c95cd-d12a-4673-b3b4-20b174640906",
+    "courseName": "빅데이터분석과응용",
+    "department": "산업정보시스템공학과",
+    "score": 0.5226377967023612
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "cbef499b-e075-4373-8979-884ceac038ea",
+    "courseName": "공공빅데이터통계해석",
+    "department": "공공인재학부",
+    "score": 0.49779339205367856
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "5cfacceb-d290-480c-aacf-2f1c2aa96049",
+    "courseName": "인공지능",
+    "department": "소프트웨어공학과",
+    "score": 0.4892737240207904
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "342a2b14-9529-45a9-90be-995bbafad5a8",
+    "courseName": "인공지능",
+    "department": "전자공학부",
+    "score": 0.48922423597779907
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "a2af62a7-2a20-42d0-b7b0-4babbe351af2",
+    "courseName": "인공지능",
+    "department": "컴퓨터인공지능학부",
+    "score": 0.48922423597779907
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "0777fa78-0a07-4531-823c-a420f3bf636f",
+    "courseName": "인공지능",
+    "department": "IT융합기전공학(재)",
+    "score": 0.48922423597779907
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "9d3f39ff-7a5a-422c-a724-d6c35b7d4f05",
+    "courseName": "인공지능",
+    "department": "엔지니어링사이언스",
+    "score": 0.48922423597779907
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "c20fc599-85d0-4a6f-a0e4-1fe4a1e339a6",
+    "courseName": "인공지능",
+    "department": "기계설계공학",
+    "score": 0.48922423597779907
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "25d5cb66-1834-4d2e-b699-064c224bbfec",
+    "courseName": "의약빅데이터와AI",
+    "department": "약학과",
+    "score": 0.48126835323462025
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "83ab1bea-6d2d-41d5-9b9b-e6f92bef0476",
+    "courseName": "농업인공지능개론",
+    "department": "생물산업기계공학과",
+    "score": 0.48046985063710057
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "86adc43e-b383-4d13-8a27-dfd330fdc118",
+    "courseName": "빅데이터개론",
+    "department": "통계학과",
+    "score": 0.4781744620434958
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "dfdaaf77-2289-499c-8b25-b9b668b1df9f",
+    "courseName": "계산물리응용및인공지능",
+    "department": "물리학과",
+    "score": 0.47566831142816524
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "affc8c00-9ed7-45a7-bd8a-b101290daf9e",
+    "courseName": "통계데이터분석",
+    "department": "산업정보시스템공학과",
+    "score": 0.46677229054244396
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "b21b70ee-a022-4b87-82c7-5132ed72132c",
+    "courseName": "농업데이터이해및분석",
+    "department": "생물산업기계공학과",
+    "score": 0.46610517281996233
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "ff90aca2-8c0c-4772-a649-3a80be3da282",
+    "courseName": "데이터마이닝",
+    "department": "산업정보시스템공학과",
+    "score": 0.4653890674436676
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "e69d513c-aafa-4b4b-978b-5546f131ae65",
+    "courseName": "데이터마이닝",
+    "department": "컴퓨터인공지능학부",
+    "score": 0.4653890674436676
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "012bc5d5-22e7-4a2a-9826-162644c47f09",
+    "courseName": "머신러닝개론",
+    "department": "기계공학과",
+    "score": 0.46449743523821097
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "0d2cf5b7-d5cb-4e32-84ab-21c1e6966eda",
+    "courseName": "빅데이터분석의이해",
+    "department": "식품유통학",
+    "score": 0.4640248820049684
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "30245088-5302-4b27-83ed-012a82085d0f",
+    "courseName": "인공지능개론및실습",
+    "department": "IAB융합",
+    "score": 0.45953223826917533
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "ecff9983-fbb0-4cc1-b4b3-e58c3f83580d",
+    "courseName": "의료인공지능",
+    "department": "헬스케어정보공학",
+    "score": 0.45917546413567467
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "c38744a7-d051-4098-8d7e-265606609e95",
+    "courseName": "경제분석을위한데이터사이언스",
+    "department": "경제학",
+    "score": 0.4536596084592861
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "242c5cf0-96a3-4f83-8844-821969b9028c",
+    "courseName": "AIoT시계열분석",
+    "department": "소프트웨어공학과(재)",
+    "score": 0.4516651751220653
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "e3e7d994-8a57-4082-a88f-da80c5be157e",
+    "courseName": "인공지능화학",
+    "department": "화학과",
+    "score": 0.4504507643954463
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "cb4a16b5-aa93-4b08-946e-925cc5f4d052",
+    "courseName": "응용통계학",
+    "department": "통계학과",
+    "score": 0.4349600039821442
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "f35a761e-6658-4c66-9dc9-445eddb6ca98",
+    "courseName": "전기공학인공지능개론",
+    "department": "전기공학과",
+    "score": 0.4322124576472619
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "6078d646-079a-464e-ba6f-391e048ddadb",
+    "courseName": "인공지능기초(JST)",
+    "department": "미래수송기기",
+    "score": 0.43124407801394704
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "ced3f8bf-dfc0-48d7-8d15-57831916c4a5",
+    "courseName": "인공지능과자연어처리",
+    "department": "IAB융합",
+    "score": 0.4297012062410832
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "06ad4dcd-9556-45b8-832e-f72756adf8af",
+    "courseName": "데이터베이스론",
+    "department": "문헌정보학과",
+    "score": 0.42904006381974
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "6327bbc1-29a7-47a1-ac7a-ddfb9ba0f45a",
+    "courseName": "AI와커뮤니케이션",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.42784691092380345
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "c8d2e6ec-943d-40eb-bf08-8d672c97b35c",
+    "courseName": "축산생명공학데이터해석학",
+    "department": "동물생명공학과",
+    "score": 0.42752802299184034
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "79b5478b-27a6-4ff7-b53e-271c691d5806",
+    "courseName": "농생명인공지능(JST)",
+    "department": "농생명·바이오",
+    "score": 0.42569567706691114
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "83d4f7f3-1d11-415e-9da9-1e17d9b46417",
+    "courseName": "인공지능과공공조직혁신전략",
+    "department": "행정학과",
+    "score": 0.42174180146235396
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "6309e207-b370-4124-878a-e0c921a9cebf",
+    "courseName": "인공지능과공공조직혁신전략",
+    "department": "IAB융합",
+    "score": 0.42174180146235396
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "9636a532-67a0-4481-be9b-8c6be4cb1d0e",
+    "courseName": "AI와철학",
+    "department": "철학과",
+    "score": 0.42100479236647503
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "d11e38b9-d64a-499c-8359-69c0f32bbc40",
+    "courseName": "스포츠데이터분석",
+    "department": "스포츠과학과",
+    "score": 0.42041580455459604
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "1c218151-7201-4f70-92e7-e6af123bd8eb",
+    "courseName": "AI와어패럴디자인",
+    "department": "의류학과",
+    "score": 0.4162185633011035
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "c7a1ebf3-5366-4337-aed2-d910056ce9d8",
+    "courseName": "비즈니스데이터처리",
+    "department": "경영학과",
+    "score": 0.4161539190282064
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "a9cf7dcf-dd76-446f-8bc2-27014e798167",
+    "courseName": "메타데이터",
+    "department": "문헌정보학과",
+    "score": 0.4160874126662506
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "cca42e35-286b-4aa9-a58c-5076d4ea4f1f",
+    "courseName": "인공지능물리탐사",
+    "department": "자원.에너지공학",
+    "score": 0.41336848242354496
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "a0ca5c6a-9700-405c-8ff5-2aecc014cb51",
+    "courseName": "헬스케어기기디자인",
+    "department": "헬스케어기기공학",
+    "score": 0.46631389853931104
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "0508f421-11aa-4bee-ba62-bc16103fd09e",
+    "courseName": "데이터기반헬스케어기술 1",
+    "department": "헬스케어정보공학",
+    "score": 0.4541320618578373
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "ae01b166-6c3d-43b7-bf1b-7db83455d840",
+    "courseName": "데이터기반헬스케어기술 2",
+    "department": "헬스케어정보공학",
+    "score": 0.4498946724196501
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "9212aa3c-bc0d-4e4f-abfc-49d61fcc2f0c",
+    "courseName": "바이오공학개론",
+    "department": "나노바이오기계시스템",
+    "score": 0.43771661669007167
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "ed42b835-31d3-4c4c-95b4-efb3e6fbeb39",
+    "courseName": "디지털논리공학",
+    "department": "전자공학부",
+    "score": 0.42226533588548887
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "d2192c2b-ce0e-4488-be4b-a54e3dd4ecfc",
+    "courseName": "디지털논리공학",
+    "department": "IT응용시스템공학",
+    "score": 0.42226533588548887
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "77552819-39a3-4f17-a590-8a24cdd0f1e4",
+    "courseName": "바이오인포메틱스",
+    "department": "엔지니어링사이언스",
+    "score": 0.4188280154105404
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "a52704ff-308f-43a9-bb8b-fe95b06814f1",
+    "courseName": "바이오메디컬AI의수학적기초",
+    "department": "바이오메디컬공학부",
+    "score": 0.4179413604562032
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "fb3412e2-bceb-4a89-8816-d14180091b6d",
+    "courseName": "헬스케어로봇활용및실습",
+    "department": "헬스케어기기공학",
+    "score": 0.4178606230262183
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "c14f861d-32b0-477b-8b1a-7b37dc148e16",
+    "courseName": "금융통계",
+    "department": "통계학과",
+    "score": 0.5420329902411133
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "695e6928-566b-4b3b-a4c6-f2a9409ecd7f",
+    "courseName": "금융수학",
+    "department": "수학과",
+    "score": 0.5202547092886542
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "cb861f24-bbdc-4b8a-93d8-ba3dc40abff8",
+    "courseName": "금융시계열분석",
+    "department": "경제학",
+    "score": 0.45857366829396473
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "b285d890-3620-4732-ac9c-84f406a977e1",
+    "courseName": "파생금융상품론",
+    "department": "경영학과",
+    "score": 0.45840364066745565
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "b5c5d4be-6fcd-42e4-a60d-b0d84b40662d",
+    "courseName": "파생금융시장론",
+    "department": "경제학",
+    "score": 0.45623632530381997
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "c0e71e55-ad24-4ec3-ae27-e991bcbf51f8",
+    "courseName": "금융리스크관리",
+    "department": "경영학과",
+    "score": 0.4440127620120147
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "4ac8f3ff-3e58-49df-9fc1-c2a797ad064c",
+    "courseName": "투자론",
+    "department": "경영학과",
+    "score": 0.4250086668350339
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "e179512e-44e7-45da-8d28-9c50ccd89108",
+    "courseName": "투자론",
+    "department": "회계학과",
+    "score": 0.4250086668350339
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "9097cd10-2767-40ba-801b-5ff57dba9170",
+    "courseName": "통화금융론",
+    "department": "경제학",
+    "score": 0.42137128208100005
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "1908d19f-7418-4c33-8125-34884d52c8d2",
+    "courseName": "국제금융시장론",
+    "department": "경제학",
+    "score": 0.4172820242898586
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "e79f85b9-3a83-45c5-990b-e0b45464d161",
+    "courseName": "회계와투자분석",
+    "department": "회계학과",
+    "score": 0.4159753036522631
+  },
+  {
+    "tagName": "금융·핀테크",
+    "courseId": "9255b0dc-7af7-44e6-9fb1-4a8d8c3aa59b",
+    "courseName": "국제금융론",
+    "department": "국제무역학과",
+    "score": 0.4016186233060538
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "7f11222f-47f9-4b9c-bb91-0a39c18a018b",
+    "courseName": "멀티미디어콘텐츠제작",
+    "department": "소프트웨어공학과(재)",
+    "score": 0.6826167704959778
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "6eff781d-30d0-4787-a809-feb79d171d48",
+    "courseName": "콘텐츠기획제작",
+    "department": "산업디자인학과",
+    "score": 0.6488976857607636
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "e83b019c-0554-4a7d-b236-5cfa6bbe275a",
+    "courseName": "방송미디어제작기획",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.5925212989552358
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "bf76c5df-6701-421c-bacc-70b3051820bb",
+    "courseName": "영화영상콘텐츠기획",
+    "department": "프랑스·아프리카학과",
+    "score": 0.5756355175728489
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "68a5e0d4-6a10-4bdb-b750-9d2774c70327",
+    "courseName": "가상/실감콘텐츠제작기획",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.5220052318753127
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "63b7987d-7505-4f68-a2cb-aeea600bc3f5",
+    "courseName": "뉴미디어아트제작실습",
+    "department": "예술융합창작",
+    "score": 0.47016217721672615
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "dc8b6450-134d-4998-8548-7a7e655b93d7",
+    "courseName": "미디어직업론",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.46219886981953273
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "d6ce15e2-88a8-4cbf-9674-4ca9da3b5eb4",
+    "courseName": "멀티미디어시스템",
+    "department": "IT응용시스템공학",
+    "score": 0.46109034791728143
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "3b4f10cd-7ead-4e18-8f1a-52b81d6454cc",
+    "courseName": "학교미디어센터경영",
+    "department": "문헌정보학과",
+    "score": 0.44929757548171645
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "71692a02-6ed0-4f25-a9d8-8c9a3d42c8f1",
+    "courseName": "스페인어권미디어와스토리텔링",
+    "department": "스페인.중남미학과",
+    "score": 0.44649931656275377
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "0d230aed-4d47-4b66-9768-0e9d2ddc48e0",
+    "courseName": "문화콘텐츠관리기술",
+    "department": "문헌정보학과",
+    "score": 0.44640314076251997
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "454f276e-131e-4ba5-9492-92d30a695ee6",
+    "courseName": "미디어커뮤니케이션이론",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.4419990716751505
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "3d2e0760-ce88-4d18-b92f-2f6f086df658",
+    "courseName": "멀티미디어와조경 1",
+    "department": "생태조경디자인학과",
+    "score": 0.4355081364785385
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "3e58fe4e-1c75-4657-ab03-061cb4ba3992",
+    "courseName": "미디어커뮤니케이션세미나",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.4327836976651356
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "5c13d7b8-97ed-4041-bf5a-31cd70be848b",
+    "courseName": "미디어와젠더",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.4307597945343884
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "bc519ac6-a4c0-494f-9472-765334dd1d19",
+    "courseName": "멀티미디어와조경 2",
+    "department": "생태조경디자인학과",
+    "score": 0.42957458551530026
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "b3815fef-5e91-42aa-b325-27c0ed794a72",
+    "courseName": "미디어와정치",
+    "department": "정치외교학과",
+    "score": 0.42777874463653864
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "41e3d51b-f3d4-434e-a8ce-5f313f8f6245",
+    "courseName": "미디어커뮤니케이션조사방법론",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.42593954442388604
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "72751287-fe2d-40b1-9bd8-75e0f6d7c5e4",
+    "courseName": "방송모니터론",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.4156412297602936
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "bdddaa29-5a7b-407f-bcee-dd2d663c0443",
+    "courseName": "디지털영화영상제작기획",
+    "department": "미디어커뮤니케이션학과",
+    "score": 0.40804073677956554
+  },
+  {
+    "tagName": "콘텐츠·미디어",
+    "courseId": "ed4ed149-4426-4da3-816b-7f036b0abd3b",
+    "courseName": "미디어스페인어",
+    "department": "스페인.중남미학과",
+    "score": 0.40470370069350103
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "3a3f8825-a59f-4fc0-9d46-2c5bb913470e",
+    "courseName": "에너지·환경물리학",
+    "department": "물리학과",
+    "score": 0.6254293400446398
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "c2fdcb3a-bec4-40e5-854f-d42bb07f94af",
+    "courseName": "에너지와환경",
+    "department": "물리교육",
+    "score": 0.6020453606014021
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "1eb3d162-a9a6-4efa-a6c6-0e5c9c7ca237",
+    "courseName": "환경에너지개론",
+    "department": "환경생명공학",
+    "score": 0.5897650450667595
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "f740f0c6-ca60-456d-b500-ae13eb30f58d",
+    "courseName": "에너지저장공학개론",
+    "department": "에너지신산업",
+    "score": 0.5586020899945922
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "29a0de72-10a5-4fef-a83c-da5bf3c9b48e",
+    "courseName": "에너지환경기술",
+    "department": "에너지화학공학",
+    "score": 0.5444927828392613
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "61eefc0d-61d6-4c80-b38e-672ee95fa3eb",
+    "courseName": "에너지환경기술",
+    "department": "에너지신산업",
+    "score": 0.5444927828392613
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "0e375932-029c-4373-877c-c18ed602e05a",
+    "courseName": "지속가능에너지",
+    "department": "자원.에너지공학",
+    "score": 0.5436457880549664
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "f4b8c445-e5ea-4459-8419-65d72644d997",
+    "courseName": "에너지공학개론",
+    "department": "기계공학과",
+    "score": 0.5390815850447201
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "4166fdeb-c4f8-4e66-98e6-b5b247d4196c",
+    "courseName": "에너지생산소재공학",
+    "department": "에너지신산업",
+    "score": 0.5374907235308242
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "c4ab15d8-3bdc-4d3b-bb09-7ad14aa0e0e4",
+    "courseName": "에너지저장및변환소재공학",
+    "department": "엔지니어링사이언스",
+    "score": 0.5291426178936329
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "1dbba0a7-1b1c-42a3-8ec5-f6675a86c182",
+    "courseName": "에너지전기화학",
+    "department": "화학과",
+    "score": 0.5233936098175987
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "7ee91217-e322-4143-bc4c-d5c1f1f10a72",
+    "courseName": "기후에너지개론",
+    "department": "자원.에너지공학",
+    "score": 0.5207441276089567
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "57619d43-579e-41d0-b6bb-3bfbbbe5c2b6",
+    "courseName": "에너지변환공학",
+    "department": "기계시스템공학부",
+    "score": 0.5037704013432804
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "6fad3857-2349-448e-875a-2d6a5d1ca5f3",
+    "courseName": "에너지양론설계",
+    "department": "자원.에너지공학",
+    "score": 0.5022911379924092
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "958c36f5-09a7-4085-9ba6-fd3a5cb6fd4f",
+    "courseName": "지구에너지환경및자연재해",
+    "department": "지구과학교육",
+    "score": 0.5016128342676283
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "4ce95276-480d-4455-9a81-94f935273fde",
+    "courseName": "에너지소재재활용공학",
+    "department": "생명화학공학",
+    "score": 0.49639596176125433
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "1edcc53a-58c8-4a21-94f4-a663b057924a",
+    "courseName": "에너지전환공학",
+    "department": "자원.에너지공학",
+    "score": 0.4920056243424269
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "262b1ab6-a74d-4ce0-8260-2d5ce3f46945",
+    "courseName": "환경생태학개론",
+    "department": "환경생명공학",
+    "score": 0.48980925313705725
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "f3d7741f-346c-468e-845f-9e40a8923bc7",
+    "courseName": "전기에너지개론",
+    "department": "에너지신산업",
+    "score": 0.48853028808481436
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "e406214d-2fee-4abb-b857-d929e472641d",
+    "courseName": "환경생명공학",
+    "department": "환경생명공학",
+    "score": 0.4826366141671907
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "4a8a668b-6936-4912-9811-51a922c86125",
+    "courseName": "환경생태학",
+    "department": "환경공학",
+    "score": 0.4825113036824681
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "60e7ec3e-de2e-4deb-b94a-556554091957",
+    "courseName": "해양환경과학개론",
+    "department": "지구환경과학과",
+    "score": 0.4817262621354974
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "f4ef3998-d8a9-48f9-ae7f-4b411b04e1c5",
+    "courseName": "환경생명공학개론",
+    "department": "환경생명공학",
+    "score": 0.48154900479400453
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "b49450cb-0532-4b9b-a791-d41fce2dda5a",
+    "courseName": "환경생명소재학",
+    "department": "환경생명공학",
+    "score": 0.47830994351344247
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "38186522-5004-4720-a901-4195cd15628f",
+    "courseName": "환경생화학 2",
+    "department": "환경생명공학",
+    "score": 0.47460481471961224
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "2186d1a4-740b-4758-be5c-fe619a07e11d",
+    "courseName": "환경생태유전학",
+    "department": "환경생명공학",
+    "score": 0.4741903786969177
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "437565e9-b640-4b81-a955-6c7133af9e79",
+    "courseName": "환경유기화학개론",
+    "department": "환경생명공학",
+    "score": 0.4730431605567953
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "8a2c78fc-499b-4179-a3cb-ff6c357768db",
+    "courseName": "에너지저장변환소재",
+    "department": "전자재료공학",
+    "score": 0.4708353017764615
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "6bb8035b-d87a-435a-8dca-3ab7c4d80758",
+    "courseName": "농업환경화학",
+    "department": "생물환경화학과",
+    "score": 0.4707090586784648
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "908b9279-5941-44f4-b2f1-2b272e107636",
+    "courseName": "환경토양화학및광물학",
+    "department": "환경생명공학",
+    "score": 0.4703448595959545
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "2b586356-806b-4afc-b64d-f4a232beeca4",
+    "courseName": "환경화학",
+    "department": "환경공학",
+    "score": 0.4684863148617111
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "1479b696-01b8-4f48-a619-0163cd40e626",
+    "courseName": "환경화학",
+    "department": "화학교육",
+    "score": 0.4684863148617111
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "0518aa6a-c7a3-48b3-bfe4-e2d788489348",
+    "courseName": "지역환경공학",
+    "department": "지역건설공학과",
+    "score": 0.466513472239274
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "25fd1c50-2785-4402-8c7b-5b3bfa2c36c0",
+    "courseName": "신재생에너지공학개론",
+    "department": "에너지신산업",
+    "score": 0.4642743863013803
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "1b448d09-bfca-4f3a-a68f-9e71ac8e2c89",
+    "courseName": "에너지신산업이슈연구",
+    "department": "에너지신산업",
+    "score": 0.4629985823205791
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "2b971228-690f-43c5-8513-f0bdc751e5f3",
+    "courseName": "에너지융합개론",
+    "department": "자원.에너지공학",
+    "score": 0.46228978980452573
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "0e856b00-9b7a-4f3d-a4ea-89e12a877424",
+    "courseName": "에너지융합개론",
+    "department": "반도체과학기술학과",
+    "score": 0.46228978980452573
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "754cc5d0-087a-4a21-8b46-d25b823c1d1a",
+    "courseName": "에너지융합개론",
+    "department": "금속시스템공학",
+    "score": 0.46228978980452573
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "5dd30785-41cb-418d-a6f0-89e30193132f",
+    "courseName": "에너지융합개론",
+    "department": "환경공학",
+    "score": 0.46228978980452573
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "f7423c03-4bc2-4bab-9db7-8a5dfea5760a",
+    "courseName": "AI기반에너지안전공학",
+    "department": "에너지신산업",
+    "score": 0.46126702474510517
+  }
+]
