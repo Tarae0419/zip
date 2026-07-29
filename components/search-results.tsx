@@ -1,9 +1,9 @@
 import { SearchX } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { searchCoursesByFieldTag, searchCoursesByName, type SearchFilters } from "@/lib/db/queries"
-import { CourseCard } from "@/components/course-card"
 import { SearchFilterBar, type SortKey } from "@/components/search-filter-bar"
-import { SearchTabs, type SearchTab } from "@/components/search-tabs"
+import { SearchResultsView } from "@/components/search-results-view"
+import type { SearchTab } from "@/components/search-tabs"
 
 function sortCourses(list: Course[], sort: SortKey): Course[] {
   const copy = [...list]
@@ -29,8 +29,15 @@ export async function SearchResults({
     requirementType: requirement !== "전체" ? requirement : undefined,
   }
 
-  const { view: nameMatches } = query ? await searchCoursesByName(query, filters) : { view: [] as Course[] }
-  const fieldMatches = query ? await searchCoursesByFieldTag(query, nameMatches.map((c) => c.id), filters) : []
+  // 이름 매칭과 분야 매칭은 서로 독립적으로 조회할 수 있다 — 분야 쪽은 일단 제외 없이 받아온 뒤
+  // 이름 매칭 결과와 겹치는 것만 자바스크립트에서 걸러낸다. 두 조회를 순서대로(await 후 await) 하면
+  // Neon 서버리스 드라이버 특성상 왕복이 두 번 직렬로 쌓여 느려지므로 Promise.all로 동시에 보낸다.
+  const [{ view: nameMatches }, fieldMatchesRaw] = query
+    ? await Promise.all([searchCoursesByName(query, filters), searchCoursesByFieldTag(query, [], filters)])
+    : [{ view: [] as Course[] }, [] as Course[]]
+
+  const nameIds = new Set(nameMatches.map((c) => c.id))
+  const fieldMatches = fieldMatchesRaw.filter((c) => !nameIds.has(c.id))
 
   const sortedName = sortCourses(nameMatches, sort)
   const sortedField = sortCourses(fieldMatches, sort)
@@ -38,8 +45,7 @@ export async function SearchResults({
 
   // 명시적으로 tab 파라미터가 있으면 그걸 따르고, 없으면 결과가 있는 쪽을 기본으로 보여준다.
   const requestedTab = searchParams.tab === "field" || searchParams.tab === "name" ? searchParams.tab : null
-  const activeTab: SearchTab = requestedTab ?? (sortedName.length > 0 || sortedField.length === 0 ? "name" : "field")
-  const activeCourses = activeTab === "name" ? sortedName : sortedField
+  const initialTab: SearchTab = requestedTab ?? (sortedName.length > 0 || sortedField.length === 0 ? "name" : "field")
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
@@ -64,22 +70,7 @@ export async function SearchResults({
           </p>
         </div>
       ) : (
-        <>
-          <SearchTabs active={activeTab} nameCount={sortedName.length} fieldCount={sortedField.length} fieldLabel={query} />
-
-          {activeCourses.length === 0 ? (
-            <p className="mt-8 rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-              {activeTab === "name" ? "과목명이 일치하는 결과가 없어요." : "분야가 일치하는 결과가 없어요."}
-              {" "}다른 탭을 확인해보세요.
-            </p>
-          ) : (
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {activeCourses.map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
-          )}
-        </>
+        <SearchResultsView initialTab={initialTab} nameMatches={sortedName} fieldMatches={sortedField} fieldLabel={query} />
       )}
     </div>
   )

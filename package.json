@@ -20,7 +20,8 @@
     "db:embed-courses": "tsx --env-file=.env.local lib/db/scripts/embed-courses.ts",
     "db:score-industry-relevance": "tsx --env-file=.env.local lib/db/scripts/score-industry-relevance.ts",
     "db:apply-industry-relevance": "tsx --env-file=.env.local lib/db/scripts/apply-industry-relevance.ts",
-    "db:seed-curricula": "tsx --env-file=.env.local lib/db/scripts/seed-curricula.ts"
+    "db:seed-curricula": "tsx --env-file=.env.local lib/db/scripts/seed-curricula.ts",
+    "db:seed-sample-reviews": "tsx --env-file=.env.local lib/db/scripts/seed-sample-reviews.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

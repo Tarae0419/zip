@@ -1,6 +1,6 @@
 // F4 결정론적 학점 계산·배치 로직 (PRD 8.4 추천로직 6~9). AI 위임 대상이 아니다 —
 // 여기서 만든 계획에 관심분야 매칭 과목의 "추천 사유" 문장만 lib/ai/curriculum-reasons.ts가 다듬는다.
-import type { ElectiveCandidate, RequiredCourseInfo } from "@/lib/db/queries"
+import type { ElectiveCandidate, OwnMajorElectiveCandidate, RequiredCourseInfo } from "@/lib/db/queries"
 import type { PlanItem, PlanItemType, PlanSemester } from "./types"
 
 const TARGET_CREDITS_PER_SEMESTER = 16
@@ -83,6 +83,59 @@ export function placeRequiredCourses(
   }
 
   return { semesterItems, semesterCredits, requiredCreditsPlaced }
+}
+
+/**
+ * PRD 8.4 추천로직 7~8 — "전공선택 학점 요건 중 남은 학점"을 본인 학과 전공선택 과목으로 채운다.
+ * 관심분야와 연관도가 있으면 그 근거를 사유에 적고, 없어도 전공선택 요건 자체를 채우기 위해 배치한다
+ * (getOwnMajorElectiveCourses가 연관도 0인 과목도 후보에 포함해서 넘겨준다).
+ */
+export function fillMajorElectives(
+  semesterItems: PlanItem[][],
+  semesterCredits: number[],
+  candidates: OwnMajorElectiveCandidate[],
+  department: string,
+  interestFieldNameById: Map<string, string>,
+  creditBudget: number,
+): { usedCourseCodes: Set<string>; totalCreditsPlaced: number } {
+  const usedCourseCodes = new Set<string>()
+  let totalCreditsPlaced = 0
+  let candidateIndex = 0
+
+  for (let s = 0; s < semesterItems.length; s++) {
+    while (
+      candidateIndex < candidates.length &&
+      semesterCredits[s] < TARGET_CREDITS_PER_SEMESTER &&
+      totalCreditsPlaced < creditBudget
+    ) {
+      const candidate = candidates[candidateIndex]
+      candidateIndex++
+      if (usedCourseCodes.has(candidate.code)) continue
+      if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) continue
+
+      const tagName = candidate.matchedIndustryTagId ? interestFieldNameById.get(candidate.matchedIndustryTagId) : null
+      const reason = tagName
+        ? `전공선택 학점 요건을 채우는 과목이면서, ${tagName} 분야와도 연관도가 높습니다.`
+        : "전공선택 학점 요건을 채우기 위한 과목입니다."
+
+      semesterItems[s].push({
+        courseCode: candidate.code,
+        courseId: candidate.courseId,
+        name: candidate.name,
+        department,
+        credits: candidate.credits,
+        type: "전공선택",
+        reason,
+        isOwnMajor: true,
+        matchedIndustryTagId: candidate.matchedIndustryTagId ?? undefined,
+      })
+      semesterCredits[s] += candidate.credits
+      totalCreditsPlaced += candidate.credits
+      usedCourseCodes.add(candidate.code)
+    }
+  }
+
+  return { usedCourseCodes, totalCreditsPlaced }
 }
 
 /**

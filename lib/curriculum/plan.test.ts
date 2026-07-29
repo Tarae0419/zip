@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { buildSemesters, fillElectives, placeRequiredCourses, toSemesterLabels } from "./plan"
-import type { RequiredCourseInfo, ElectiveCandidate } from "@/lib/db/queries"
+import { buildSemesters, fillElectives, fillMajorElectives, placeRequiredCourses, toSemesterLabels } from "./plan"
+import type { RequiredCourseInfo, ElectiveCandidate, OwnMajorElectiveCandidate } from "@/lib/db/queries"
 
 function course(overrides: Partial<RequiredCourseInfo> & Pick<RequiredCourseInfo, "code" | "name">): RequiredCourseInfo {
   return {
@@ -20,6 +20,18 @@ function candidate(overrides: Partial<ElectiveCandidate> & Pick<ElectiveCandidat
     relevanceScore: 0.5,
     industryTagId: "tag-1",
     isOwnMajor: true,
+    ...overrides,
+  }
+}
+
+function majorCandidate(
+  overrides: Partial<OwnMajorElectiveCandidate> & Pick<OwnMajorElectiveCandidate, "code" | "name">,
+): OwnMajorElectiveCandidate {
+  return {
+    courseId: `id-${overrides.code}`,
+    credits: 3,
+    relevanceScore: 0,
+    matchedIndustryTagId: null,
     ...overrides,
   }
 }
@@ -121,6 +133,47 @@ describe("fillElectives", () => {
     const candidates = [candidate({ code: "E1", name: "선택1" }), candidate({ code: "E1", name: "선택1" })]
     fillElectives(semesterItems, semesterCredits, candidates, new Map(), 20)
     expect(semesterItems[0].filter((i) => i.courseCode === "E1")).toHaveLength(1)
+  })
+})
+
+describe("fillMajorElectives", () => {
+  it("places 전공선택 courses up to the credit budget and tags them correctly", () => {
+    const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[]]
+    const semesterCredits = [0]
+    const candidates = [majorCandidate({ code: "M1", name: "전공선택1" }), majorCandidate({ code: "M2", name: "전공선택2" })]
+    fillMajorElectives(semesterItems, semesterCredits, candidates, "테스트학과", new Map(), 3)
+    expect(semesterItems[0]).toHaveLength(1)
+    expect(semesterItems[0][0].type).toBe("전공선택")
+    expect(semesterItems[0][0].isOwnMajor).toBe(true)
+  })
+
+  it("mentions the matched interest field in the reason only when relevanceScore came from a real match", () => {
+    const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[]]
+    const semesterCredits = [0]
+    const nameById = new Map([["tag-1", "반도체"]])
+
+    fillMajorElectives(
+      semesterItems,
+      semesterCredits,
+      [majorCandidate({ code: "M1", name: "전공선택1", relevanceScore: 0.6, matchedIndustryTagId: "tag-1" })],
+      "테스트학과",
+      nameById,
+      20,
+    )
+    expect(semesterItems[0][0].reason).toContain("반도체")
+
+    const semesterItems2: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[]]
+    const semesterCredits2 = [0]
+    fillMajorElectives(
+      semesterItems2,
+      semesterCredits2,
+      [majorCandidate({ code: "M2", name: "전공선택2" })],
+      "테스트학과",
+      nameById,
+      20,
+    )
+    expect(semesterItems2[0][0].reason).not.toContain("반도체")
+    expect(semesterItems2[0][0].reason).toContain("전공선택 학점 요건")
   })
 })
 

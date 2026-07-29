@@ -5,8 +5,14 @@ import { eq } from "drizzle-orm"
 import { db } from "@/lib/db/client"
 import { users } from "@/lib/db/schema"
 import { ensureAnonUser, getAnonId } from "@/lib/auth/anon-user"
-import { getCoursesByCodes, getCurriculumForDepartment, getElectiveCandidates, getIndustryFields } from "@/lib/db/queries"
-import { buildSemesters, fillElectives, placeRequiredCourses, toSemesterLabels } from "@/lib/curriculum/plan"
+import {
+  getCoursesByCodes,
+  getCurriculumForDepartment,
+  getElectiveCandidates,
+  getIndustryFields,
+  getOwnMajorElectiveCourses,
+} from "@/lib/db/queries"
+import { buildSemesters, fillElectives, fillMajorElectives, placeRequiredCourses, toSemesterLabels } from "@/lib/curriculum/plan"
 import type { CurriculumPlanInput, CurriculumPlanResult, PlanItem } from "@/lib/curriculum/types"
 import { writeElectiveReasons } from "@/lib/ai/curriculum-reasons"
 
@@ -61,11 +67,13 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
   )
 
   const totalRemainingCreditsNeeded = Math.max(0, curriculum.totalCreditsRequired - input.earnedCredits)
-  const electiveBudget = Math.max(0, totalRemainingCreditsNeeded - requiredCreditsPlaced)
 
   if (ownRequired.length === 0 && doubleRequired.length === 0 && totalRemainingCreditsNeeded <= 6) {
     notes.push("이미 졸업 요건의 대부분을 이수하셨어요. 추천할 수 있는 과목이 많지 않을 수 있어요 — 남은 학점은 학과 사무실에서 정확히 확인해주세요.")
   }
+
+  const industryFields = await getIndustryFields()
+  const nameById = new Map(industryFields.map((f) => [f.id, f.name]))
 
   // 학수번호 기준 제외 목록(이미 이수·제외·배치된 것)과, 과목명 기준 제외 목록(타 학과 동일 과목명 중복 방지)을 함께 넘긴다.
   const excludedCodesForElectives = [...excludeSet, ...ownRequired.map((c) => c.code), ...doubleRequired.map((c) => c.code)]
@@ -74,13 +82,48 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
     ...ownRequired.map((c) => c.name),
     ...doubleRequired.map((c) => c.name),
   ]
+
+  // PRD 8.4 추천로직 7 — 전공선택 요건 잔여 학점부터 본인 학과 전공선택 과목으로 채운다(전공필수와 별개 단계).
+  // earnedCredits 중 이미 이수 처리한 전공필수 학점을 뺀 나머지가 "전공선택 등으로 이미 채운 학점"이라고 본다.
+  const completedRequiredCredits = ownRequiredAll
+    .filter((c) => input.completedRequiredCourseCodes.includes(c.code))
+    .reduce((sum, c) => sum + c.credits, 0)
+  const nonRequiredEarnedCredits = Math.max(0, input.earnedCredits - completedRequiredCredits)
+  const electiveMinCreditsRemaining = Math.max(0, curriculum.electiveMinCredits - nonRequiredEarnedCredits)
+
+  const majorElectiveCandidates =
+    electiveMinCreditsRemaining > 0
+      ? await getOwnMajorElectiveCourses(input.department, input.interestFieldIds, excludedCodesForElectives, excludedNamesForElectives)
+      : []
+  const { usedCourseCodes: usedMajorElectiveCodes, totalCreditsPlaced: majorElectiveCreditsPlaced } = fillMajorElectives(
+    semesterItems,
+    semesterCredits,
+    majorElectiveCandidates,
+    input.department,
+    nameById,
+    electiveMinCreditsRemaining,
+  )
+
+  if (electiveMinCreditsRemaining > 0 && majorElectiveCandidates.length === 0) {
+    notes.push(`전공선택 요건이 ${electiveMinCreditsRemaining}학점 남았는데, 개설된 전공선택 과목을 찾지 못했어요 — 학과 사무실에서 확인해주세요.`)
+  }
+
+  const usedMajorElectiveNames = majorElectiveCandidates
+    .filter((c) => usedMajorElectiveCodes.has(c.code))
+    .map((c) => c.name)
+
+  // 전공선택 요건을 채우고 남은 학점만 관심분야(자유선택·교양) 매칭 추천으로 채운다 (PRD 8.4 추천로직 8~9).
+  const electiveBudget = Math.max(0, totalRemainingCreditsNeeded - requiredCreditsPlaced - majorElectiveCreditsPlaced)
   const candidates =
     electiveBudget > 0
-      ? await getElectiveCandidates(input.interestFieldIds, input.department, excludedCodesForElectives, excludedNamesForElectives, 80)
+      ? await getElectiveCandidates(
+          input.interestFieldIds,
+          input.department,
+          [...excludedCodesForElectives, ...usedMajorElectiveCodes],
+          [...excludedNamesForElectives, ...usedMajorElectiveNames],
+          80,
+        )
       : []
-
-  const industryFields = await getIndustryFields()
-  const nameById = new Map(industryFields.map((f) => [f.id, f.name]))
 
   fillElectives(semesterItems, semesterCredits, candidates, nameById, electiveBudget)
 

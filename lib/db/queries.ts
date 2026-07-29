@@ -332,6 +332,98 @@ export async function getCoursesByCodes(codes: string[]): Promise<RequiredCourse
   }))
 }
 
+export type OwnMajorElectiveCandidate = {
+  courseId: string
+  code: string
+  name: string
+  credits: number
+  relevanceScore: number // 관심분야와 매칭이 없으면 0 — 그래도 전공선택 요건을 채워야 하니 후보에는 포함한다
+  matchedIndustryTagId: string | null
+}
+
+/**
+ * PRD 8.4 추천로직 7~8 — "전공선택 학점 요건 중 남은 학점"을 채울 본인 학과 전공선택 과목 후보.
+ * 관심분야와 연관도가 있으면 그 점수로 우선 정렬하되(요구사항 8), 연관도가 전혀 없어도
+ * 전공선택 요건 자체는 채워야 하므로 후보에서 제외하지 않는다 — 그런 과목은 relevanceScore 0으로 뒤로 밀린다.
+ */
+export async function getOwnMajorElectiveCourses(
+  department: string,
+  interestFieldIds: string[],
+  excludeCodes: string[],
+  excludeNames: string[],
+): Promise<OwnMajorElectiveCandidate[]> {
+  const rows = await db
+    .select({
+      id: courses.id,
+      code: courses.code,
+      name: courses.name,
+      credits: courses.credits,
+      semester: courses.semester,
+    })
+    .from(courses)
+    .where(and(eq(courses.department, department), eq(courses.requirementType, "전공선택"), eq(courses.isPublic, true)))
+
+  const byCode = new Map<string, (typeof rows)[number]>()
+  for (const r of rows) {
+    if (!r.code) continue
+    const existing = byCode.get(r.code)
+    if (!existing || r.semester > existing.semester) byCode.set(r.code, r)
+  }
+
+  const excludeCodeSet = new Set(excludeCodes)
+  const excludeNameSet = new Set(excludeNames)
+  const seenNames = new Set<string>()
+  const filtered: (typeof rows)[number][] = []
+  for (const r of byCode.values()) {
+    if (!r.code || excludeCodeSet.has(r.code) || excludeNameSet.has(r.name) || seenNames.has(r.name)) continue
+    seenNames.add(r.name)
+    filtered.push(r)
+  }
+
+  if (filtered.length === 0) return []
+
+  const relevanceByCourseId = new Map<string, { score: number; tagId: string }>()
+  if (interestFieldIds.length > 0) {
+    const relRows = await db
+      .select({
+        courseId: courseIndustryTags.courseId,
+        relevanceScore: courseIndustryTags.relevanceScore,
+        industryTagId: courseIndustryTags.industryTagId,
+      })
+      .from(courseIndustryTags)
+      .where(
+        and(
+          inArray(
+            courseIndustryTags.courseId,
+            filtered.map((r) => r.id),
+          ),
+          inArray(courseIndustryTags.industryTagId, interestFieldIds),
+        ),
+      )
+    for (const r of relRows) {
+      const existing = relevanceByCourseId.get(r.courseId)
+      if (!existing || r.relevanceScore > existing.score) {
+        relevanceByCourseId.set(r.courseId, { score: r.relevanceScore, tagId: r.industryTagId })
+      }
+    }
+  }
+
+  const candidates: OwnMajorElectiveCandidate[] = filtered.map((r) => {
+    const rel = relevanceByCourseId.get(r.id)
+    return {
+      courseId: r.id,
+      code: r.code as string,
+      name: r.name,
+      credits: r.credits,
+      relevanceScore: rel?.score ?? 0,
+      matchedIndustryTagId: rel?.tagId ?? null,
+    }
+  })
+
+  candidates.sort((a, b) => b.relevanceScore - a.relevanceScore)
+  return candidates
+}
+
 export type ElectiveCandidate = {
   courseId: string
   code: string
