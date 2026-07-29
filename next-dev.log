@@ -1,0 +1,22 @@
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.55.72.112:3000
+✓ Ready in 1130ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+Creating turbopack project { dir: 'C:\\zip', testMode: true }
+
+ GET / 200 in 3.4s (next.js: 3.1s, application-code: 276ms)
+ GET /curriculum 200 in 358ms (next.js: 333ms, application-code: 25ms)
+ GET /fields 200 in 383ms (next.js: 353ms, application-code: 30ms)
+ GET / 200 in 67ms (next.js: 10ms, application-code: 57ms)
+ GET / 200 in 125ms (next.js: 11ms, application-code: 114ms)
+ GET / 200 in 188ms (next.js: 9ms, application-code: 179ms)
+ GET /fields 200 in 59ms (next.js: 9ms, application-code: 50ms)
+ GET /curriculum 200 in 53ms (next.js: 9ms, application-code: 43ms)
+ GET / 200 in 63ms (next.js: 9ms, application-code: 55ms)
+ GET / 200 in 26ms (next.js: 11ms, application-code: 15ms)
+ GET / 200 in 92ms (next.js: 8ms, application-code: 84ms)
