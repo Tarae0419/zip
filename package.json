@@ -10,7 +10,10 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:import-courses": "tsx lib/db/scripts/import-courses.ts"
+    "db:import-courses": "tsx lib/db/scripts/import-courses.ts",
+    "db:seed-field-tags": "tsx --env-file=.env.local lib/db/scripts/seed-field-tags.ts",
+    "db:classify-fields": "tsx --env-file=.env.local lib/db/scripts/classify-course-fields.ts",
+    "db:apply-field-classification": "tsx --env-file=.env.local lib/db/scripts/apply-field-classification.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

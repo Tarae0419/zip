@@ -1,59 +1,31 @@
 ▲ Next.js 16.2.6 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://10.55.72.112:3000
-✓ Ready in 1130ms
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
-
+- Environments: .env.local
+✓ Ready in 694ms
 Creating turbopack project { dir: 'C:\\zip', testMode: true }
 
- GET / 200 in 3.4s (next.js: 3.1s, application-code: 276ms)
- GET /curriculum 200 in 358ms (next.js: 333ms, application-code: 25ms)
- GET /fields 200 in 383ms (next.js: 353ms, application-code: 30ms)
- GET / 200 in 67ms (next.js: 10ms, application-code: 57ms)
- GET / 200 in 125ms (next.js: 11ms, application-code: 114ms)
- GET / 200 in 188ms (next.js: 9ms, application-code: 179ms)
- GET /fields 200 in 59ms (next.js: 9ms, application-code: 50ms)
- GET /curriculum 200 in 53ms (next.js: 9ms, application-code: 43ms)
- GET / 200 in 63ms (next.js: 9ms, application-code: 55ms)
- GET / 200 in 26ms (next.js: 11ms, application-code: 15ms)
- GET / 200 in 92ms (next.js: 8ms, application-code: 84ms)
- GET / 200 in 294ms (next.js: 13ms, application-code: 281ms)
- GET /fields 200 in 62ms (next.js: 11ms, application-code: 51ms)
- GET /courses/linear-algebra 200 in 2.4s (next.js: 2.3s, generate-params: 1298ms, application-code: 112ms)
- GET / 200 in 111ms (next.js: 17ms, application-code: 94ms)
- GET / 200 in 256ms (next.js: 8ms, application-code: 249ms)
-  Reload env: .env.local
-  Reload env: .env.local
-✓ Compiled in 193ms
-✓ Compiled in 253ms
-✓ Compiled in 724ms
-✓ Compiled in 160ms
-✓ Compiled in 302ms
-✓ Compiled in 333ms
-✓ Compiled in 135ms
-✓ Compiled in 246ms
-✓ Compiled in 209ms
-  Reload env: .env.local
- GET / 200 in 1586ms (next.js: 209ms, application-code: 1376ms)
- GET / 200 in 345ms (next.js: 6ms, application-code: 340ms)
- GET / 200 in 920ms (next.js: 199ms, application-code: 720ms)
- GET /search?q=%EC%88%98%ED%95%99 200 in 4.4s (next.js: 1232ms, application-code: 3.2s)
- GET /search?q=%EC%88%98%ED%95%99 200 in 1653ms (next.js: 6ms, application-code: 1648ms)
- GET / 200 in 847ms (next.js: 72ms, application-code: 775ms)
- GET /courses/339028e1-9532-4c5f-a693-d3fb230d604e 200 in 1263ms (next.js: 295ms, generate-params: 20ms, application-code: 968ms)
- GET /search?q=%EC%88%98%ED%95%99 200 in 1961ms (next.js: 196ms, application-code: 1765ms)
- GET /search?q=%EC%88%98%ED%95%99&credit=3&requirement=%EC%A0%84%EA%B3%B5%EC%84%A0%ED%83%9D 200 in 1044ms (next.js: 6ms, application-code: 1038ms)
- GET /search?q=%EC%88%98%ED%95%99&credit=3&requirement=%EC%A0%84%EA%B3%B5%EC%84%A0%ED%83%9D 200 in 1139ms (next.js: 7ms, application-code: 1132ms)
- GET /search?q=%EC%88%98%ED%95%99&credit=3&requirement=%EC%A0%84%EA%B3%B5%EC%84%A0%ED%83%9D 200 in 1662ms (next.js: 52ms, application-code: 1610ms)
- GET /search?q=%EC%88%98%ED%95%99&grade=2 200 in 1484ms (next.js: 215ms, application-code: 1269ms)
- GET /search?q=%EC%88%98%ED%95%99&grade=2 200 in 934ms (next.js: 7ms, application-code: 927ms)
- GET /search?q=zzznomatchxyz 200 in 261ms (next.js: 7ms, application-code: 253ms)
- GET /search?q=zzznomatchxyz 200 in 260ms (next.js: 6ms, application-code: 254ms)
- GET /fields 200 in 393ms (next.js: 121ms, application-code: 272ms)
- GET /curriculum 200 in 494ms (next.js: 113ms, application-code: 381ms)
- GET /courses/not-a-uuid 404 in 125ms (next.js: 22ms, application-code: 103ms)
- GET / 200 in 724ms (next.js: 6ms, application-code: 718ms)
+ GET / 200 in 1607ms (next.js: 261ms, proxy.ts: 105ms, application-code: 1241ms)
+ GET / 200 in 911ms (next.js: 21ms, proxy.ts: 17ms, application-code: 873ms)
+ GET /courses/3bfb97f0-f40b-4810-8c15-57a740ee9ebc 200 in 2.1s (next.js: 1188ms, proxy.ts: 13ms, application-code: 919ms)
+ GET /fields 200 in 133ms (next.js: 63ms, proxy.ts: 9ms, application-code: 61ms)
+ GET /curriculum 200 in 126ms (next.js: 65ms, proxy.ts: 6ms, application-code: 55ms)
+ GET /fields 200 in 69ms (next.js: 16ms, proxy.ts: 7ms, application-code: 47ms)
+ GET / 200 in 698ms (next.js: 10ms, proxy.ts: 5ms, application-code: 682ms)
+ GET /search?q=%EC%88%98%ED%95%99 200 in 1276ms (next.js: 75ms, proxy.ts: 7ms, application-code: 1193ms)
+ GET /search?q=%EB%B0%98%EB%8F%84%EC%B2%B4 200 in 1071ms (next.js: 13ms, proxy.ts: 5ms, application-code: 1053ms)
+ GET /search?q=%EB%8D%B0%EC%9D%B4%ED%84%B0%EC%82%AC%EC%9D%B4%EC%96%B8%EC%8A%A4 200 in 695ms (next.js: 11ms, proxy.ts: 4ms, application-code: 680ms)
+ GET / 200 in 27ms (next.js: 9ms, proxy.ts: 4ms, application-code: 14ms)
+ GET / 200 in 632ms (next.js: 7ms, proxy.ts: 4ms, application-code: 621ms)
+ GET /courses/bc9d4fc5-259c-45c8-8412-7ba0f1d1abf4 200 in 528ms (next.js: 31ms, proxy.ts: 5ms, application-code: 492ms)
+ GET / 200 in 606ms (next.js: 9ms, proxy.ts: 3ms, application-code: 595ms)
+ GET /search?q=%EC%88%98%ED%95%99 200 in 1895ms (next.js: 8ms, proxy.ts: 3ms, application-code: 1885ms)
+✓ Compiled in 161ms
+ GET / 200 in 446ms (next.js: 131ms, proxy.ts: 37ms, application-code: 278ms)
+ GET / 200 in 201ms (next.js: 5ms, proxy.ts: 3ms, application-code: 194ms)
+ GET / 200 in 167ms (next.js: 69ms, proxy.ts: 4ms, application-code: 94ms)
+ GET / 200 in 170ms (next.js: 37ms, proxy.ts: 4ms, application-code: 129ms)
+ GET / 200 in 170ms (next.js: 10ms, proxy.ts: 4ms, application-code: 155ms)
+ GET / 200 in 169ms (next.js: 105ms, proxy.ts: 4ms, application-code: 60ms)
+ GET /search?q=%EC%88%98%EB%A6%AC%EA%B3%BC%ED%95%99 200 in 1437ms (next.js: 91ms, proxy.ts: 2ms, application-code: 1344ms)
 [?25h

@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, notInArray } from "drizzle-orm"
+import { and, desc, eq, ilike, inArray, notInArray, or, sql } from "drizzle-orm"
 
 import type { Course, HashtagStat, Review } from "@/lib/types"
 import { db } from "./client"
@@ -181,15 +181,22 @@ export async function searchCoursesByName(query: string, filters: SearchFilters)
 
 /**
  * F2 — "분야 일치": 학문분야 태그(field_tags)와 매칭되는 과목.
- * field_tags/course_field_tags는 아직 AI 1차 분류 + 담당자 검수 전이라 비어 있어 항상 빈 배열을 반환하지만,
- * 태깅 데이터가 채워지는 즉시 이 쿼리만으로 동작한다.
+ * 태그명 자체뿐 아니라 동의어 사전(field_tags.synonyms, 예: "수학" ↔ "수리과학")도 함께 매칭한다 (PRD 8.2 요구사항 6).
  */
 export async function searchCoursesByFieldTag(
   query: string,
   excludeCourseIds: string[],
   filters: SearchFilters,
 ): Promise<Course[]> {
-  const conditions = [eq(courses.isPublic, true), ilike(fieldTags.name, `%${query}%`), ...buildFilterConditions(filters)]
+  const synonymMatch = sql<boolean>`exists (
+    select 1 from jsonb_array_elements_text(${fieldTags.synonyms}) as syn
+    where syn ilike ${`%${query}%`}
+  )`
+  const conditions = [
+    eq(courses.isPublic, true),
+    or(ilike(fieldTags.name, `%${query}%`), synonymMatch),
+    ...buildFilterConditions(filters),
+  ]
   if (excludeCourseIds.length > 0) conditions.push(notInArray(courses.id, excludeCourseIds))
 
   const joined = await db
