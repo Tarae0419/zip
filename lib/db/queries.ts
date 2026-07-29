@@ -1,4 +1,5 @@
 import { and, desc, eq, ilike, inArray, notInArray, or, sql } from "drizzle-orm"
+import { unstable_cache } from "next/cache"
 
 import type { Course, HashtagStat, Review } from "@/lib/types"
 import { db } from "./client"
@@ -180,55 +181,70 @@ function buildFilterConditions(filters: SearchFilters) {
   return extra
 }
 
-/** 검색 필터의 "학기" 드롭다운용 — 실제 DB에 존재하는 학기 목록(최신순)만 보여준다. */
-export async function getDistinctSemesters(): Promise<string[]> {
-  const rows = await db.selectDistinct({ semester: courses.semester }).from(courses)
-  return rows.map((r) => r.semester).sort((a, b) => b.localeCompare(a))
-}
+/**
+ * 검색 필터의 "학기" 드롭다운용 — 실제 DB에 존재하는 학기 목록(최신순)만 보여준다.
+ * courses.semester 값은 재수강편람 재import 때만 바뀌므로(요청마다 달라지지 않음) 1시간 캐싱한다.
+ * Neon HTTP 드라이버는 커넥션을 재사용하지 않아 쿼리 하나당 왕복이 100~250ms씩 붙는데,
+ * 이 목록은 /cart·/search의 모든 필터 드롭다운을 바꿀 때마다 매번 새로 조회되고 있었다.
+ */
+export const getDistinctSemesters = unstable_cache(
+  async (): Promise<string[]> => {
+    const rows = await db.selectDistinct({ semester: courses.semester }).from(courses)
+    return rows.map((r) => r.semester).sort((a, b) => b.localeCompare(a))
+  },
+  ["distinct-semesters"],
+  { revalidate: 3600 },
+)
 
 /**
  * "내 시간표" F5 — 학기 선택 후 그 학기에 실제로 개설된 과목만 불러와 담을 수 있게 한다.
  * 검색어 없이도 둘러볼 수 있어야 하므로(searchCoursesByName은 빈 query에서 아무것도 안 돌려준다),
  * 별도 조회 함수로 분리했다. 검색어/학과 필터는 선택 사항.
+ * unstable_cache로 (semester, query, department, grade) 조합별 60초 캐싱 — 같은 필터 조합을
+ * 여러 사용자가 반복 조회해도 Neon 왕복이 매번 발생하지 않게 한다.
  */
-export async function getCoursesForSemester({
-  semester,
-  query,
-  department,
-  grade,
-  limit = 30,
-}: {
-  semester: string
-  query?: string
-  department?: string
-  grade?: number
-  limit?: number
-}): Promise<Course[]> {
-  const conditions = [eq(courses.isPublic, true), eq(courses.semester, semester)]
-  if (query) conditions.push(ilike(courses.name, `%${query}%`))
-  if (department) conditions.push(eq(courses.department, department))
+export const getCoursesForSemester = unstable_cache(
+  async ({
+    semester,
+    query,
+    department,
+    grade,
+    limit = 30,
+  }: {
+    semester: string
+    query?: string
+    department?: string
+    grade?: number
+    limit?: number
+  }): Promise<Course[]> => {
+    const conditions = [eq(courses.isPublic, true), eq(courses.semester, semester)]
+    if (query) conditions.push(ilike(courses.name, `%${query}%`))
+    if (department) conditions.push(eq(courses.department, department))
 
-  let rows: CourseRow[]
-  if (grade) {
-    const joined = await db
-      .selectDistinct({ course: courses })
-      .from(courses)
-      .innerJoin(courseDepartmentTracks, eq(courseDepartmentTracks.courseId, courses.id))
-      .where(and(...conditions, eq(courseDepartmentTracks.grade, grade)))
-      .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
-      .limit(limit)
-    rows = joined.map((r) => r.course)
-  } else {
-    rows = await db
-      .select()
-      .from(courses)
-      .where(and(...conditions))
-      .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
-      .limit(limit)
-  }
+    let rows: CourseRow[]
+    if (grade) {
+      const joined = await db
+        .selectDistinct({ course: courses })
+        .from(courses)
+        .innerJoin(courseDepartmentTracks, eq(courseDepartmentTracks.courseId, courses.id))
+        .where(and(...conditions, eq(courseDepartmentTracks.grade, grade)))
+        .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
+        .limit(limit)
+      rows = joined.map((r) => r.course)
+    } else {
+      rows = await db
+        .select()
+        .from(courses)
+        .where(and(...conditions))
+        .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
+        .limit(limit)
+    }
 
-  return attachReviewStats(rows)
-}
+    return attachReviewStats(rows)
+  },
+  ["courses-for-semester"],
+  { revalidate: 60 },
+)
 
 /** F2 — "과목명 일치": 과목명에 검색어가 포함된 결과 */
 export async function searchCoursesByName(query: string, filters: SearchFilters): Promise<{ rows: CourseRow[]; view: Course[] }> {
@@ -325,10 +341,14 @@ export async function getIndustryFieldCourses(industryTagId: string, limit = 12)
 }
 
 /** F3 요구사항 5 — 실제 개설학과 목록(학과 선택 드롭다운용) */
-export async function getDistinctDepartments(): Promise<string[]> {
-  const rows = await db.selectDistinct({ department: courses.department }).from(courses)
-  return rows.map((r) => r.department).sort((a, b) => a.localeCompare(b, "ko"))
-}
+export const getDistinctDepartments = unstable_cache(
+  async (): Promise<string[]> => {
+    const rows = await db.selectDistinct({ department: courses.department }).from(courses)
+    return rows.map((r) => r.department).sort((a, b) => a.localeCompare(b, "ko"))
+  },
+  ["distinct-departments"],
+  { revalidate: 3600 },
+)
 
 export async function getUserDepartment(anonId: string): Promise<string | null> {
   const [row] = await db.select({ department: users.department }).from(users).where(eq(users.anonId, anonId)).limit(1)

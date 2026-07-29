@@ -5,7 +5,7 @@
 // "요일 교시-A/B" 코드 목록일 뿐이다). 아래 값들은 모두 화면에 노출되는 "추정치"이며,
 // 실제 캠퍼스 배치·이동시간과 다를 수 있다는 문구를 CampusMap에서 항상 함께 보여준다.
 
-import type { CampusStop, CartCourse, ClassSession, ParsedLocation, Weekday } from "./types"
+import type { CampusStop, CartCourse, ClassSession, ParsedLocation, TimeConflict, Weekday } from "./types"
 
 const WEEKDAY_CHARS = ["월", "화", "수", "목", "금", "토", "일"] as const
 const KNOWN_CAMPUSES = ["전주", "익산", "남원", "고창", "새만금"]
@@ -124,6 +124,33 @@ export function getSessionsForDay(cart: CartCourse[], day: Weekday): ClassSessio
     .flatMap((course) => buildSessionsForCourse(course))
     .filter((session) => session.day === day)
     .sort((a, b) => a.startMinutes - b.startMinutes)
+}
+
+/**
+ * 담으려는 과목(candidate)이 같은 학기에 이미 담긴 과목과 요일·시간이 겹치는지 확인한다.
+ * 다른 학기 과목끼리는 애초에 동시에 수강하지 않으므로 같은 semester인 것만 비교한다.
+ * 시간대가 절반이라도 겹치면(startA < endB && startB < endA) 충돌로 본다.
+ */
+export function findTimeConflict(candidate: CartCourse, existingCart: CartCourse[]): TimeConflict | null {
+  const candidateSessions = buildSessionsForCourse(candidate)
+  const others = existingCart.filter((c) => c.id !== candidate.id && c.semester === candidate.semester)
+
+  for (const other of others) {
+    const otherSessions = buildSessionsForCourse(other)
+    for (const newSession of candidateSessions) {
+      for (const existingSession of otherSessions) {
+        if (
+          newSession.day === existingSession.day &&
+          newSession.startMinutes < existingSession.endMinutes &&
+          existingSession.startMinutes < newSession.endMinutes
+        ) {
+          return { newSession, existingSession, existingCourseName: other.name }
+        }
+      }
+    }
+  }
+
+  return null
 }
 
 // 스케매틱 캠퍼스 배치도(0~100 좌표). 실제 GPS·건물 배치가 아니라 도식화한 예시 좌표이며,

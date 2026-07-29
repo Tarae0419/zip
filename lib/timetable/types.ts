@@ -40,3 +40,10 @@ export type CampusStop = {
   location: ParsedLocation
   sessions: ClassSession[]
 }
+
+// 장바구니에 담으려는 과목이 이미 담긴 과목과 요일·시간이 겹칠 때의 충돌 정보.
+export type TimeConflict = {
+  newSession: ClassSession
+  existingSession: ClassSession
+  existingCourseName: string
+}

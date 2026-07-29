@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { CalendarDays, MapPin, Plus, ShoppingCart, Trash2, X } from "lucide-react"
+import { CalendarDays, Loader2, MapPin, Plus, ShoppingCart, Trash2, X } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { useCart } from "@/components/cart-provider"
 import { AddCourseModal } from "@/components/add-course-modal"
@@ -38,6 +38,7 @@ export function CartTimetableView({
   const [dayManuallySelected, setDayManuallySelected] = useState(false)
   const [managingCourseId, setManagingCourseId] = useState<string | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   function handleSemesterChange(nextSemester: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -45,7 +46,9 @@ export function CartTimetableView({
     params.delete("q")
     params.delete("department")
     params.delete("grade")
-    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    })
   }
 
   const scopedCart = cart.filter((c) => c.semester === activeSemester)
@@ -99,6 +102,7 @@ export function CartTimetableView({
               ))}
             </select>
           </label>
+          {isPending && <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden="true" />}
           <span className="font-display text-base font-bold text-foreground">시간표</span>
         </div>
         <button

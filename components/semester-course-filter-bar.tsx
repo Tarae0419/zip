@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useState, useTransition, type FormEvent } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Search } from "lucide-react"
+import { Loader2, Search } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const GRADE_OPTIONS = ["전체", "1", "2", "3", "4"]
 
@@ -21,12 +22,17 @@ export function SemesterCourseFilterBar({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [queryInput, setQueryInput] = useState(query)
+  // router.push는 기본적으로 화면을 블로킹하는 렌더처럼 느껴진다 — startTransition으로 감싸면
+  // 드롭다운/입력은 바로 반응하고, 새 목록이 오는 동안 isPending으로 로딩 표시만 살짝 준다.
+  const [isPending, startTransition] = useTransition()
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
     if (!value || value === "전체") params.delete(key)
     else params.set(key, value)
-    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    })
   }
 
   function handleSubmit(e: FormEvent) {
@@ -35,7 +41,10 @@ export function SemesterCourseFilterBar({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-3">
+    <form
+      onSubmit={handleSubmit}
+      className={cn("flex flex-wrap items-center gap-3 transition-opacity", isPending && "opacity-60")}
+    >
       <label className="flex items-center gap-1.5 text-sm">
         <span className="text-muted-foreground">학과</span>
         <select
@@ -81,8 +90,10 @@ export function SemesterCourseFilterBar({
 
       <button
         type="submit"
-        className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+        disabled={isPending}
+        className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-wait"
       >
+        {isPending && <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />}
         검색
       </button>
     </form>
