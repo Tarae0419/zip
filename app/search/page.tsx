@@ -5,7 +5,7 @@ import { SearchResults } from "@/components/search-results"
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sort?: string; credit?: string; grade?: string; requirement?: string }>
+  searchParams: Promise<{ q?: string; sort?: string; credit?: string; grade?: string; requirement?: string; tab?: string }>
 }) {
   const resolvedSearchParams = await searchParams
 
@@ -16,7 +16,7 @@ export default async function SearchPage({
         <Suspense
           fallback={
             <div className="mx-auto max-w-6xl px-4 py-8 text-muted-foreground md:px-6">
-              검색 결과를 불러오는 중...
+              검색 결과를 불러오는 중…
             </div>
           }
         >

@@ -24,7 +24,7 @@ export function CourseCard({
             <RequirementBadge requirement={course.requirement} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {course.department} · {course.credits}학점
+            {course.department} · {course.professor} · {course.credits}학점
           </p>
         </div>
         {ownMajorLabel ? (

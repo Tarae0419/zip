@@ -42,9 +42,13 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
     if (!doubleCurriculum) {
       notes.push(`복수전공으로 선택하신 '${input.doubleMajorDepartment}'은(는) 아직 커리큘럼 데이터가 없어 단일 전공 기준으로만 계산했어요.`)
     } else {
+      // 타 학과 과목이라도 학수번호나 과목명이 같으면 사실상 같은 과목(중복 학점 인정 불가)이라 둘 다 걸러낸다.
       const ownCodes = new Set(ownRequired.map((c) => c.code))
+      const ownNames = new Set(ownRequired.map((c) => c.name))
       const doubleRequiredAll = await getCoursesByCodes(doubleCurriculum.requiredCourseCodes as string[])
-      doubleRequired = doubleRequiredAll.filter((c) => !excludeSet.has(c.code) && !ownCodes.has(c.code))
+      doubleRequired = doubleRequiredAll.filter(
+        (c) => !excludeSet.has(c.code) && !ownCodes.has(c.code) && !ownNames.has(c.name),
+      )
     }
   }
 
@@ -63,10 +67,16 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
     notes.push("이미 졸업 요건의 대부분을 이수하셨어요. 추천할 수 있는 과목이 많지 않을 수 있어요 — 남은 학점은 학과 사무실에서 정확히 확인해주세요.")
   }
 
+  // 학수번호 기준 제외 목록(이미 이수·제외·배치된 것)과, 과목명 기준 제외 목록(타 학과 동일 과목명 중복 방지)을 함께 넘긴다.
   const excludedCodesForElectives = [...excludeSet, ...ownRequired.map((c) => c.code), ...doubleRequired.map((c) => c.code)]
+  const excludedNamesForElectives = [
+    ...ownRequiredAll.filter((c) => excludeSet.has(c.code)).map((c) => c.name), // 이미 이수/제외한 전공필수의 과목명
+    ...ownRequired.map((c) => c.name),
+    ...doubleRequired.map((c) => c.name),
+  ]
   const candidates =
     electiveBudget > 0
-      ? await getElectiveCandidates(input.interestFieldIds, input.department, excludedCodesForElectives, 80)
+      ? await getElectiveCandidates(input.interestFieldIds, input.department, excludedCodesForElectives, excludedNamesForElectives, 80)
       : []
 
   const industryFields = await getIndustryFields()

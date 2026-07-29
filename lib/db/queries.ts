@@ -346,11 +346,16 @@ export type ElectiveCandidate = {
 /**
  * F4 요구사항 8 — 관심분야 연관도가 높은 전공선택/자유선택 후보. 본인 전공을 우선 정렬한다
  * (본인 전공 내 과목을 우선하되 부족하면 타 전공도 추천).
+ *
+ * 타 전공 과목이라도 학수번호나 과목명이 같으면 사실상 같은 과목(중복 학점 인정 불가)이므로,
+ * excludeNames로 이미 배치된 과목명을 넘기면 후보에서 제외하고, 후보 목록 자체도 과목명 기준으로
+ * 한 번 더 중복 제거한다 — 같은 "인공지능"이 학과마다 다른 학수번호로 여러 번 추천되는 걸 막는다.
  */
 export async function getElectiveCandidates(
   interestFieldIds: string[],
   department: string,
   excludeCodes: string[],
+  excludeNames: string[],
   limit = 60,
 ): Promise<ElectiveCandidate[]> {
   if (interestFieldIds.length === 0) return []
@@ -370,10 +375,11 @@ export async function getElectiveCandidates(
     .where(and(inArray(courseIndustryTags.industryTagId, interestFieldIds), eq(courses.isPublic, true)))
     .orderBy(desc(courseIndustryTags.relevanceScore))
 
-  const excludeSet = new Set(excludeCodes)
+  const excludeCodeSet = new Set(excludeCodes)
+  const excludeNameSet = new Set(excludeNames)
   const bestByCode = new Map<string, ElectiveCandidate>()
   for (const r of rows) {
-    if (!r.code || excludeSet.has(r.code) || bestByCode.has(r.code)) continue
+    if (!r.code || excludeCodeSet.has(r.code) || excludeNameSet.has(r.name) || bestByCode.has(r.code)) continue
     bestByCode.set(r.code, {
       courseId: r.courseId,
       code: r.code,
@@ -386,10 +392,19 @@ export async function getElectiveCandidates(
     })
   }
 
-  const all = [...bestByCode.values()]
-  all.sort((a, b) => {
+  const sorted = [...bestByCode.values()].sort((a, b) => {
     if (a.isOwnMajor !== b.isOwnMajor) return a.isOwnMajor ? -1 : 1
     return b.relevanceScore - a.relevanceScore
   })
-  return all.slice(0, limit)
+
+  // 과목명 기준 중복 제거 — 위 정렬 순서(본인 전공 우선, 그다음 연관도순) 그대로 첫 등장만 남긴다.
+  const seenNames = new Set<string>()
+  const deduped: ElectiveCandidate[] = []
+  for (const c of sorted) {
+    if (seenNames.has(c.name)) continue
+    seenNames.add(c.name)
+    deduped.push(c)
+  }
+
+  return deduped.slice(0, limit)
 }

@@ -3,6 +3,7 @@ import type { Course } from "@/lib/types"
 import { searchCoursesByFieldTag, searchCoursesByName, type SearchFilters } from "@/lib/db/queries"
 import { CourseCard } from "@/components/course-card"
 import { SearchFilterBar, type SortKey } from "@/components/search-filter-bar"
+import { SearchTabs, type SearchTab } from "@/components/search-tabs"
 
 function sortCourses(list: Course[], sort: SortKey): Course[] {
   const copy = [...list]
@@ -14,7 +15,7 @@ function sortCourses(list: Course[], sort: SortKey): Course[] {
 export async function SearchResults({
   searchParams,
 }: {
-  searchParams: { q?: string; sort?: string; credit?: string; grade?: string; requirement?: string }
+  searchParams: { q?: string; sort?: string; credit?: string; grade?: string; requirement?: string; tab?: string }
 }) {
   const query = (searchParams.q ?? "").trim()
   const sort: SortKey = searchParams.sort === "rating" || searchParams.sort === "reviews" ? searchParams.sort : "relevance"
@@ -34,6 +35,11 @@ export async function SearchResults({
   const sortedName = sortCourses(nameMatches, sort)
   const sortedField = sortCourses(fieldMatches, sort)
   const hasResults = sortedName.length + sortedField.length > 0
+
+  // 명시적으로 tab 파라미터가 있으면 그걸 따르고, 없으면 결과가 있는 쪽을 기본으로 보여준다.
+  const requestedTab = searchParams.tab === "field" || searchParams.tab === "name" ? searchParams.tab : null
+  const activeTab: SearchTab = requestedTab ?? (sortedName.length > 0 || sortedField.length === 0 ? "name" : "field")
+  const activeCourses = activeTab === "name" ? sortedName : sortedField
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
@@ -58,41 +64,23 @@ export async function SearchResults({
           </p>
         </div>
       ) : (
-        <div className="mt-8 space-y-10">
-          {sortedName.length > 0 && (
-            <ResultSection title="과목명 일치" count={sortedName.length} courses={sortedName} />
+        <>
+          <SearchTabs active={activeTab} nameCount={sortedName.length} fieldCount={sortedField.length} fieldLabel={query} />
+
+          {activeCourses.length === 0 ? (
+            <p className="mt-8 rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+              {activeTab === "name" ? "과목명이 일치하는 결과가 없어요." : "분야가 일치하는 결과가 없어요."}
+              {" "}다른 탭을 확인해보세요.
+            </p>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {activeCourses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
           )}
-          {sortedField.length > 0 && (
-            <ResultSection title={`분야 일치: ${query}`} count={sortedField.length} courses={sortedField} />
-          )}
-        </div>
+        </>
       )}
     </div>
-  )
-}
-
-function ResultSection({
-  title,
-  count,
-  courses,
-}: {
-  title: string
-  count: number
-  courses: Course[]
-}) {
-  return (
-    <section>
-      <div className="mb-4 flex items-center gap-2">
-        <h2 className="font-display text-lg font-bold text-foreground">{title}</h2>
-        <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
-          {count}
-        </span>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {courses.map((course) => (
-          <CourseCard key={course.id} course={course} />
-        ))}
-      </div>
-    </section>
   )
 }
