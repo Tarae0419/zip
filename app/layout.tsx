@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_KR, Poppins } from 'next/font/google'
+import { CartProvider } from '@/components/cart-provider'
 import './globals.css'
 
 const notoSansKr = Noto_Sans_KR({
@@ -58,7 +59,7 @@ export default function RootLayout({
       className={`bg-background ${notoSansKr.variable} ${poppins.variable}`}
     >
       <body className="font-sans antialiased">
-        {children}
+        <CartProvider>{children}</CartProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

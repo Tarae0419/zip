@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react"
 import type { Course } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 import { HashtagBadge, RatingStars, requirementAccentColor, RequirementBadge } from "@/components/course-badges"
+import { CartToggleButton } from "@/components/cart-toggle-button"
 
 export function CourseCard({
   course,
@@ -12,10 +13,10 @@ export function CourseCard({
   ownMajorLabel?: "내 전공 과목" | "타 전공 과목"
 }) {
   return (
-    <Link
-      href={`/courses/${course.id}`}
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 pt-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
-    >
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 pt-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
+      {/* 카드 전체를 클릭 영역으로 유지하되(stretched-link), 장바구니 버튼은 z-10으로 위에 떠서 독립적으로 클릭된다 */}
+      <Link href={`/courses/${course.id}`} className="absolute inset-0 z-0" aria-label={`${course.name} 상세보기`} />
+
       {/* 이수구분별 accent bar */}
       <span aria-hidden="true" className={cn("absolute inset-x-0 top-0 h-[3px]", requirementAccentColor[course.requirement])} />
 
@@ -59,10 +60,13 @@ export function CourseCard({
         ))}
       </div>
 
-      <div className="mt-auto flex items-center justify-end gap-1 pt-3 text-sm font-medium text-primary opacity-0 transition-opacity duration-200 motion-safe:group-hover:opacity-100">
-        자세히 보기
-        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+      <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+        <CartToggleButton courseId={course.id} size="sm" />
+        <div className="flex items-center gap-1 text-sm font-medium text-primary opacity-0 transition-opacity duration-200 motion-safe:group-hover:opacity-100">
+          자세히 보기
+          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+        </div>
       </div>
-    </Link>
+    </div>
   )
 }

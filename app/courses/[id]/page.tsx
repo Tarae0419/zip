@@ -1,12 +1,15 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, MessageSquareText, Sparkles } from "lucide-react"
+import { ArrowLeft, CalendarClock, MapPin, MessageSquareText, Sparkles } from "lucide-react"
 import { AppHeader } from "@/components/app-header"
 import { AiSummaryCard } from "@/components/ai-summary-card"
 import { ReviewList } from "@/components/review-list"
 import { ReviewComposer } from "@/components/review-composer"
 import { RatingStars, RequirementBadge } from "@/components/course-badges"
+import { CartToggleButton } from "@/components/cart-toggle-button"
 import { getCourseView } from "@/lib/db/queries"
+import { getCartCourseInfo } from "@/lib/actions/cart"
+import { buildSessionsForCourse, formatMinutes } from "@/lib/timetable/schedule"
 import type { Course } from "@/lib/types"
 
 // PRD F1 — 요약을 생성하기 위한 최소 리뷰 수
@@ -19,13 +22,14 @@ export default async function CourseDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const result = await getCourseView(id)
+  const [result, cartInfo] = await Promise.all([getCourseView(id), getCartCourseInfo(id)])
 
   if (!result) {
     notFound()
   }
 
   const { course, reviews } = result
+  const scheduleSessions = cartInfo ? buildSessionsForCourse(cartInfo) : []
 
   return (
     <div className="min-h-svh">
@@ -54,7 +58,41 @@ export default async function CourseDetailPage({
           <div className="mt-3">
             <RatingStars rating={course.rating} reviewCount={course.reviewCount} />
           </div>
+
+          <div className="mt-4">
+            <CartToggleButton courseId={course.id} size="default" />
+          </div>
         </div>
+
+        {/* 강의 시간 및 장소 */}
+        {scheduleSessions.length > 0 && (
+          <section className="mt-6 rounded-2xl border border-border bg-card p-4 md:p-5">
+            <div className="flex items-center gap-2">
+              <CalendarClock className="size-4 text-primary" aria-hidden="true" />
+              <h2 className="font-display text-sm font-bold text-foreground">강의 시간 및 장소</h2>
+            </div>
+            <ul className="mt-3 space-y-2">
+              {scheduleSessions.map((session, i) => (
+                <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">{session.day}요일</span>
+                  <span>
+                    {formatMinutes(session.startMinutes)}~{formatMinutes(session.endMinutes)}
+                  </span>
+                  {session.location && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="size-3.5" aria-hidden="true" />
+                      {session.location.building} {session.location.room}호
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted-foreground">
+              장바구니에 담으면 <Link href="/cart" className="font-medium text-primary underline underline-offset-2">내 시간표</Link>에서
+              요일별 강의실 이동동선을 지도로 볼 수 있어요.
+            </p>
+          </section>
+        )}
 
         {/* AI 요약 카드 (가장 눈에 띄게 상단 배치) */}
         <div className="mt-6">

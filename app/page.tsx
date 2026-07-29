@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { BookOpen, Building2, TrendingUp } from "lucide-react"
+import { ArrowRight, BookOpen, Building2, CalendarDays, TrendingUp } from "lucide-react"
 import { AppHeader } from "@/components/app-header"
 import { HeroSearch } from "@/components/hero-search"
 import { CourseCard } from "@/components/course-card"
@@ -62,6 +62,33 @@ export default async function HomePage() {
                 </Link>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* 강의실 이동동선 지도 CTA */}
+        <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6">
+          <div className="flex flex-col items-start gap-5 rounded-2xl border border-border bg-card p-6 md:flex-row md:items-center md:justify-between md:p-8">
+            <div className="flex items-start gap-4">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <CalendarDays className="size-6" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="font-display text-lg font-bold text-foreground md:text-xl">
+                  담은 강의, 시간표와 이동동선까지 한눈에
+                </h2>
+                <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                  관심 있는 과목을 장바구니에 담으면 주간 시간표는 물론, 요일별로 강의실을 어떻게 이동해야
+                  하는지 스케매틱 지도로 확인할 수 있어요.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/cart"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            >
+              내 시간표 보러가기
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
           </div>
         </section>
 
