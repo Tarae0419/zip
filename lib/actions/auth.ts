@@ -75,10 +75,27 @@ export async function requestSignup({
   return { success: true }
 }
 
-/** 회원가입 2단계 — 인증코드를 확인하고 실제 계정을 만든 뒤 로그인 세션을 시작한다. */
-export async function verifySignupCode({ email, code }: { email: string; code: string }): Promise<ActionResult> {
+/**
+ * 회원가입 2단계 — 인증코드를 확인하고 실제 계정을 만든 뒤 로그인 세션을 시작한다.
+ * department는 1단계 화면에서 이미 골라둔 값을 그대로 넘겨받아 계정 생성 시 같이 저장한다
+ * (/fields의 "내 전공 과목" 비교, F4 커리큘럼 등에서 바로 쓰인다 — 나중에 따로 설정할 필요 없게).
+ */
+export async function verifySignupCode({
+  email,
+  code,
+  department,
+}: {
+  email: string
+  code: string
+  department: string
+}): Promise<ActionResult> {
   const trimmedEmail = email.trim().toLowerCase()
   const trimmedCode = code.trim()
+  const trimmedDepartment = department.trim()
+
+  if (!trimmedDepartment) {
+    return { success: false, message: "학과를 선택해주세요." }
+  }
 
   const [pending] = await db
     .select()
@@ -103,6 +120,7 @@ export async function verifySignupCode({ email, code }: { email: string; code: s
         email: pending.email,
         passwordHash: pending.passwordHash,
         emailVerified: true,
+        department: trimmedDepartment,
       })
       .returning({ anonId: users.anonId })
 
@@ -114,8 +132,16 @@ export async function verifySignupCode({ email, code }: { email: string; code: s
   }
 }
 
-/** 로그인 — 학번 + 비밀번호. */
-export async function login({ studentId, password }: { studentId: string; password: string }): Promise<ActionResult> {
+/** 로그인 — 학번 + 비밀번호. rememberMe가 false면 브라우저를 닫으면 사라지는 세션 쿠키로 로그인한다. */
+export async function login({
+  studentId,
+  password,
+  rememberMe = true,
+}: {
+  studentId: string
+  password: string
+  rememberMe?: boolean
+}): Promise<ActionResult> {
   const trimmedStudentId = studentId.trim()
   const genericError = { success: false as const, message: "학번 또는 비밀번호가 올바르지 않아요." }
 
@@ -125,7 +151,7 @@ export async function login({ studentId, password }: { studentId: string; passwo
   const passwordMatches = await verifyPassword(password, user.passwordHash)
   if (!passwordMatches) return genericError
 
-  await createSession(user.anonId)
+  await createSession(user.anonId, rememberMe)
   return { success: true }
 }
 

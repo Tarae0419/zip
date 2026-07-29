@@ -13,6 +13,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [studentId, setStudentId] = useState("")
   const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -21,7 +22,7 @@ export default function LoginPage() {
     setError(null)
     setIsSubmitting(true)
 
-    const result = await login({ studentId, password })
+    const result = await login({ studentId, password, rememberMe })
 
     setIsSubmitting(false)
 
@@ -82,6 +83,16 @@ export default function LoginPage() {
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
             />
           </div>
+
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="size-4 rounded border-input accent-primary"
+            />
+            자동 로그인
+          </label>
 
           {error ? (
             <p className="text-sm font-medium text-destructive" role="alert">
