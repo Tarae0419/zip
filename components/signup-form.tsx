@@ -17,6 +17,9 @@ const STEPS: { key: Step; label: string }[] = [
   { key: "verify", label: "이메일 인증" },
 ]
 
+const fieldClass =
+  "h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+
 export function SignupForm({ departments }: { departments: string[] }) {
   const router = useRouter()
   const [step, setStep] = useState<Step>("form")
@@ -87,7 +90,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
   }
 
   return (
-    <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-accent/40 to-background px-4 py-12">
+    <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-accent/40 to-background px-4 py-8">
       <div
         aria-hidden="true"
         className="bg-dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,black,transparent)]"
@@ -100,64 +103,64 @@ export function SignupForm({ departments }: { departments: string[] }) {
         <span className="font-display text-lg font-bold tracking-tight text-foreground">수강길잡이</span>
       </Link>
 
-      <div className="animate-fade-in-up relative mt-8 w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-card shadow-lg shadow-primary/5">
+      <div className="animate-fade-in-up relative mt-5 w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-card shadow-lg shadow-primary/5">
         <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-primary via-chart-2 to-chart-3" />
 
-        <div className="p-6 pt-7">
+        <div className="p-5 pt-5">
           <StepIndicator step={step} />
 
           {step === "form" ? (
             <>
-              <div className="text-center">
-                <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <GraduationCap className="size-5" aria-hidden="true" />
+              <div className="flex items-center justify-center gap-2 text-center">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <GraduationCap className="size-4" aria-hidden="true" />
                 </span>
-                <h1 className="mt-3 font-display text-xl font-bold text-foreground">회원가입</h1>
-                <p className="mt-1 text-sm text-muted-foreground">학교 이메일로 인증하고 시작해보세요</p>
+                <h1 className="font-display text-lg font-bold text-foreground">회원가입</h1>
               </div>
 
-              <form onSubmit={handleRequestSignup} className="mt-6 space-y-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="studentId" className="text-sm font-medium text-foreground">
-                    학번
-                  </label>
-                  <input
-                    id="studentId"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="username"
-                    required
-                    value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
-                    placeholder="예: 202012345"
-                    className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
-                  />
-                </div>
+              <form onSubmit={handleRequestSignup} className="mt-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label htmlFor="studentId" className="text-sm font-medium text-foreground">
+                      학번
+                    </label>
+                    <input
+                      id="studentId"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="username"
+                      required
+                      value={studentId}
+                      onChange={(e) => setStudentId(e.target.value)}
+                      placeholder="202012345"
+                      className={fieldClass}
+                    />
+                  </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="department" className="text-sm font-medium text-foreground">
-                    학과
-                  </label>
-                  <select
-                    id="department"
-                    required
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
-                  >
-                    <option value="" disabled>
-                      학과를 선택해주세요
-                    </option>
-                    {departments.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
+                  <div className="space-y-1">
+                    <label htmlFor="department" className="text-sm font-medium text-foreground">
+                      학과
+                    </label>
+                    <select
+                      id="department"
+                      required
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      className={fieldClass}
+                    >
+                      <option value="" disabled>
+                        선택
                       </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-muted-foreground">내 전공 과목 비교, 커리큘럼 추천 등에 계속 쓰여요.</p>
+                      {departments.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <label htmlFor="email" className="text-sm font-medium text-foreground">
                     학교 이메일
                   </label>
@@ -171,7 +174,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="example@jbnu.ac.kr"
-                      className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+                      className={cn(fieldClass, "pl-9")}
                     />
                   </div>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -180,37 +183,39 @@ export function SignupForm({ departments }: { departments: string[] }) {
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="password" className="text-sm font-medium text-foreground">
-                    비밀번호
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    minLength={8}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="8자 이상 입력하세요"
-                    className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
-                  />
-                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label htmlFor="password" className="text-sm font-medium text-foreground">
+                      비밀번호
+                    </label>
+                    <input
+                      id="password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      minLength={8}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="8자 이상"
+                      className={fieldClass}
+                    />
+                  </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="passwordConfirm" className="text-sm font-medium text-foreground">
-                    비밀번호 확인
-                  </label>
-                  <input
-                    id="passwordConfirm"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={passwordConfirm}
-                    onChange={(e) => setPasswordConfirm(e.target.value)}
-                    placeholder="비밀번호를 한 번 더 입력하세요"
-                    className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
-                  />
+                  <div className="space-y-1">
+                    <label htmlFor="passwordConfirm" className="text-sm font-medium text-foreground">
+                      비밀번호 확인
+                    </label>
+                    <input
+                      id="passwordConfirm"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      value={passwordConfirm}
+                      onChange={(e) => setPasswordConfirm(e.target.value)}
+                      placeholder="다시 입력"
+                      className={fieldClass}
+                    />
+                  </div>
                 </div>
 
                 {error ? (
@@ -225,7 +230,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
                 </Button>
               </form>
 
-              <p className="mt-5 text-center text-sm text-muted-foreground">
+              <p className="mt-3 text-center text-sm text-muted-foreground">
                 이미 계정이 있으신가요?{" "}
                 <Link href="/login" className="font-medium text-primary hover:underline">
                   로그인
@@ -235,23 +240,18 @@ export function SignupForm({ departments }: { departments: string[] }) {
           ) : (
             <>
               <div className="text-center">
-                <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Mail className="size-5" aria-hidden="true" />
+                <span className="mx-auto flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Mail className="size-4" aria-hidden="true" />
                 </span>
-                <h1 className="mt-3 font-display text-xl font-bold text-foreground">이메일 인증</h1>
+                <h1 className="mt-2 font-display text-lg font-bold text-foreground">이메일 인증</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">{email}</span>로
-                  <br />
-                  인증코드를 보냈어요
+                  <span className="font-medium text-foreground">{email}</span>로 인증코드를 보냈어요
                 </p>
               </div>
 
-              <form onSubmit={handleVerify} className="mt-6 space-y-4">
-                <div className="space-y-2">
-                  <p className="text-center text-sm font-medium text-foreground">인증코드 6자리</p>
-                  <OtpInput value={code} onChange={setCode} />
-                  <p className="text-center text-xs text-muted-foreground">10분 안에 입력해주세요.</p>
-                </div>
+              <form onSubmit={handleVerify} className="mt-4 space-y-3">
+                <OtpInput value={code} onChange={setCode} />
+                <p className="text-center text-xs text-muted-foreground">10분 안에 입력해주세요.</p>
 
                 {error ? (
                   <p className="text-center text-sm font-medium text-destructive" role="alert">
@@ -265,7 +265,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
                 </Button>
               </form>
 
-              <div className="mt-4 flex items-center justify-between text-sm">
+              <div className="mt-3 flex items-center justify-between text-sm">
                 <button
                   type="button"
                   onClick={() => setStep("form")}
@@ -294,27 +294,27 @@ function StepIndicator({ step }: { step: Step }) {
   const currentIndex = STEPS.findIndex((s) => s.key === step)
 
   return (
-    <div className="mb-6 flex items-center justify-center">
+    <div className="mb-4 flex items-center justify-center">
       {STEPS.map((s, i) => {
         const isDone = i < currentIndex
         const isActive = i === currentIndex
         return (
           <div key={s.key} className="flex items-center">
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <span
                 className={cn(
-                  "flex size-6 items-center justify-center rounded-full text-xs font-bold transition-colors",
+                  "flex size-5 items-center justify-center rounded-full text-[11px] font-bold transition-colors",
                   isDone || isActive ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
                 )}
               >
-                {isDone ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
+                {isDone ? <Check className="size-3" aria-hidden="true" /> : i + 1}
               </span>
               <span className={cn("text-[11px] font-medium", isActive ? "text-foreground" : "text-muted-foreground")}>
                 {s.label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <span className={cn("mx-2 mb-4 h-px w-10 transition-colors", isDone ? "bg-primary" : "bg-border")} />
+              <span className={cn("mx-2 h-px w-8 transition-colors", isDone ? "bg-primary" : "bg-border")} />
             )}
           </div>
         )
