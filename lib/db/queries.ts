@@ -7,6 +7,7 @@ import {
   courseFieldTags,
   courseIndustryTags,
   courses,
+  curricula,
   fieldTags,
   industryTags,
   reviews,
@@ -268,4 +269,127 @@ export async function getDistinctDepartments(): Promise<string[]> {
 export async function getUserDepartment(anonId: string): Promise<string | null> {
   const [row] = await db.select({ department: users.department }).from(users).where(eq(users.anonId, anonId)).limit(1)
   return row?.department ?? null
+}
+
+// ── F4 — 커리큘럼 추천 ──────────────────────────────────────────────
+
+export type CurriculumRow = typeof curricula.$inferSelect
+
+/** F4는 curricula 데이터가 있는 학과에서만 의미 있게 동작한다 (Sprint 5 — 현재 더미 데이터 2개 학과뿐). */
+export async function getCurriculumDepartments(): Promise<string[]> {
+  const rows = await db.selectDistinct({ department: curricula.department }).from(curricula)
+  return rows.map((r) => r.department).sort((a, b) => a.localeCompare(b, "ko"))
+}
+
+export async function getCurriculumForDepartment(department: string): Promise<CurriculumRow | null> {
+  const rows = await db
+    .select()
+    .from(curricula)
+    .where(eq(curricula.department, department))
+    .orderBy(desc(curricula.admissionYear))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+export type RequiredCourseInfo = {
+  courseId: string
+  code: string
+  name: string
+  credits: number
+  department: string
+  prerequisiteCodes: string[]
+}
+
+/** 학수번호 목록에 대해 (가장 최근 학기의) 대표 과목 정보를 반환한다. */
+export async function getCoursesByCodes(codes: string[]): Promise<RequiredCourseInfo[]> {
+  if (codes.length === 0) return []
+  const rows = await db
+    .select({
+      id: courses.id,
+      code: courses.code,
+      name: courses.name,
+      credits: courses.credits,
+      department: courses.department,
+      prerequisiteCodes: courses.prerequisiteCodes,
+      semester: courses.semester,
+    })
+    .from(courses)
+    .where(inArray(courses.code, codes))
+
+  const byCode = new Map<string, (typeof rows)[number]>()
+  for (const r of rows) {
+    if (!r.code) continue
+    const existing = byCode.get(r.code)
+    if (!existing || r.semester > existing.semester) byCode.set(r.code, r)
+  }
+  return [...byCode.values()].map((r) => ({
+    courseId: r.id,
+    code: r.code as string,
+    name: r.name,
+    credits: r.credits,
+    department: r.department,
+    prerequisiteCodes: (r.prerequisiteCodes as string[]) ?? [],
+  }))
+}
+
+export type ElectiveCandidate = {
+  courseId: string
+  code: string
+  name: string
+  department: string
+  credits: number
+  relevanceScore: number
+  industryTagId: string
+  isOwnMajor: boolean
+}
+
+/**
+ * F4 요구사항 8 — 관심분야 연관도가 높은 전공선택/자유선택 후보. 본인 전공을 우선 정렬한다
+ * (본인 전공 내 과목을 우선하되 부족하면 타 전공도 추천).
+ */
+export async function getElectiveCandidates(
+  interestFieldIds: string[],
+  department: string,
+  excludeCodes: string[],
+  limit = 60,
+): Promise<ElectiveCandidate[]> {
+  if (interestFieldIds.length === 0) return []
+
+  const rows = await db
+    .select({
+      courseId: courses.id,
+      code: courses.code,
+      name: courses.name,
+      department: courses.department,
+      credits: courses.credits,
+      relevanceScore: courseIndustryTags.relevanceScore,
+      industryTagId: courseIndustryTags.industryTagId,
+    })
+    .from(courseIndustryTags)
+    .innerJoin(courses, eq(courses.id, courseIndustryTags.courseId))
+    .where(and(inArray(courseIndustryTags.industryTagId, interestFieldIds), eq(courses.isPublic, true)))
+    .orderBy(desc(courseIndustryTags.relevanceScore))
+
+  const excludeSet = new Set(excludeCodes)
+  const bestByCode = new Map<string, ElectiveCandidate>()
+  for (const r of rows) {
+    if (!r.code || excludeSet.has(r.code) || bestByCode.has(r.code)) continue
+    bestByCode.set(r.code, {
+      courseId: r.courseId,
+      code: r.code,
+      name: r.name,
+      department: r.department,
+      credits: r.credits,
+      relevanceScore: r.relevanceScore,
+      industryTagId: r.industryTagId,
+      isOwnMajor: r.department === department,
+    })
+  }
+
+  const all = [...bestByCode.values()]
+  all.sort((a, b) => {
+    if (a.isOwnMajor !== b.isOwnMajor) return a.isOwnMajor ? -1 : 1
+    return b.relevanceScore - a.relevanceScore
+  })
+  return all.slice(0, limit)
 }

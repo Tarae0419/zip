@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **F3** Industry/career-field keyword search (e.g. "반도체") spanning departments, ranked by relevance score
 - **F4** AI-personalized multi-semester curriculum planner (required courses first, then elective/interest-matched courses), interactive add/remove with recalculation
 
-F4 has dummy curriculum/prerequisite data for exactly 2 departments (전자공학부, 컴퓨터인공지능학부) seeded via `lib/db/scripts/seed-curricula.ts` — real course codes, but illustrative (not official) graduation-requirement numbers and prerequisite links (see Data notes below). `/curriculum` itself is still mock-data-driven (Sprint 6).
+F4 is live (Sprint 6) but only for the 2 departments with `curricula` data (전자공학부, 컴퓨터인공지능학부, seeded via `lib/db/scripts/seed-curricula.ts`) — real course codes, but illustrative (not official) graduation-requirement numbers and prerequisite links (see Data notes below). Course-add-to-plan (only exclude/recalculate is implemented) and seasonal-term expansion are explicitly out of scope — see Sprint 6 in `docs/SPRINT_PLAN.md`.
 
 ## Commands
 
@@ -37,12 +37,13 @@ AI features (hashtag suggestion, review summaries) use OpenAI via `lib/ai/`. The
 
 ## Architecture
 
-- **Next.js App Router**, React 19, TypeScript. Routes: `/` (home), `/search`, `/fields`, `/courses/[id]`, `/curriculum`. `/`, `/search`, `/courses/[id]`, `/fields` are wired to real DB queries (`lib/db/queries.ts`); only `/curriculum` still renders `components/curriculum-planner.tsx` against `lib/mock-data.ts` (F4, blocked on Sprint 5/6 — see `docs/SPRINT_PLAN.md`).
+- **Next.js App Router**, React 19, TypeScript. Routes: `/` (home), `/search`, `/fields`, `/courses/[id]`, `/curriculum`. All five are wired to real DB queries (`lib/db/queries.ts`) — no route still depends on `lib/mock-data.ts` for course/curriculum content.
 - **UI**: shadcn/ui (`components.json`, style `base-nova`) + Tailwind v4. Path alias `@/*` → repo root. Only `components/ui/button.tsx` has been generated so far; add more via `shadcn` as needed rather than hand-rolling primitives.
 - **Package manager is pnpm**, but the workspace's `pnpm` field in `package.json` (`overrides`) is ignored by modern pnpm — build-script allowlisting and other pnpm-specific settings live in `pnpm-workspace.yaml` (`allowBuilds:`) instead.
 - **Anonymous identity**: `middleware.ts` issues a `sgz_anon_id` httpOnly cookie to every visitor (no login, matches PRD's "개인정보 최소 수집" principle). `lib/auth/anon-user.ts` (`getAnonId`/`ensureAnonUser`, server-only — uses `next/headers`) resolves it to a `users` row, created lazily on first write (e.g. first review). Don't build a real auth system on top of this without checking with the user first — it's intentionally minimal.
-- **Server Actions** live in `lib/actions/*.ts` (`"use server"`). `lib/actions/reviews.ts` has `submitReview` (review writes, revalidation, minimal abuse-filtering, and triggers AI summary regeneration) and `suggestReviewHashtags` (AI tag suggestion). `lib/actions/user-profile.ts` has `setMyDepartment` (used by `/fields`' own-major comparison, PRD 8.3).
-- **AI** (`lib/ai/`): `openai-client.ts` (shared client + `AI_MODEL` constant, `gpt-4o-mini`), `hashtags.ts` (`suggestHashtags` — constrained to `predefinedReviewTags`, re-validated server-side against that list), `summary.ts` (`generateCourseSummary` — 3–5 sentence Korean summary, flags polarized ratings). Both are plain async functions, not Server Actions themselves — call them from a Server Action or RSC. Embeddings (`text-embedding-3-small`) are called directly via `openai.embeddings.create` from the offline scripts below, not from `lib/ai/`.
+- **Server Actions** live in `lib/actions/*.ts` (`"use server"`). `lib/actions/reviews.ts` has `submitReview` (review writes, revalidation, minimal abuse-filtering, and triggers AI summary regeneration) and `suggestReviewHashtags` (AI tag suggestion). `lib/actions/user-profile.ts` has `setMyDepartment` (used by `/fields`' own-major comparison, PRD 8.3). `lib/actions/curriculum.ts` has `generateCurriculumPlan` (F4 — persists the input profile to `users`, then builds and returns a plan; re-invoked wholesale on every exclude-and-recalculate click, there's no server-side plan session state).
+- **AI** (`lib/ai/`): `openai-client.ts` (shared client + `AI_MODEL` constant, `gpt-4o-mini`), `hashtags.ts` (`suggestHashtags` — constrained to `predefinedReviewTags`, re-validated server-side against that list), `summary.ts` (`generateCourseSummary` — 3–5 sentence Korean summary, flags polarized ratings), `curriculum-reasons.ts` (`writeElectiveReasons` — rewrites the reason text for an already-ranked list of elective picks; never chooses which courses, only phrases why). All are plain async functions, not Server Actions themselves. Embeddings (`text-embedding-3-small`) are called directly via `openai.embeddings.create` from the offline scripts below, not from `lib/ai/`.
+- **`lib/curriculum/`** (F4, no AI): `types.ts` (`PlanItem`/`PlanSemester`/`CurriculumPlanInput`/`CurriculumPlanResult`), `plan.ts` (`placeRequiredCourses` — prerequisite-respecting greedy placement across remaining semesters; `fillElectives` — fills remaining per-semester credit budget from a pre-ranked candidate list up to a total credit budget). Pure functions, deterministic, unit-testable without a DB or network call.
 
 ### Database (`lib/db/`)
 
@@ -58,7 +59,7 @@ AI features (hashtag suggestion, review summaries) use OpenAI via `lib/ai/`. The
 - Most standalone scripts under `lib/db/scripts/` import `lib/db/client.ts`, which throws at import time if `DATABASE_URL` isn't set — always run them with `tsx --env-file=.env.local`, not a `dotenv.config()` call inside the script (see the ESM hoisting note above). Check each script's own `pnpm db:*` entry in `package.json` for the right invocation.
 
 **Data notes learned from the real catalog files (not in the PRD, keep in mind when building F1–F4):**
-- No syllabus text and no prerequisite (선수과목) data exists in the source files. `courses.syllabusUrl` / `courses.prerequisiteCodes` are schema-ready but always empty — F4's "선수과목 순서 고려 배치" and F2/F3's syllabus-based AI tagging cannot use real data yet.
+- No syllabus text exists in the source files, so F2/F3's AI tagging/embeddings are name-only, not syllabus-based. `courses.syllabusUrl` is schema-ready but always empty. `courses.prerequisiteCodes` is empty except for a handful of courses in the 2 F4-seeded departments, where it holds illustrative (not official) data — see `lib/db/scripts/seed-curricula.ts`.
 - The catalog files are 학부전공(major) only — no 교양(gen-ed) courses are present (교양영역구분 is always null). A separate gen-ed source file would be needed before F2 can search 교양 courses.
 - `courses.credits` / `courses.hours` are `real`, not integer — some courses (e.g. 의학과) carry fractional credits like 2.5.
 - `course_department_tracks` parses the catalog's free-text "학과/학년정보" column (e.g. `"기계시스템 3,기계시스템(응용기계) 3"`) into `(departmentLabel, grade)` rows. This is the closest available signal for "which department curriculum + grade does this course count toward," and is what F4's own-major-vs-other-major matching should join against — it does not necessarily match `courses.department` (the offering department) verbatim.
@@ -67,7 +68,7 @@ AI features (hashtag suggestion, review summaries) use OpenAI via `lib/ai/`. The
 
 ### Mock data → real data migration
 
-F1/F2/F3 are fully on real DB queries now. `lib/mock-data.ts` only has what F4 (`/curriculum`, `components/curriculum-planner.tsx`) still needs: `departments`, `interestFields`, `mockCurriculum`/`CurriculumSemester`/`CurriculumItem` — plus `popularTags` (home search-suggestion chips, intentionally static UI copy, not DB-backed) and `predefinedReviewTags` (the real F1 hashtag taxonomy, lives here for historical reasons but isn't mock data). `Course`/`Review`/`HashtagStat`/`Requirement` types are re-exported from `lib/types.ts`, the real source of truth for those shapes — import from there in new code. `grep -rl "mock-data" app components` lists every current consumer.
+F1/F2/F3/F4 are all on real DB queries now. `lib/mock-data.ts` only has two static UI-copy arrays left: `popularTags` (home search-suggestion chips, intentionally not DB-backed) and `predefinedReviewTags` (the real F1 hashtag taxonomy — lives here for historical reasons, isn't actually mock data). `Course`/`Review`/`HashtagStat`/`Requirement` types are re-exported from `lib/types.ts`, the real source of truth for those shapes — import from there in new code.
 
 ## Deployment
 

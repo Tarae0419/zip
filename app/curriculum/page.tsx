@@ -1,7 +1,25 @@
 import { AppHeader } from "@/components/app-header"
 import { CurriculumPlanner } from "@/components/curriculum-planner"
+import { getAnonId } from "@/lib/auth/anon-user"
+import { getCoursesByCodes, getCurriculumDepartments, getCurriculumForDepartment, getIndustryFields, getUserDepartment } from "@/lib/db/queries"
 
-export default function CurriculumPage() {
+export default async function CurriculumPage() {
+  const anonId = await getAnonId()
+
+  const [curriculumDepartments, industryFields, myDepartment] = await Promise.all([
+    getCurriculumDepartments(),
+    getIndustryFields(),
+    getUserDepartment(anonId),
+  ])
+
+  const requiredCoursesByDepartment: Record<string, { code: string; name: string; credits: number }[]> = {}
+  for (const department of curriculumDepartments) {
+    const curriculum = await getCurriculumForDepartment(department)
+    if (!curriculum) continue
+    const required = await getCoursesByCodes(curriculum.requiredCourseCodes as string[])
+    requiredCoursesByDepartment[department] = required.map((c) => ({ code: c.code, name: c.name, credits: c.credits }))
+  }
+
   return (
     <div className="min-h-svh">
       <AppHeader />
@@ -17,7 +35,12 @@ export default function CurriculumPage() {
         </div>
 
         <div className="mt-8">
-          <CurriculumPlanner />
+          <CurriculumPlanner
+            curriculumDepartments={curriculumDepartments}
+            requiredCoursesByDepartment={requiredCoursesByDepartment}
+            interestFields={industryFields}
+            myDepartment={myDepartment}
+          />
         </div>
       </main>
     </div>
