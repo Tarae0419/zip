@@ -18,7 +18,7 @@ const STEPS: { key: Step; label: string }[] = [
 ]
 
 const fieldClass =
-  "h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+  "h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
 
 export function SignupForm({ departments }: { departments: string[] }) {
   const router = useRouter()
@@ -103,23 +103,23 @@ export function SignupForm({ departments }: { departments: string[] }) {
         <span className="font-display text-lg font-bold tracking-tight text-foreground">수강길잡이</span>
       </Link>
 
-      <div className="animate-fade-in-up relative mt-5 w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-card shadow-lg shadow-primary/5">
+      <div className="animate-fade-in-up relative mt-6 w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-lg shadow-primary/5">
         <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-primary via-chart-2 to-chart-3" />
 
-        <div className="p-5 pt-5">
+        <div className="p-7 pt-6">
           <StepIndicator step={step} />
 
           {step === "form" ? (
             <>
-              <div className="flex items-center justify-center gap-2 text-center">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <GraduationCap className="size-4" aria-hidden="true" />
+              <div className="flex items-center justify-center gap-2.5 text-center">
+                <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <GraduationCap className="size-5" aria-hidden="true" />
                 </span>
-                <h1 className="font-display text-lg font-bold text-foreground">회원가입</h1>
+                <h1 className="font-display text-xl font-bold text-foreground">회원가입</h1>
               </div>
 
-              <form onSubmit={handleRequestSignup} className="mt-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleRequestSignup} className="mt-5 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label htmlFor="studentId" className="text-sm font-medium text-foreground">
                       학번
@@ -183,7 +183,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label htmlFor="password" className="text-sm font-medium text-foreground">
                       비밀번호
@@ -230,7 +230,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
                 </Button>
               </form>
 
-              <p className="mt-3 text-center text-sm text-muted-foreground">
+              <p className="mt-4 text-center text-sm text-muted-foreground">
                 이미 계정이 있으신가요?{" "}
                 <Link href="/login" className="font-medium text-primary hover:underline">
                   로그인
@@ -240,16 +240,16 @@ export function SignupForm({ departments }: { departments: string[] }) {
           ) : (
             <>
               <div className="text-center">
-                <span className="mx-auto flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Mail className="size-4" aria-hidden="true" />
+                <span className="mx-auto flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Mail className="size-5" aria-hidden="true" />
                 </span>
-                <h1 className="mt-2 font-display text-lg font-bold text-foreground">이메일 인증</h1>
+                <h1 className="mt-2.5 font-display text-xl font-bold text-foreground">이메일 인증</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">{email}</span>로 인증코드를 보냈어요
                 </p>
               </div>
 
-              <form onSubmit={handleVerify} className="mt-4 space-y-3">
+              <form onSubmit={handleVerify} className="mt-5 space-y-4">
                 <OtpInput value={code} onChange={setCode} />
                 <p className="text-center text-xs text-muted-foreground">10분 안에 입력해주세요.</p>
 
@@ -294,27 +294,27 @@ function StepIndicator({ step }: { step: Step }) {
   const currentIndex = STEPS.findIndex((s) => s.key === step)
 
   return (
-    <div className="mb-4 flex items-center justify-center">
+    <div className="mb-5 flex items-center justify-center">
       {STEPS.map((s, i) => {
         const isDone = i < currentIndex
         const isActive = i === currentIndex
         return (
           <div key={s.key} className="flex items-center">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  "flex size-5 items-center justify-center rounded-full text-[11px] font-bold transition-colors",
+                  "flex size-6 items-center justify-center rounded-full text-xs font-bold transition-colors",
                   isDone || isActive ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
                 )}
               >
-                {isDone ? <Check className="size-3" aria-hidden="true" /> : i + 1}
+                {isDone ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
               </span>
-              <span className={cn("text-[11px] font-medium", isActive ? "text-foreground" : "text-muted-foreground")}>
+              <span className={cn("text-xs font-medium", isActive ? "text-foreground" : "text-muted-foreground")}>
                 {s.label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <span className={cn("mx-2 h-px w-8 transition-colors", isDone ? "bg-primary" : "bg-border")} />
+              <span className={cn("mx-3 h-px w-10 transition-colors", isDone ? "bg-primary" : "bg-border")} />
             )}
           </div>
         )
@@ -380,7 +380,7 @@ function OtpInput({ value, onChange }: { value: string; onChange: (value: string
           value={value[i] ?? ""}
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
-          className="size-11 rounded-xl border border-input bg-background text-center text-lg font-bold text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+          className="size-12 rounded-xl border border-input bg-background text-center text-xl font-bold text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
           aria-label={`인증코드 ${i + 1}번째 자리`}
         />
       ))}
