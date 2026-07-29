@@ -4,10 +4,12 @@ import type React from "react"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Compass, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { login } from "@/lib/actions/auth"
+
+const REMEMBER_ME_KEY = "sugang-remember-me-v1"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -16,6 +18,18 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // 로그아웃해도 "자동 로그인" 체크 여부는 기억해둔다 — 세션 쿠키와 달리 로그아웃해도 지워지지
+  // 않는 localStorage에 저장한다.
+  useEffect(() => {
+    const stored = window.localStorage.getItem(REMEMBER_ME_KEY)
+    if (stored !== null) setRememberMe(stored === "true")
+  }, [])
+
+  function handleRememberMeChange(checked: boolean) {
+    setRememberMe(checked)
+    window.localStorage.setItem(REMEMBER_ME_KEY, String(checked))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -36,15 +50,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-background px-4 py-12">
-      <Link href="/" className="flex items-center gap-2">
+    <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-accent/40 to-background px-4 py-12">
+      <div
+        aria-hidden="true"
+        className="bg-dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,black,transparent)]"
+      />
+
+      <Link href="/" className="relative flex items-center gap-2">
         <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Compass className="size-5" aria-hidden="true" />
         </span>
         <span className="font-display text-lg font-bold tracking-tight text-foreground">수강길잡이</span>
       </Link>
 
-      <div className="mt-8 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="relative mt-8 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-lg shadow-primary/5">
         <div className="text-center">
           <h1 className="font-display text-xl font-bold text-foreground">로그인</h1>
           <p className="mt-1 text-sm text-muted-foreground">학번으로 로그인하고 맞춤 추천을 받아보세요</p>
@@ -88,7 +107,7 @@ export default function LoginPage() {
             <input
               type="checkbox"
               checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
+              onChange={(e) => handleRememberMeChange(e.target.checked)}
               className="size-4 rounded border-input accent-primary"
             />
             자동 로그인
