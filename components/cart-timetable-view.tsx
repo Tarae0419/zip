@@ -1,10 +1,11 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useState } from "react"
-import { CalendarDays, MapPin, ShoppingCart, Trash2, X } from "lucide-react"
+import { CalendarDays, MapPin, PlusCircle, ShoppingCart, Trash2, X } from "lucide-react"
+import type { Course } from "@/lib/types"
 import { useCart } from "@/components/cart-provider"
-import { SemesterPicker } from "@/components/semester-picker"
+import { CourseCard } from "@/components/course-card"
+import { SemesterCourseFilterBar } from "@/components/semester-course-filter-bar"
 import { WeeklyTimetable } from "@/components/weekly-timetable"
 import { CampusMap } from "@/components/campus-map"
 import { WEEKDAYS } from "@/lib/timetable/types"
@@ -12,14 +13,28 @@ import type { CartCourse, Weekday } from "@/lib/timetable/types"
 import { buildSessionsForCourse, formatMinutes, formatSemesterLabel, getSessionsForDay } from "@/lib/timetable/schedule"
 import { cn } from "@/lib/utils"
 
-export function CartTimetableView({ availableSemesters }: { availableSemesters: string[] }) {
-  const { cart, mounted, selectedSemester, clearSelectedSemester, removeCourse } = useCart()
+export function CartTimetableView({
+  availableSemesters,
+  activeSemester,
+  departments,
+  department,
+  query,
+  browsableCourses,
+}: {
+  availableSemesters: string[]
+  activeSemester: string
+  departments: string[]
+  department: string
+  query: string
+  browsableCourses: Course[]
+}) {
+  const { cart, mounted, removeCourse } = useCart()
   const [selectedDay, setSelectedDay] = useState<Weekday>("월")
   const [dayManuallySelected, setDayManuallySelected] = useState(false)
   const [managingCourseId, setManagingCourseId] = useState<string | null>(null)
 
-  const scopedCart = selectedSemester ? cart.filter((c) => c.semester === selectedSemester) : []
-  const otherSemesterItems = selectedSemester ? cart.filter((c) => c.semester !== selectedSemester) : []
+  const scopedCart = cart.filter((c) => c.semester === activeSemester)
+  const otherSemesterItems = cart.filter((c) => c.semester !== activeSemester)
   const totalCredits = scopedCart.reduce((sum, c) => sum + c.credits, 0)
   const managingCourse = scopedCart.find((c) => c.id === managingCourseId) ?? null
 
@@ -40,45 +55,60 @@ export function CartTimetableView({ availableSemesters }: { availableSemesters: 
     const dayWithData = WEEKDAYS.find((day) => getSessionsForDay(scopedCart, day).length > 0)
     if (dayWithData) setSelectedDay(dayWithData)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, selectedSemester, cart, dayManuallySelected])
+  }, [mounted, activeSemester, cart, dayManuallySelected])
 
-  if (!mounted) {
+  if (!activeSemester) {
     return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-24 rounded-2xl bg-muted" />
-        <div className="h-64 rounded-2xl bg-muted" />
+      <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">
+        아직 개설된 학기 데이터가 없어요.
       </div>
     )
   }
 
-  if (!selectedSemester) {
-    return <SemesterPicker availableSemesters={availableSemesters} />
-  }
-
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+      <section id="add-courses">
         <div className="flex items-center gap-2">
-          <CalendarDays className="size-4 text-primary" aria-hidden="true" />
-          <span className="font-display text-base font-bold text-foreground">
-            {formatSemesterLabel(selectedSemester)} 시간표
-          </span>
+          <PlusCircle className="size-5 text-primary" aria-hidden="true" />
+          <h2 className="font-display text-lg font-bold text-foreground">과목 추가</h2>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/cart/courses?semester=${encodeURIComponent(selectedSemester)}`}
-            className="rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            과목 추가하기
-          </Link>
-          <button
-            type="button"
-            onClick={clearSelectedSemester}
-            className="rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground transition hover:bg-accent"
-          >
-            학기 변경
-          </button>
+        <p className="mt-1 text-sm text-muted-foreground">
+          학년도를 고르면 그 학기에 개설된 과목만 보여드려요. 과목명이나 학과로 좁혀서 찾아보세요.
+        </p>
+
+        <div className="mt-3">
+          <SemesterCourseFilterBar
+            semester={activeSemester}
+            availableSemesters={availableSemesters}
+            query={query}
+            department={department}
+            departments={departments}
+          />
         </div>
+
+        {browsableCourses.length === 0 ? (
+          <p className="mt-6 rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            조건에 맞는 과목이 없어요. 다른 과목명이나 학과로 찾아보세요.
+          </p>
+        ) : (
+          <>
+            <p className="mt-4 text-sm text-muted-foreground">
+              {query || (department !== "전체") ? "검색 결과" : "수강인원이 많은 순으로 보여드려요"} · {browsableCourses.length}개
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {browsableCourses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+
+      <div className="flex items-center gap-2 border-t border-border pt-8">
+        <CalendarDays className="size-4 text-primary" aria-hidden="true" />
+        <span className="font-display text-base font-bold text-foreground">
+          {formatSemesterLabel(activeSemester)} 시간표
+        </span>
       </div>
 
       {scopedCart.length === 0 ? (
@@ -87,17 +117,15 @@ export function CartTimetableView({ availableSemesters }: { availableSemesters: 
             <ShoppingCart className="size-6" aria-hidden="true" />
           </span>
           <p className="mt-4 font-display text-lg font-semibold text-foreground">
-            {formatSemesterLabel(selectedSemester)}에 담은 강의가 없어요
+            {formatSemesterLabel(activeSemester)}에 담은 강의가 없어요
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            이 학기에 개설된 과목을 담아 시간표와 이동동선을 확인해보세요.
-          </p>
-          <Link
-            href={`/cart/courses?semester=${encodeURIComponent(selectedSemester)}`}
+          <p className="mt-1 text-sm text-muted-foreground">위에서 과목을 담으면 시간표와 이동동선을 확인할 수 있어요.</p>
+          <a
+            href="#add-courses"
             className="mt-5 inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
           >
-            {formatSemesterLabel(selectedSemester)} 과목 담으러 가기
-          </Link>
+            과목 담으러 가기
+          </a>
         </div>
       ) : (
         <>
@@ -123,11 +151,7 @@ export function CartTimetableView({ availableSemesters }: { availableSemesters: 
             <ul className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
               {scopedCart.map((course) => (
                 <li key={course.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => setManagingCourseId(course.id)}
-                    className="min-w-0 flex-1 text-left"
-                  >
+                  <button type="button" onClick={() => setManagingCourseId(course.id)} className="min-w-0 flex-1 text-left">
                     <p className="truncate font-medium text-foreground">{course.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
                       {course.department} · {course.professor} · {course.credits}학점
@@ -210,6 +234,48 @@ export function CartTimetableView({ availableSemesters }: { availableSemesters: 
   )
 }
 
+function OtherSemesterNotice({
+  items,
+  onRemove,
+}: {
+  items: CartCourse[]
+  onRemove: (courseId: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <section className="rounded-2xl border border-dashed border-border bg-card p-4">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between text-left text-sm font-medium text-muted-foreground"
+      >
+        <span>다른 학기에 담아둔 과목 {items.length}개는 이 시간표에 표시되지 않아요</span>
+        <span className="text-primary">{open ? "접기" : "펼치기"}</span>
+      </button>
+      {open && (
+        <ul className="mt-3 divide-y divide-border">
+          {items.map((course) => (
+            <li key={course.id} className="flex items-center justify-between gap-3 py-2">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{course.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{formatSemesterLabel(course.semester)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onRemove(course.id)}
+                aria-label={`${course.name} 장바구니에서 삭제`}
+                className="shrink-0 rounded-full p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 function CourseManagePopup({
   course,
   onClose,
@@ -288,47 +354,5 @@ function CourseManagePopup({
         </div>
       </div>
     </div>
-  )
-}
-
-function OtherSemesterNotice({
-  items,
-  onRemove,
-}: {
-  items: CartCourse[]
-  onRemove: (courseId: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  return (
-    <section className="rounded-2xl border border-dashed border-border bg-card p-4">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between text-left text-sm font-medium text-muted-foreground"
-      >
-        <span>다른 학기에 담아둔 과목 {items.length}개는 이 시간표에 표시되지 않아요</span>
-        <span className="text-primary">{open ? "접기" : "펼치기"}</span>
-      </button>
-      {open && (
-        <ul className="mt-3 divide-y divide-border">
-          {items.map((course) => (
-            <li key={course.id} className="flex items-center justify-between gap-3 py-2">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-foreground">{course.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{formatSemesterLabel(course.semester)}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => onRemove(course.id)}
-                aria-label={`${course.name} 장바구니에서 삭제`}
-                className="shrink-0 rounded-full p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-              >
-                <Trash2 className="size-4" aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
   )
 }
