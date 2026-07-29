@@ -31,13 +31,17 @@ corepack pnpm db:import-courses  # re-import the two course-catalog xlsx files i
 
 There is no test suite configured yet.
 
-`DATABASE_URL` lives in `.env.local` (gitignored, already points at a real Neon project — do not print its value into chat or commits). Scripts that touch the DB load it via `dotenv.config({ path: ".env.local" })`, not the default `dotenv/config` (which reads `.env`).
+`DATABASE_URL` lives in `.env.local` (gitignored, already points at a real Neon project — do not print its value into chat or commits). Scripts that touch the DB load it via `dotenv.config({ path: ".env.local" })`, not the default `dotenv/config` (which reads `.env`) — or run `tsx --env-file=.env.local` for one-off scripts, since `dotenv/config` runs too late relative to ESM import hoisting if the script also imports `lib/db/client.ts` (it throws at import time if `DATABASE_URL` is unset).
+
+`OPENAI_API_KEY` will be required starting Sprint 2 (AI hashtag suggestions, review summaries) — not needed yet.
 
 ## Architecture
 
-- **Next.js App Router**, React 19, TypeScript. Routes: `/` (home), `/search`, `/fields`, `/courses/[id]`, `/curriculum`. No route handlers or server actions exist yet — all pages currently render `components/*` against `lib/mock-data.ts`.
+- **Next.js App Router**, React 19, TypeScript. Routes: `/` (home), `/search`, `/fields`, `/courses/[id]`, `/curriculum`. `/`, `/search`, `/courses/[id]` are wired to real DB queries (`lib/db/queries.ts`); `/fields` and `/curriculum` still render `components/*` against `lib/mock-data.ts` (see Sprint 4/6 in `docs/SPRINT_PLAN.md`).
 - **UI**: shadcn/ui (`components.json`, style `base-nova`) + Tailwind v4. Path alias `@/*` → repo root. Only `components/ui/button.tsx` has been generated so far; add more via `shadcn` as needed rather than hand-rolling primitives.
 - **Package manager is pnpm**, but the workspace's `pnpm` field in `package.json` (`overrides`) is ignored by modern pnpm — build-script allowlisting and other pnpm-specific settings live in `pnpm-workspace.yaml` (`allowBuilds:`) instead.
+- **Anonymous identity**: `middleware.ts` issues a `sgz_anon_id` httpOnly cookie to every visitor (no login, matches PRD's "개인정보 최소 수집" principle). `lib/auth/anon-user.ts` (`getAnonId`/`ensureAnonUser`, server-only — uses `next/headers`) resolves it to a `users` row, created lazily on first write (e.g. first review). Don't build a real auth system on top of this without checking with the user first — it's intentionally minimal.
+- **Server Actions** live in `lib/actions/*.ts` (`"use server"`). `lib/actions/reviews.ts:submitReview` is the first one — review writes, revalidation, and the minimal abuse-filtering rule all live there.
 
 ### Database (`lib/db/`)
 
@@ -52,6 +56,7 @@ There is no test suite configured yet.
 - `courses.credits` / `courses.hours` are `real`, not integer — some courses (e.g. 의학과) carry fractional credits like 2.5.
 - `course_department_tracks` parses the catalog's free-text "학과/학년정보" column (e.g. `"기계시스템 3,기계시스템(응용기계) 3"`) into `(departmentLabel, grade)` rows. This is the closest available signal for "which department curriculum + grade does this course count toward," and is what F4's own-major-vs-other-major matching should join against — it does not necessarily match `courses.department` (the offering department) verbatim.
 - Real department names come from the university's own naming (e.g. `전자공학부`, not `전자공학과`). `lib/mock-data.ts`'s department names are fictional placeholders and do not match real `courses.department` values — don't assume they line up when wiring UI to real queries.
+- `courses` has one row per (code, section, semester) — the same subject has a *different* `courses.id` each semester. Reviews attach to the exact `courses.id` the reviewer was looking at, but reads aggregate across every row sharing the same `code` (see `getSiblingCourseIds` in `lib/db/queries.ts`), otherwise a course's reviews would appear to reset every semester. Keep this in mind for any new query that touches `reviews`/`summaries`.
 
 ### Mock data → real data migration in progress
 
@@ -62,7 +67,9 @@ There is no test suite configured yet.
 - `.claude/agents/`: `nextjs-frontend`, `neon-db`, `ai-integration`, `vercel-deploy` — layer-scoped subagents with PRD context baked in. Prefer dispatching to the matching one for larger feature work.
 - `.claude/skills/`: official Vercel skills (`deploy-to-vercel`, `vercel-cli-with-tokens`, `vercel-optimize`, `vercel-react-best-practices`, `vercel-composition-patterns`, `web-design-guidelines`, installed via `vercel-labs/agent-skills`) plus a project-authored `neon-branch-preview-sync` skill documenting the Neon-branch-per-preview-deployment workflow.
 
-## Open decisions (see PRD §14 / §10.4)
+## Open decisions
 
-- LLM API vendor for F1/F3/F4 AI features is not chosen yet — don't hardcode a specific SDK without checking first.
-- ORM is decided: **Drizzle** (chosen over Prisma for this project).
+PRD §10.4 says these live in "§14 open issues," but `docs/PRD.md` has no §14 (it ends at §12) — they're tracked in `docs/SPRINT_PLAN.md`'s 오픈 이슈 로그 instead. Current state:
+
+- ORM: **Drizzle**.
+- LLM API vendor: **OpenAI** — `OPENAI_API_KEY` needed from Sprint 2 onward, not yet.

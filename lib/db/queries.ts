@@ -67,22 +67,37 @@ export async function getPopularCourses(limit = 6): Promise<Course[]> {
   return attachReviewStats(rows)
 }
 
+/**
+ * 같은 과목이 학기마다(2026-1, 2026-2, ...) 별도 row로 존재하므로(코드+분반+학기가 유니크 키),
+ * 리뷰는 "학수번호(code)가 같은 모든 학기의 row"를 한데 모아 집계한다.
+ * code가 없는 소수의 row(원본 결측)는 과목명으로 대체 매칭한다.
+ * 리뷰 자체는 사용자가 실제로 보고 있던 정확한 course.id에 저장한다 — 집계할 때만 묶는다.
+ */
+async function getSiblingCourseIds(row: CourseRow): Promise<string[]> {
+  const rows = row.code
+    ? await db.select({ id: courses.id }).from(courses).where(eq(courses.code, row.code))
+    : await db.select({ id: courses.id }).from(courses).where(eq(courses.name, row.name))
+  return rows.map((r) => r.id)
+}
+
 export async function getCourseView(id: string): Promise<{ course: Course; reviews: Review[] } | null> {
   if (!UUID_RE.test(id)) return null
 
   const [row] = await db.select().from(courses).where(eq(courses.id, id)).limit(1)
   if (!row) return null
 
+  const siblingIds = await getSiblingCourseIds(row)
+
   const [reviewRows, summaryRow] = await Promise.all([
     db
       .select()
       .from(reviews)
-      .where(and(eq(reviews.courseId, id), eq(reviews.isFiltered, false)))
+      .where(and(inArray(reviews.courseId, siblingIds), eq(reviews.isFiltered, false)))
       .orderBy(desc(reviews.createdAt)),
     db
       .select()
       .from(summaries)
-      .where(eq(summaries.courseId, id))
+      .where(inArray(summaries.courseId, siblingIds))
       .limit(1)
       .then((r) => r[0]),
   ])

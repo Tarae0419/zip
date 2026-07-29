@@ -1,16 +1,24 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { PenLine, Star, X } from "lucide-react"
+import { useEffect, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { AlertCircle, PenLine, Star, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { aiSuggestedTags, predefinedReviewTags } from "@/lib/mock-data"
+import { predefinedReviewTags } from "@/lib/mock-data"
+import { submitReview } from "@/lib/actions/reviews"
 
-export function ReviewComposer() {
+// AI 해시태그 추천(PRD 8.1 요구사항 2)은 Sprint 2에서 LLM 연동 후 채워진다.
+const aiSuggestedTags: string[] = []
+
+export function ReviewComposer({ courseId }: { courseId: string }) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [body, setBody] = useState("")
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   // 모달 열림 시 배경 스크롤 방지 + ESC 닫기
   useEffect(() => {
@@ -33,19 +41,34 @@ export function ReviewComposer() {
   }
 
   function handleSubmit() {
-    // 실제 저장 로직은 없음 — 디자인 초안이므로 모달만 닫고 상태 초기화
-    setOpen(false)
-    setRating(0)
-    setHoverRating(0)
-    setBody("")
-    setSelectedTags([])
+    if (rating === 0) {
+      setError("별점을 선택해주세요.")
+      return
+    }
+    setError(null)
+    startTransition(async () => {
+      const result = await submitReview({ courseId, rating, body, hashtags: selectedTags })
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      setOpen(false)
+      setRating(0)
+      setHoverRating(0)
+      setBody("")
+      setSelectedTags([])
+      router.refresh()
+    })
   }
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setError(null)
+          setOpen(true)
+        }}
         className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
       >
         <PenLine className="size-4" aria-hidden="true" />
@@ -159,32 +182,41 @@ export function ReviewComposer() {
               </div>
             </div>
 
-            {/* AI 추천 태그 */}
-            <div className="mt-4">
-              <p className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                AI 추천 태그
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {aiSuggestedTags.map((tag) => {
-                  const selected = selectedTags.includes(tag)
-                  return (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => toggleTag(tag)}
-                      className={cn(
-                        "rounded-full border border-dashed px-3 py-1.5 text-sm font-medium transition",
-                        selected
-                          ? "border-muted-foreground bg-muted-foreground text-background"
-                          : "border-border bg-muted text-muted-foreground hover:bg-secondary",
-                      )}
-                    >
-                      #{tag}
-                    </button>
-                  )
-                })}
+            {/* AI 추천 태그: Sprint 2에서 LLM 연동 후 노출 (현재는 빈 배열) */}
+            {aiSuggestedTags.length > 0 && (
+              <div className="mt-4">
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                  AI 추천 태그
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {aiSuggestedTags.map((tag) => {
+                    const selected = selectedTags.includes(tag)
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        className={cn(
+                          "rounded-full border border-dashed px-3 py-1.5 text-sm font-medium transition",
+                          selected
+                            ? "border-muted-foreground bg-muted-foreground text-background"
+                            : "border-border bg-muted text-muted-foreground hover:bg-secondary",
+                        )}
+                      >
+                        #{tag}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
+
+            {error && (
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                <p>{error}</p>
+              </div>
+            )}
 
             <div className="mt-6 flex gap-2">
               <button
@@ -196,10 +228,11 @@ export function ReviewComposer() {
               </button>
               <button
                 type="button"
+                disabled={isPending}
                 onClick={handleSubmit}
-                className="flex-1 rounded-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                className="flex-1 rounded-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
               >
-                등록
+                {isPending ? "등록 중..." : "등록"}
               </button>
             </div>
           </div>

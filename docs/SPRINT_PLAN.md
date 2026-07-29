@@ -5,7 +5,7 @@
 | 기준 문서 | `docs/PRD.md` (v1.1), `CLAUDE.md` |
 | 작성일 | 2026-07-29 |
 | 최종 수정일 | 2026-07-29 |
-| 상태 | Sprint 0 완료 · Sprint 1 진행 대기 |
+| 상태 | Sprint 0 완료 · Sprint 1 완료 · Sprint 2 진행 대기 |
 
 ---
 
@@ -24,8 +24,8 @@
 | Sprint | 범위 | PRD 매핑 | 상태 |
 | --- | --- | --- | --- |
 | 0 | 기반 인프라 (DB/배포/에이전트) | 10장 | ✅ 완료 |
-| 1 | 익명 사용자 식별 & 리뷰 작성 | F1 쓰기 경로 | ⬜ 대기 |
-| 2 | AI 해시태그 추천 & 리뷰 요약 | F1 AI 경로 | ⬜ 대기 |
+| 1 | 익명 사용자 식별 & 리뷰 작성 | F1 쓰기 경로 | ✅ 완료 |
+| 2 | AI 해시태그 추천 & 리뷰 요약 | F1 AI 경로 | ⬜ 대기 (OpenAI 키 필요) |
 | 3 | 분야 통합 검색 마무리 | F2 | ⬜ 대기 |
 | 4 | 산업/진로 분야 검색 | F3 | ⬜ 대기 |
 | 5 | 커리큘럼 데이터 확보 | F4 기반 | ⬜ 대기 |
@@ -59,16 +59,25 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 
 **작업 항목**
 
-- [ ] 1.1 익명 식별자 발급 — 로그인 없이 브라우저별 `anonId`를 쿠키로 발급하는 유틸/미들웨어 작성 (`users.anon_id`와 매칭)
+- [x] 1.1 익명 식별자 발급 — 로그인 없이 브라우저별 `anonId`를 쿠키로 발급하는 유틸/미들웨어 작성 (`users.anon_id`와 매칭)
   - DoD: 최초 방문 시 `users` 테이블에 anon 레코드가 생성되고, 재방문 시 동일 쿠키로 동일 레코드를 재사용한다.
-- [ ] 1.2 리뷰 작성 Server Action — `components/review-composer.tsx`의 "실제 저장 로직 없음" 상태를 제거하고 `reviews` 테이블에 실제 insert
+  - 구현: `middleware.ts`(모든 요청에 `sgz_anon_id` httpOnly 쿠키 발급, 2년 유지) + `lib/auth/anon-user.ts`(`getAnonId`/`ensureAnonUser`, 리뷰 제출 시점에 upsert). curl로 `Set-Cookie` 발급 확인.
+- [x] 1.2 리뷰 작성 Server Action — `components/review-composer.tsx`의 "실제 저장 로직 없음" 상태를 제거하고 `reviews` 테이블에 실제 insert
   - DoD: 별점(1~5)·본문·해시태그 다중선택이 저장되고, 과목 상세 페이지 새로고침 시 목록에 반영된다. (PRD 8.1 요구사항 1)
-- [ ] 1.3 어뷰징 방지 최소 로직 — 동일 `anonId`의 동일 과목 단시간 반복 등록, 극단적 평점 연속 등록 등을 `is_filtered`로 걸러내는 최소 규칙
+  - 구현: `lib/actions/reviews.ts`의 `submitReview`. `ReviewComposer`에 `courseId` prop 추가, 실제 서버 액션 호출 + 로딩/에러 상태로 교체.
+  - **설계 메모**: `courses`는 학기·분반마다 별도 row(코드+분반+학기 유니크)라서, 리뷰를 정확히 보고 있던 `course.id`에 저장하되 **조회 시 같은 학수번호(code)의 모든 학기 row를 묶어 집계**하도록 `lib/db/queries.ts:getCourseView`를 수정했다(그렇지 않으면 학기가 바뀔 때마다 리뷰가 리셋된 것처럼 보임). 자세한 내용은 오픈 이슈 로그 참고.
+- [x] 1.3 어뷰징 방지 최소 로직 — 동일 `anonId`의 동일 과목 단시간 반복 등록, 극단적 평점 연속 등록 등을 `is_filtered`로 걸러내는 최소 규칙
   - DoD: 반복 등록 시나리오를 재현했을 때 두 번째 리뷰부터 `is_filtered = true`로 저장되고 집계(평점/해시태그 %)에서 제외된다. (PRD 8.1 요구사항 7)
-- [ ] 1.4 과목 상세 페이지 캐시/재검증 — 리뷰 작성 직후 `getCourseView` 결과가 갱신되도록 revalidate 처리
+  - 구현: `lib/actions/reviews.ts:isRepeatSubmission` — 동일 anonId가 같은 과목(학수번호 기준)에 이미 리뷰가 있으면 이후 제출은 `is_filtered=true`로 저장(삭제하지 않고 감사 목적으로 보관). 실 DB에 테스트 데이터를 넣어 1번째 `isFiltered=false`, 2번째 `isFiltered=true`, 집계에서 2번째가 제외됨을 확인 후 정리.
+  - 범위 밖으로 남긴 것: 극단적 평점(별점 테러) 자체를 탐지하는 통계 기반 로직은 아직 없음 — 리뷰 볼륨이 쌓인 뒤 Sprint 2~3 사이에 재검토.
+- [x] 1.4 과목 상세 페이지 캐시/재검증 — 리뷰 작성 직후 `getCourseView` 결과가 갱신되도록 revalidate 처리
   - DoD: 리뷰 등록 후 페이지 새로고침 없이(또는 즉시 새로고침으로) 리뷰 수·평점이 바뀐다.
-- [ ] 1.5 홈 "인기 과목" 로직 재검토 — 리뷰가 실제로 쌓이기 시작하면 `enrolledCount` 대신/함께 리뷰 수·평점을 반영할지 결정
+  - 구현: `submitReview`에서 `revalidatePath("/courses/[id]")` + `revalidatePath("/")` 호출, 클라이언트에서 성공 시 `router.refresh()`.
+- [x] 1.5 홈 "인기 과목" 로직 재검토 — 리뷰가 실제로 쌓이기 시작하면 `enrolledCount` 대신/함께 리뷰 수·평점을 반영할지 결정
   - DoD: 결정 내용을 오픈 이슈 로그에 기록하고, 필요 시 `getPopularCourses` 정렬 기준 수정.
+  - 결정: 이번 스프린트에서는 그대로 `enrolledCount` 순 유지 (아래 오픈 이슈 로그 참고). 실사용 리뷰가 충분히 쌓이면 재검토.
+
+**메모(다음 세션에서 브라우저로 직접 확인할 것)**: DB insert·중복 필터링·집계 로직은 Neon에 테스트 리뷰를 직접 넣고 지운 뒤 검증했고, 미들웨어 쿠키 발급과 페이지 렌더링은 curl로 확인했다. 다만 이 세션에는 브라우저 자동화 도구가 없어 **모달 클릭 → 별점 선택 → 등록 버튼까지 실제 브라우저 인터랙션은 아직 육안으로 확인 못 했다** — 다음 작업 시작 전에 한 번 실제로 클릭해보는 걸 권장.
 
 **담당 에이전트**: `nextjs-frontend`(폼/Server Action UI), `neon-db`(어뷰징 규칙·인덱스)
 
@@ -201,7 +210,9 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 | 날짜 | 이슈 | 결정 | 비고 |
 | --- | --- | --- | --- |
 | 2026-07-29 | ORM 선택 | **Drizzle** | Neon 서버리스 드라이버와의 통합, 콜드스타트/번들 크기 고려 |
-| — | LLM API 벤더 | 미정 | Sprint 2 착수 전 결정 필요 |
+| 2026-07-29 | LLM API 벤더 | **OpenAI** | Sprint 2(해시태그 추천·AI 요약) 착수 전 `OPENAI_API_KEY` 환경변수 필요 — 발급 시 요청 예정, `.env.local`에 추가하고 커밋 금지 |
+| 2026-07-29 | 리뷰 집계 단위 | 학수번호(`courses.code`) 기준으로 **학기를 넘나들며** 리뷰·평점·해시태그를 합산 | `courses`가 학기(2026-1/2026-2)마다 별도 row라서, row 단위로만 집계하면 학기가 바뀔 때마다 리뷰가 0으로 리셋된 것처럼 보임. `code`가 없는 소수 row는 과목명으로 대체 매칭(`lib/db/queries.ts:getSiblingCourseIds`). 리뷰 자체는 사용자가 보던 정확한 `course.id`에 저장. |
+| 2026-07-29 | 홈 "인기 과목" 정렬 기준 | 당분간 `enrolledCount`(수강인원) 유지 | 리뷰 볼륨이 아직 없어 평점 기반 정렬은 무의미. 실사용 리뷰가 쌓이면 재검토(1.5). |
 | — | 학과 졸업요건 데이터 확보 방식 | 미정 | Sprint 5.1에서 결정 |
 | — | 선수과목 데이터 확보 가능 여부 | 미정 | Sprint 5.3에서 결정, 불가 시 F4 제약사항으로 문서화 |
 | — | 교양 과목 데이터 소스 | 미정 | Sprint 3.5에서 확보 |

@@ -74,7 +74,7 @@ export default async function CourseDetailPage({
               </h2>
               <span className="text-xs text-muted-foreground">· 최신순</span>
             </div>
-            <ReviewComposer />
+            <ReviewComposer courseId={course.id} />
           </div>
 
           <div className="mt-4">
