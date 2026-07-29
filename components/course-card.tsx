@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { ChevronRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import type { Course } from "@/lib/mock-data"
-import { HashtagBadge, RatingStars, RequirementBadge } from "@/components/course-badges"
+import { cn } from "@/lib/utils"
+import { HashtagBadge, RatingStars, requirementAccentColor, RequirementBadge } from "@/components/course-badges"
 
 export function CourseCard({
   course,
@@ -13,8 +14,11 @@ export function CourseCard({
   return (
     <Link
       href={`/courses/${course.id}`}
-      className="group flex h-full flex-col rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 pt-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
     >
+      {/* 이수구분별 accent bar */}
+      <span aria-hidden="true" className={cn("absolute inset-x-0 top-0 h-[3px]", requirementAccentColor[course.requirement])} />
+
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -23,11 +27,16 @@ export function CourseCard({
             </h3>
             <RequirementBadge requirement={course.requirement} />
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {course.department} · {course.professor} · {course.credits}학점
+          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+            <span>
+              {course.department} · {course.professor}
+            </span>
+            <span className="inline-flex items-center rounded-md bg-secondary px-1.5 py-0.5 text-xs font-bold tabular-nums text-secondary-foreground">
+              {course.credits}학점
+            </span>
           </p>
         </div>
-        {ownMajorLabel ? (
+        {ownMajorLabel && (
           <span
             className={
               ownMajorLabel === "내 전공 과목"
@@ -37,8 +46,6 @@ export function CourseCard({
           >
             {ownMajorLabel}
           </span>
-        ) : (
-          <ChevronRight className="size-5 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
         )}
       </div>
 
@@ -47,9 +54,14 @@ export function CourseCard({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
-        {course.hashtags.slice(0, 2).map((h) => (
+        {course.hashtags.slice(0, 3).map((h) => (
           <HashtagBadge key={h.tag} tag={h.tag} percent={h.percent} />
         ))}
+      </div>
+
+      <div className="mt-auto flex items-center justify-end gap-1 pt-3 text-sm font-medium text-primary opacity-0 transition-opacity duration-200 motion-safe:group-hover:opacity-100">
+        자세히 보기
+        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
       </div>
     </Link>
   )

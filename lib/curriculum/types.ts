@@ -25,6 +25,7 @@ export type CurriculumPlanInput = {
   doubleMajorDepartment?: string | null
   grade: number
   earnedCredits: number
+  completedElectiveCredits: number // 전공선택으로 이미 인정된 학점 — 전공선택 요건 잔여 계산에 직접 쓴다
   completedRequiredCourseCodes: string[]
   interestFieldIds: string[] // 우선순위 순서 (앞쪽이 더 높은 우선순위)
   remainingSemesters: number

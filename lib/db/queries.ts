@@ -63,6 +63,16 @@ async function attachReviewStats(rows: CourseRow[]): Promise<Course[]> {
   })
 }
 
+/** 홈 히어로 통계 배지용 — 실제 DB 값만 쓴다(리뷰 수는 아직 데모 수준이라 과장된 인상을 줄 수 있어 배지에서 뺐다). */
+export async function getCourseStats(): Promise<{ courseCount: number; departmentCount: number }> {
+  const courseResult = await db.execute(sql`select count(distinct coalesce(code, name)) as count from courses`)
+  const departmentResult = await db.execute(sql`select count(distinct department) as count from courses`)
+  return {
+    courseCount: Number((courseResult.rows[0] as { count: string }).count),
+    departmentCount: Number((departmentResult.rows[0] as { count: string }).count),
+  }
+}
+
 /**
  * 홈 "인기 과목". 아직 리뷰 데이터가 없어 평점 기반 정렬은 무의미하므로,
  * 실제 수강편람에 있는 신호인 수강인원(enrolledCount) 순으로 정렬한다.

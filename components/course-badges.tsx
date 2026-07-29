@@ -10,6 +10,15 @@ const requirementStyles: Record<Requirement, string> = {
   교양: "bg-muted text-muted-foreground",
 }
 
+/** 카드 상단 accent bar 등 "옅은 배경"이 아니라 진한 배경색이 필요한 곳에서 쓴다. */
+export const requirementAccentColor: Record<Requirement, string> = {
+  전공필수: "bg-primary",
+  전공선택: "bg-chart-2",
+  기초필수: "bg-chart-3",
+  계열공통: "bg-chart-4",
+  교양: "bg-muted-foreground/60",
+}
+
 export function RequirementBadge({
   requirement,
   className,

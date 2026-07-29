@@ -51,6 +51,7 @@ export function CurriculumPlanner({
   const [doubleMajorDepartment, setDoubleMajorDepartment] = useState("")
   const [grade, setGrade] = useState(2)
   const [earnedCredits, setEarnedCredits] = useState(45)
+  const [completedElectiveCredits, setCompletedElectiveCredits] = useState(0)
   const [remainingSemesters, setRemainingSemesters] = useState(5)
   const [completedCodes, setCompletedCodes] = useState<string[]>([])
   const [interestOrder, setInterestOrder] = useState<string[]>([])
@@ -80,6 +81,7 @@ export function CurriculumPlanner({
         doubleMajorDepartment: doubleMajorDepartment || null,
         grade,
         earnedCredits,
+        completedElectiveCredits,
         completedRequiredCourseCodes: completedCodes,
         interestFieldIds: interestOrder,
         remainingSemesters,
@@ -163,6 +165,16 @@ export function CurriculumPlanner({
 
             <Field label="기이수 학점">
               <input type="number" min={0} value={earnedCredits} onChange={(e) => setEarnedCredits(Number(e.target.value))} className="input" />
+            </Field>
+
+            <Field label="그중 전공선택으로 이미 인정된 학점">
+              <input
+                type="number"
+                min={0}
+                value={completedElectiveCredits}
+                onChange={(e) => setCompletedElectiveCredits(Number(e.target.value))}
+                className="input"
+              />
             </Field>
 
             {requiredOptions.length > 0 && (
