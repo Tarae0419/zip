@@ -2,22 +2,24 @@
 
 import { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { AlertCircle, PenLine, Star, X } from "lucide-react"
+import { AlertCircle, Loader2, PenLine, Sparkles, Star, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { predefinedReviewTags } from "@/lib/mock-data"
-import { submitReview } from "@/lib/actions/reviews"
+import { submitReview, suggestReviewHashtags } from "@/lib/actions/reviews"
 
-// AI 해시태그 추천(PRD 8.1 요구사항 2)은 Sprint 2에서 LLM 연동 후 채워진다.
-const aiSuggestedTags: string[] = []
+const MIN_BODY_LENGTH_FOR_SUGGESTION = 10
 
 export function ReviewComposer({ courseId }: { courseId: string }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [isSuggesting, startSuggestTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [body, setBody] = useState("")
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [aiSuggestedTags, setAiSuggestedTags] = useState<string[]>([])
+  const [hasSuggested, setHasSuggested] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // 모달 열림 시 배경 스크롤 방지 + ESC 닫기
@@ -40,6 +42,14 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
     )
   }
 
+  function handleSuggestTags() {
+    startSuggestTransition(async () => {
+      const tags = await suggestReviewHashtags(body)
+      setAiSuggestedTags(tags)
+      setHasSuggested(true)
+    })
+  }
+
   function handleSubmit() {
     if (rating === 0) {
       setError("별점을 선택해주세요.")
@@ -57,6 +67,8 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
       setHoverRating(0)
       setBody("")
       setSelectedTags([])
+      setAiSuggestedTags([])
+      setHasSuggested(false)
       router.refresh()
     })
   }
@@ -155,6 +167,19 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
                 placeholder="강의 난이도, 과제량, 시험 방식 등 후배들에게 도움이 될 이야기를 남겨주세요."
                 className="mt-2 w-full resize-none rounded-xl border border-input bg-background p-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
               />
+              <button
+                type="button"
+                onClick={handleSuggestTags}
+                disabled={body.trim().length < MIN_BODY_LENGTH_FOR_SUGGESTION || isSuggesting}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSuggesting ? (
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Sparkles className="size-3.5" aria-hidden="true" />
+                )}
+                AI로 태그 추천받기
+              </button>
             </div>
 
             {/* 사전 정의 해시태그 */}
@@ -182,32 +207,38 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
               </div>
             </div>
 
-            {/* AI 추천 태그: Sprint 2에서 LLM 연동 후 노출 (현재는 빈 배열) */}
-            {aiSuggestedTags.length > 0 && (
+            {/* AI 추천 태그 — "AI로 태그 추천받기"를 눌렀을 때만 채워진다 */}
+            {hasSuggested && (
               <div className="mt-4">
                 <p className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
                   AI 추천 태그
                 </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {aiSuggestedTags.map((tag) => {
-                    const selected = selectedTags.includes(tag)
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => toggleTag(tag)}
-                        className={cn(
-                          "rounded-full border border-dashed px-3 py-1.5 text-sm font-medium transition",
-                          selected
-                            ? "border-muted-foreground bg-muted-foreground text-background"
-                            : "border-border bg-muted text-muted-foreground hover:bg-secondary",
-                        )}
-                      >
-                        #{tag}
-                      </button>
-                    )
-                  })}
-                </div>
+                {aiSuggestedTags.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {aiSuggestedTags.map((tag) => {
+                      const selected = selectedTags.includes(tag)
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleTag(tag)}
+                          className={cn(
+                            "rounded-full border border-dashed px-3 py-1.5 text-sm font-medium transition",
+                            selected
+                              ? "border-muted-foreground bg-muted-foreground text-background"
+                              : "border-border bg-muted text-muted-foreground hover:bg-secondary",
+                          )}
+                        >
+                          #{tag}
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    본문과 뚜렷하게 관련된 태그를 찾지 못했어요.
+                  </p>
+                )}
               </div>
             )}
 

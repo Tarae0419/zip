@@ -73,11 +73,26 @@ export async function getPopularCourses(limit = 6): Promise<Course[]> {
  * code가 없는 소수의 row(원본 결측)는 과목명으로 대체 매칭한다.
  * 리뷰 자체는 사용자가 실제로 보고 있던 정확한 course.id에 저장한다 — 집계할 때만 묶는다.
  */
-async function getSiblingCourseIds(row: CourseRow): Promise<string[]> {
+export async function getSiblingCourseIds(row: Pick<CourseRow, "code" | "name">): Promise<string[]> {
   const rows = row.code
     ? await db.select({ id: courses.id }).from(courses).where(eq(courses.code, row.code))
     : await db.select({ id: courses.id }).from(courses).where(eq(courses.name, row.name))
   return rows.map((r) => r.id)
+}
+
+/**
+ * 같은 학수번호를 가진 여러 학기 row 중, 리뷰 요약(summaries)을 걸어둘 "대표" row를 고른다.
+ * 학기 문자열("2026-2" > "2026-1")이 큰, 즉 가장 최근 학기의 row를 사용한다.
+ */
+export async function getCanonicalCourseId(siblingIds: string[]): Promise<string | null> {
+  if (siblingIds.length === 0) return null
+  const rows = await db
+    .select({ id: courses.id, semester: courses.semester })
+    .from(courses)
+    .where(inArray(courses.id, siblingIds))
+    .orderBy(desc(courses.semester))
+    .limit(1)
+  return rows[0]?.id ?? null
 }
 
 export async function getCourseView(id: string): Promise<{ course: Course; reviews: Review[] } | null> {

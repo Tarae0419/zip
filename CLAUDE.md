@@ -33,7 +33,7 @@ There is no test suite configured yet.
 
 `DATABASE_URL` lives in `.env.local` (gitignored, already points at a real Neon project — do not print its value into chat or commits). Scripts that touch the DB load it via `dotenv.config({ path: ".env.local" })`, not the default `dotenv/config` (which reads `.env`) — or run `tsx --env-file=.env.local` for one-off scripts, since `dotenv/config` runs too late relative to ESM import hoisting if the script also imports `lib/db/client.ts` (it throws at import time if `DATABASE_URL` is unset).
 
-`OPENAI_API_KEY` will be required starting Sprint 2 (AI hashtag suggestions, review summaries) — not needed yet.
+AI features (hashtag suggestion, review summaries) use OpenAI via `lib/ai/`. The key lives in `.env.local` as `OPEN_AI_API_KEY` (not the SDK's default `OPENAI_API_KEY` name) — `lib/ai/openai-client.ts` reads it explicitly.
 
 ## Architecture
 
@@ -41,7 +41,8 @@ There is no test suite configured yet.
 - **UI**: shadcn/ui (`components.json`, style `base-nova`) + Tailwind v4. Path alias `@/*` → repo root. Only `components/ui/button.tsx` has been generated so far; add more via `shadcn` as needed rather than hand-rolling primitives.
 - **Package manager is pnpm**, but the workspace's `pnpm` field in `package.json` (`overrides`) is ignored by modern pnpm — build-script allowlisting and other pnpm-specific settings live in `pnpm-workspace.yaml` (`allowBuilds:`) instead.
 - **Anonymous identity**: `middleware.ts` issues a `sgz_anon_id` httpOnly cookie to every visitor (no login, matches PRD's "개인정보 최소 수집" principle). `lib/auth/anon-user.ts` (`getAnonId`/`ensureAnonUser`, server-only — uses `next/headers`) resolves it to a `users` row, created lazily on first write (e.g. first review). Don't build a real auth system on top of this without checking with the user first — it's intentionally minimal.
-- **Server Actions** live in `lib/actions/*.ts` (`"use server"`). `lib/actions/reviews.ts:submitReview` is the first one — review writes, revalidation, and the minimal abuse-filtering rule all live there.
+- **Server Actions** live in `lib/actions/*.ts` (`"use server"`). `lib/actions/reviews.ts` has `submitReview` (review writes, revalidation, minimal abuse-filtering, and triggers AI summary regeneration) and `suggestReviewHashtags` (AI tag suggestion).
+- **AI** (`lib/ai/`): `openai-client.ts` (shared client + `AI_MODEL` constant), `hashtags.ts` (`suggestHashtags` — constrained to `predefinedReviewTags`, re-validated server-side against that list), `summary.ts` (`generateCourseSummary` — 3–5 sentence Korean summary, flags polarized ratings). Both are plain async functions, not Server Actions themselves — call them from a Server Action or RSC.
 
 ### Database (`lib/db/`)
 
@@ -72,4 +73,4 @@ There is no test suite configured yet.
 PRD §10.4 says these live in "§14 open issues," but `docs/PRD.md` has no §14 (it ends at §12) — they're tracked in `docs/SPRINT_PLAN.md`'s 오픈 이슈 로그 instead. Current state:
 
 - ORM: **Drizzle**.
-- LLM API vendor: **OpenAI** — `OPENAI_API_KEY` needed from Sprint 2 onward, not yet.
+- LLM API vendor: **OpenAI** (`gpt-4o-mini`) — wired up since Sprint 2, see `lib/ai/`.
