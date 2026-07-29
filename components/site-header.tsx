@@ -5,9 +5,10 @@ import type React from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Compass, Search, Sparkles, CalendarDays } from "lucide-react"
+import { Compass, Search, Sparkles, CalendarDays, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/components/cart-provider"
+import { logout } from "@/lib/actions/auth"
 
 const navLinks = [
   { href: "/fields", label: "분야로 찾기", icon: Compass },
@@ -34,6 +35,12 @@ export function SiteHeader() {
     const trimmed = query.trim()
     if (!trimmed) return
     router.push(`/search?q=${encodeURIComponent(trimmed)}`)
+  }
+
+  async function handleLogout() {
+    await logout()
+    router.push("/login")
+    router.refresh()
   }
 
   return (
@@ -94,6 +101,15 @@ export function SiteHeader() {
               </Link>
             )
           })}
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="로그아웃"
+            className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <LogOut className="size-4" aria-hidden="true" />
+            <span className="hidden sm:inline">로그아웃</span>
+          </button>
         </nav>
       </div>
     </header>

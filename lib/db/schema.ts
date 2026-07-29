@@ -160,15 +160,40 @@ export const summaries = pgTable("summaries", {
   generatedAt: timestamp("generated_at").notNull().defaultNow(),
 })
 
-/** PRD 9장 User — 개인정보 최소 수집(익명 식별자 기반) */
+/**
+ * PRD 9장 User — 원래 "개인정보 최소 수집" 원칙에 따라 익명 식별자(anonId) 기반이었으나,
+ * 실제 회원가입/로그인(학번+비밀번호, @jbnu.ac.kr 이메일 인증)을 추가하며 anonId 쿠키를
+ * "로그인 세션 토큰"으로 재사용하는 방식으로 확장했다 — 로그인 성공 시 그 계정의 anonId 값을
+ * 쿠키로 내려주므로, 기존 anonId 기반 쿼리(reviews, user-profile 등)는 그대로 동작한다.
+ * studentId/email/passwordHash/emailVerified는 실 계정에만 채워지고, 과거 게스트 row는 null.
+ */
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   anonId: varchar("anon_id", { length: 64 }).notNull().unique(),
+  studentId: varchar("student_id", { length: 20 }).unique(),
+  email: varchar("email", { length: 150 }).unique(),
+  passwordHash: varchar("password_hash", { length: 255 }),
+  emailVerified: boolean("email_verified").notNull().default(false),
   department: varchar("department", { length: 100 }),
   doubleMajorDepartments: jsonb("double_major_departments").$type<string[]>().default([]),
   grade: smallint("grade"),
   interestFieldIds: jsonb("interest_field_ids").$type<string[]>().default([]),
   completedCourseIds: jsonb("completed_course_ids").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
+/**
+ * 회원가입 이메일 인증 대기열. 학번+이메일+비밀번호(해시)를 먼저 여기 담아 인증코드를 이메일로
+ * 보내고, 코드가 맞아야 users row를 실제로 만든다 — 이메일 인증 전에는 계정이 생성되지 않는다.
+ */
+export const emailVerifications = pgTable("email_verifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studentId: varchar("student_id", { length: 20 }).notNull(),
+  email: varchar("email", { length: 150 }).notNull(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  code: varchar("code", { length: 6 }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  consumedAt: timestamp("consumed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 

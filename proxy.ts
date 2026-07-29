@@ -3,22 +3,26 @@ import type { NextRequest } from "next/server"
 
 export const ANON_ID_COOKIE = "sgz_anon_id"
 
-// 로그인 없이 브라우저별로 안정적인 익명 식별자를 발급한다 (PRD "개인정보 최소 수집" 원칙).
-// 리뷰 작성(F1), 추후 관심분야/기이수과목 저장(F4)에 이 값을 사용한다.
+// 학번 회원가입 + 이메일 인증(@jbnu.ac.kr)을 도입하면서 "로그인 필수" 앱으로 전환했다.
+// 예전에는 이 미들웨어가 방문자 전원에게 익명 쿠키를 자동 발급했지만, 이제 그 쿠키(세션)는
+// login/signup 서버 액션이 인증에 성공했을 때만 내려준다(lib/auth/session.ts) — 여기서는
+// 쿠키 유무만 보고 없으면 /login으로 보낸다.
+const PUBLIC_PATHS = ["/login", "/signup"]
+const STATIC_FILE_RE = /\.(svg|png|ico|jpg|jpeg|webmanifest|xml|txt)$/
+
 export function proxy(request: NextRequest) {
-  if (request.cookies.has(ANON_ID_COOKIE)) {
+  const { pathname } = request.nextUrl
+
+  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`)) || STATIC_FILE_RE.test(pathname)
+  if (isPublic) {
     return NextResponse.next()
   }
 
-  const response = NextResponse.next()
-  response.cookies.set(ANON_ID_COOKIE, crypto.randomUUID(), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 365 * 2,
-    path: "/",
-  })
-  return response
+  if (!request.cookies.has(ANON_ID_COOKIE)) {
+    return NextResponse.redirect(new URL("/login", request.url))
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
