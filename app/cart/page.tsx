@@ -10,9 +10,9 @@ export const metadata = {
 export default async function CartPage({
   searchParams,
 }: {
-  searchParams: Promise<{ semester?: string; q?: string; department?: string }>
+  searchParams: Promise<{ semester?: string; q?: string; department?: string; grade?: string }>
 }) {
-  const { semester, q, department } = await searchParams
+  const { semester, q, department, grade } = await searchParams
 
   const availableSemesters = await getDistinctSemesters()
   // 학년도를 명시하지 않았으면 가장 최신 학기를 기본으로 보여준다.
@@ -20,10 +20,17 @@ export default async function CartPage({
 
   const query = (q ?? "").trim()
   const selectedDepartment = department && department !== "전체" ? department : undefined
+  const selectedGrade = grade && grade !== "전체" ? Number(grade) : undefined
 
   const [browsableCourses, departments] = activeSemester
     ? await Promise.all([
-        getCoursesForSemester({ semester: activeSemester, query: query || undefined, department: selectedDepartment, limit: 30 }),
+        getCoursesForSemester({
+          semester: activeSemester,
+          query: query || undefined,
+          department: selectedDepartment,
+          grade: selectedGrade,
+          limit: 30,
+        }),
         getDistinctDepartments(),
       ])
     : [[], []]
@@ -44,6 +51,7 @@ export default async function CartPage({
             activeSemester={activeSemester ?? ""}
             departments={departments}
             department={selectedDepartment ?? "전체"}
+            grade={selectedGrade ? String(selectedGrade) : "전체"}
             query={query}
             browsableCourses={browsableCourses}
           />

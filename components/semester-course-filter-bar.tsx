@@ -4,14 +4,18 @@ import { useState, type FormEvent } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
 
+const GRADE_OPTIONS = ["전체", "1", "2", "3", "4"]
+
 export function SemesterCourseFilterBar({
   query,
   department,
   departments,
+  grade,
 }: {
   query: string
   department: string
   departments: string[]
+  grade: string
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -43,6 +47,21 @@ export function SemesterCourseFilterBar({
           {departments.map((d) => (
             <option key={d} value={d}>
               {d}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex items-center gap-1.5 text-sm">
+        <span className="text-muted-foreground">학년</span>
+        <select
+          value={grade}
+          onChange={(e) => updateParam("grade", e.target.value)}
+          className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm font-medium text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+        >
+          {GRADE_OPTIONS.map((g) => (
+            <option key={g} value={g}>
+              {g === "전체" ? g : `${g}학년`}
             </option>
           ))}
         </select>

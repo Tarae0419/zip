@@ -195,23 +195,37 @@ export async function getCoursesForSemester({
   semester,
   query,
   department,
+  grade,
   limit = 30,
 }: {
   semester: string
   query?: string
   department?: string
+  grade?: number
   limit?: number
 }): Promise<Course[]> {
   const conditions = [eq(courses.isPublic, true), eq(courses.semester, semester)]
   if (query) conditions.push(ilike(courses.name, `%${query}%`))
   if (department) conditions.push(eq(courses.department, department))
 
-  const rows = await db
-    .select()
-    .from(courses)
-    .where(and(...conditions))
-    .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
-    .limit(limit)
+  let rows: CourseRow[]
+  if (grade) {
+    const joined = await db
+      .selectDistinct({ course: courses })
+      .from(courses)
+      .innerJoin(courseDepartmentTracks, eq(courseDepartmentTracks.courseId, courses.id))
+      .where(and(...conditions, eq(courseDepartmentTracks.grade, grade)))
+      .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
+      .limit(limit)
+    rows = joined.map((r) => r.course)
+  } else {
+    rows = await db
+      .select()
+      .from(courses)
+      .where(and(...conditions))
+      .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
+      .limit(limit)
+  }
 
   return attachReviewStats(rows)
 }

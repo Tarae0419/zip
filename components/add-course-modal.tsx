@@ -12,6 +12,7 @@ export function AddCourseModal({
   query,
   department,
   departments,
+  grade,
   browsableCourses,
   onClose,
 }: {
@@ -19,6 +20,7 @@ export function AddCourseModal({
   query: string
   department: string
   departments: string[]
+  grade: string
   browsableCourses: Course[]
   onClose: () => void
 }) {
@@ -55,7 +57,7 @@ export function AddCourseModal({
         </div>
 
         <div className="border-b border-border px-5 py-3">
-          <SemesterCourseFilterBar query={query} department={department} departments={departments} />
+          <SemesterCourseFilterBar query={query} department={department} departments={departments} grade={grade} />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
@@ -66,7 +68,8 @@ export function AddCourseModal({
           ) : (
             <>
               <p className="text-sm text-muted-foreground">
-                {query || department !== "전체" ? "검색 결과" : "수강인원이 많은 순으로 보여드려요"} · {browsableCourses.length}개
+                {query || department !== "전체" || grade !== "전체" ? "검색 결과" : "수강인원이 많은 순으로 보여드려요"} ·{" "}
+                {browsableCourses.length}개
               </p>
               <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {browsableCourses.map((course) => (
