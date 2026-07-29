@@ -97,7 +97,7 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
             aria-modal="true"
             aria-label="수강평 작성"
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[90svh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-card p-6 shadow-xl sm:rounded-2xl"
+            className="max-h-[90svh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-3xl bg-card p-6 shadow-xl sm:rounded-2xl"
           >
             <div className="flex items-center justify-between">
               <h2 className="font-display text-lg font-bold text-foreground">
@@ -117,6 +117,8 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
             <div className="mt-5">
               <p className="text-sm font-semibold text-foreground">별점</p>
               <div
+                role="group"
+                aria-label="별점 선택"
                 className="mt-2 flex items-center gap-1"
                 onMouseLeave={() => setHoverRating(0)}
               >
@@ -128,6 +130,7 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
                       key={value}
                       type="button"
                       aria-label={`${value}점`}
+                      aria-pressed={rating === value}
                       onClick={() => setRating(value)}
                       onMouseEnter={() => setHoverRating(value)}
                       className="p-0.5"
@@ -263,7 +266,7 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
                 onClick={handleSubmit}
                 className="flex-1 rounded-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
               >
-                {isPending ? "등록 중..." : "등록"}
+                {isPending ? "등록 중…" : "등록"}
               </button>
             </div>
           </div>

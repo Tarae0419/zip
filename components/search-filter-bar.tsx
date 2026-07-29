@@ -75,6 +75,7 @@ export function SearchFilterBar({
           <button
             key={opt.key}
             type="button"
+            aria-pressed={sort === opt.key}
             onClick={() => updateParam("sort", opt.key === "relevance" ? "전체" : opt.key)}
             className={
               sort === opt.key

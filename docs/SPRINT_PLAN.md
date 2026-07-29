@@ -5,7 +5,7 @@
 | 기준 문서 | `docs/PRD.md` (v1.1), `CLAUDE.md` |
 | 작성일 | 2026-07-29 |
 | 최종 수정일 | 2026-07-29 |
-| 상태 | Sprint 0~2, 4~6 완료 · Sprint 3 3.5만 보류(교양 데이터 파일 필요) · Sprint 7 진행 대기 |
+| 상태 | Sprint 0~2, 4~6 완료 · Sprint 3 3.5 보류(교양 데이터 파일 필요) · Sprint 7 7.1만 보류(Neon×Vercel 연동, 사용자의 대시보드 조작 필요) |
 
 ---
 
@@ -30,7 +30,7 @@
 | 4 | 산업/진로 분야 검색 | F3 | ✅ 완료 |
 | 5 | 커리큘럼 데이터 확보 | F4 기반 | ✅ 완료 (더미 데이터 기반) |
 | 6 | AI 커리큘럼 추천 엔진 | F4 | ✅ 완료 (커리큘럼 데이터 있는 2개 학과 한정, "과목 추가"·계절학기는 스코프 아웃) |
-| 7 | 배포/운영 정비 & QA | 전체 | ⬜ 대기 |
+| 7 | 배포/운영 정비 & QA | 전체 | 🟡 7.1만 보류 (Neon×Vercel 대시보드 연동, 사용자 액션 필요), 나머지 완료 |
 
 PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 실제 구현 단위(쓰기 경로/AI 경로/데이터 확보를 분리)로 더 잘게 쪼갰다.
 
@@ -243,10 +243,17 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 **작업 항목**
 
 - [ ] 7.1 Neon 브랜치 × Vercel 프리뷰 연동 — `.claude/skills/neon-branch-preview-sync/SKILL.md` 절차를 실제로 Vercel 대시보드에서 설정
-- [ ] 7.2 접근성/UX 감사 — `web-design-guidelines` 스킬로 주요 화면(리뷰 작성 폼, 검색 필터, 커리큘럼 플래너) 점검 및 수정
-- [ ] 7.3 Vercel 비용/성능 점검 — `vercel-optimize` 스킬로 F4 등 무거운 라우트 점검
-- [ ] 7.4 프로덕션 배포 — `deploy-to-vercel`/`vercel-cli-with-tokens` 스킬로 첫 프로덕션 배포 (사용자 명시적 승인 필요)
-- [ ] 7.5 최소 테스트 체계 도입 — 현재 테스트 스위트 없음(CLAUDE.md 참고). 핵심 쿼리(`lib/db/queries.ts`)와 학점 계산 로직(6.2) 최소 단위 테스트 추가
+  - **블로킹, 사용자 액션 필요**: Vercel의 Neon 통합(`vercel integration add neon`)은 OAuth 동의·브라우저 콘솔 조작이 필요해 CLI로 대신 실행할 수 없다(로그인과 동일한 제약). Vercel 대시보드 → 프로젝트 `zip` → Storage 탭 → Neon 연결에서 **기존 Neon 계정/프로젝트를 연결**하고(새 프로젝트 생성 아님), "브랜치별 프리뷰 DB 생성" 옵션을 켜야 한다. 완료 후 알려주면 검증하겠다.
+- [x] 7.2 접근성/UX 감사 — `web-design-guidelines` 스킬로 주요 화면(리뷰 작성 폼, 검색 필터, 커리큘럼 플래너) 점검 및 수정
+  - 발견 7건 모두 수정: 리뷰 모달에 `overscroll-behavior: contain` 추가, 별점 버튼 그룹에 `role="group"`+`aria-label`+`aria-pressed`, 정렬/관심분야 토글 버튼에 `aria-pressed`, "..." → "…" 3곳, 커리큘럼 플래너에 제외 과목 되돌리기 버튼 추가(제외가 되돌릴 수단 없이 즉시 반영되던 문제).
+- [x] 7.3 Vercel 비용/성능 점검 — `vercel-optimize` 스킬로 F4 등 무거운 라우트 점검
+  - Observability Plus가 이 팀에 비활성화돼 있어(`no_oplus_probe`) 라우트별 실측 지표 기반 감사는 불가 — 사용자에게 확인 후 스캐너 전용(코드 패턴만 검사) 모드로 진행하기로 결정. 코드 스캐너 자체가 이 저장소 구조(`pnpm-workspace.yaml`은 있지만 워크스페이스 패키지가 0개)를 모노레포로 오인해 라우트 매핑에 실패(0 routes, 21,860개 파일 스캔 — `node_modules` 포함된 것으로 추정)해 유효한 결과를 못 냈다. 대신 직접 코드 리뷰로 진행: 트래픽·데이터 규모가 작아(학과 2개, 관심분야 6개, 생성당 OpenAI 호출 1회) 지금 단계에서 손볼 만한 뚜렷한 비효율은 없다고 판단. 실 트래픽이 쌓이면 Observability Plus를 켜고 재감사할 것.
+- [x] 7.4 프로덕션 배포 — `deploy-to-vercel`/`vercel-cli-with-tokens` 스킬로 첫 프로덕션 배포 (사용자 명시적 승인 필요)
+  - **이미 완료된 상태로 확인됨**: 이 저장소가 `main` 브랜치를 Vercel의 프로덕션 브랜치로 인식해서, Sprint 4 연결 이후 `main`에 푸시할 때마다 자동으로 프로덕션 배포가 실행되고 있었다(별도 `--prod` 지시 없이). 현재 프로덕션(`https://zip-tarae0419s-projects.vercel.app` 등 별칭)은 Sprint 6까지 반영된 상태로 Ready 확인.
+  - **운영상 주의점**: 현재 `main` 푸시 = 즉시 프로덕션 배포라 프리뷰/스테이징 단계가 없다. 7.1(Neon 프리뷰 브랜치 연동)과 별개로, 기능 브랜치 + PR 기반 워크플로로 바꾸는 걸 고려할 만하다 — 지금 결정하지 않고 기록만 남긴다.
+- [x] 7.5 최소 테스트 체계 도입 — 현재 테스트 스위트 없음(CLAUDE.md 참고). 핵심 쿼리(`lib/db/queries.ts`)와 학점 계산 로직(6.2) 최소 단위 테스트 추가
+  - Vitest 도입(`vitest.config.ts`, `pnpm test`). `lib/curriculum/plan.test.ts` — 순수 로직 단위테스트 10개(선수과목 순서 배치, 학기당 학점 상한, 관심분야 예산 소진, 본인전공 아닐 때만 문구 추가 등). `lib/db/queries.integration.test.ts` — 실 Neon DB 대상 읽기 전용 통합 스모크 테스트 5개(`DATABASE_URL` 없으면 자동 스킵). 총 15개 전부 통과.
+  - **부수 발견**: QA 중 `next build`가 "middleware 컨벤션은 deprecated, proxy 사용" 경고를 냄(Next.js 16). `middleware.ts` → `proxy.ts`로 마이그레이션(`export function middleware` → `export function proxy`, `lib/auth/anon-user.ts`의 import 경로 수정). 빌드 경고 해소, 쿠키 발급 동작은 그대로 확인.
 
 ---
 
@@ -271,3 +278,6 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 | — | 교양 과목 데이터 소스 | 미정, **사용자 확인 필요** | Sprint 3.5 — 교양 개설과목 목록 파일 업로드 필요 |
 | 2026-07-29 | Vercel 프로젝트 연결 | 팀 `tarae0419s-projects`에 `zip` 프로젝트 생성, GitHub(`Tarae0419/zip`) 연동 | 계정에 있던 기존 `curator` 프로젝트는 이 앱과 무관해 건드리지 않음. `DATABASE_URL`/`OPEN_AI_API_KEY`를 production/preview/development 세 환경에 등록. |
 | 2026-07-29 | pnpm 설정 위치 | `package.json`의 `pnpm.overrides` → `pnpm-workspace.yaml`의 `overrides:`로 이동 | 첫 Vercel 배포가 `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`로 실패해서 발견. 최신 pnpm은 `package.json`의 `pnpm` 필드를 더 이상 읽지 않는다(세션 내내 뜬 경고의 원인이었음). |
+| 2026-07-29 | `main` 푸시 = 프로덕션 배포 | 기존 동작 그대로 유지, 문서화만 함 | Vercel Git 연동에서 `main`이 프로덕션 브랜치로 인식돼, 별도 `--prod` 없이도 `main` 푸시마다 자동으로 프로덕션에 배포되고 있었다는 걸 Sprint 7에서 확인. 프리뷰 단계 없이 바로 프로덕션에 나간다는 뜻 — 7.1(Neon 프리뷰 브랜치)과 별개로 feature-branch/PR 워크플로 도입을 고려할 만하지만 지금은 결정하지 않음. |
+| 2026-07-29 | middleware → proxy 마이그레이션 | `middleware.ts` → `proxy.ts`, `export function middleware` → `export function proxy` | Next.js 16이 `middleware` 컨벤션을 deprecated 처리(`proxy`로 개명). `next build` 경고로 발견, 공식 문서 확인 후 수동 마이그레이션(파일명·함수명만 변경, `config`/matcher는 동일). |
+| 2026-07-29 | Vercel Observability Plus | 미활성화, 이번 스프린트에서는 활성화하지 않음 | `vercel-optimize` 스킬이 라우트별 실측 지표를 요구했으나 이 팀에 비활성화돼 있어(`no_oplus_probe`) 스캐너 전용(코드 패턴만) 모드로 대체 — 사용자에게 확인 후 결정. 유료 기능이라 활성화 여부는 추후 필요성이 커지면 재검토. |

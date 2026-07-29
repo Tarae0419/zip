@@ -109,6 +109,11 @@ export function CurriculumPlanner({
     runGenerate(next)
   }
 
+  function handleResetExclusions() {
+    setExcludedCodes([])
+    runGenerate([])
+  }
+
   const activeSemester = result?.status === "ok" ? result.semesters[activeTab] : undefined
 
   const noDepartments = curriculumDepartments.length === 0
@@ -189,6 +194,7 @@ export function CurriculumPlanner({
                     <button
                       key={field.id}
                       type="button"
+                      aria-pressed={selected}
                       onClick={() => toggleInterest(field.id)}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition",
@@ -223,7 +229,7 @@ export function CurriculumPlanner({
           {isPending ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              추천 생성 중...
+              추천 생성 중…
             </>
           ) : (
             <>
@@ -258,6 +264,17 @@ export function CurriculumPlanner({
                 <p>{note}</p>
               </div>
             ))}
+
+            {excludedCodes.length > 0 && (
+              <button
+                type="button"
+                onClick={handleResetExclusions}
+                disabled={isPending}
+                className="mt-3 text-xs font-medium text-muted-foreground underline-offset-2 hover:text-primary hover:underline disabled:opacity-50"
+              >
+                제외한 과목 {excludedCodes.length}개 되돌리기
+              </button>
+            )}
 
             {/* 학기 탭 */}
             <div className="mt-5 flex flex-wrap gap-2">
@@ -367,7 +384,7 @@ function LoadingResult() {
   return (
     <div className="flex h-full min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-card p-8 text-center">
       <Loader2 className="size-8 animate-spin text-primary" aria-hidden="true" />
-      <p className="mt-4 font-medium text-foreground">AI가 맞춤 커리큘럼을 설계하고 있어요...</p>
+      <p className="mt-4 font-medium text-foreground">AI가 맞춤 커리큘럼을 설계하고 있어요…</p>
       <p className="mt-1 text-sm text-muted-foreground">잠시만 기다려주세요.</p>
     </div>
   )

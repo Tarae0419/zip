@@ -5,7 +5,7 @@ export const ANON_ID_COOKIE = "sgz_anon_id"
 
 // 로그인 없이 브라우저별로 안정적인 익명 식별자를 발급한다 (PRD "개인정보 최소 수집" 원칙).
 // 리뷰 작성(F1), 추후 관심분야/기이수과목 저장(F4)에 이 값을 사용한다.
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (request.cookies.has(ANON_ID_COOKIE)) {
     return NextResponse.next()
   }

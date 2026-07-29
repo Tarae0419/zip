@@ -3,7 +3,7 @@ import { cookies } from "next/headers"
 
 import { db } from "@/lib/db/client"
 import { users } from "@/lib/db/schema"
-import { ANON_ID_COOKIE } from "@/middleware"
+import { ANON_ID_COOKIE } from "@/proxy"
 
 /** middleware.ts가 모든 요청에 대해 쿠키를 발급하므로, 이 함수는 항상 값을 반환한다고 가정한다. */
 export async function getAnonId(): Promise<string> {

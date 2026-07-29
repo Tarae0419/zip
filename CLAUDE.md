@@ -27,9 +27,11 @@ corepack pnpm db:generate        # generate a migration from lib/db/schema.ts
 corepack pnpm db:studio          # drizzle-kit studio
 corepack pnpm exec drizzle-kit migrate   # apply pending migrations to DATABASE_URL
 corepack pnpm db:import-courses  # re-import the two course-catalog xlsx files into `courses`
-```
 
-There is no test suite configured yet.
+# tests (Vitest)
+corepack pnpm test         # runs once; includes a DB integration file that auto-skips without DATABASE_URL
+corepack pnpm test:watch
+```
 
 `DATABASE_URL` lives in `.env.local` (gitignored, already points at a real Neon project — do not print its value into chat or commits). Scripts that touch the DB load it via `dotenv.config({ path: ".env.local" })`, not the default `dotenv/config` (which reads `.env`) — or run `tsx --env-file=.env.local` for one-off scripts, since `dotenv/config` runs too late relative to ESM import hoisting if the script also imports `lib/db/client.ts` (it throws at import time if `DATABASE_URL` is unset).
 
@@ -40,7 +42,7 @@ AI features (hashtag suggestion, review summaries) use OpenAI via `lib/ai/`. The
 - **Next.js App Router**, React 19, TypeScript. Routes: `/` (home), `/search`, `/fields`, `/courses/[id]`, `/curriculum`. All five are wired to real DB queries (`lib/db/queries.ts`) — no route still depends on `lib/mock-data.ts` for course/curriculum content.
 - **UI**: shadcn/ui (`components.json`, style `base-nova`) + Tailwind v4. Path alias `@/*` → repo root. Only `components/ui/button.tsx` has been generated so far; add more via `shadcn` as needed rather than hand-rolling primitives.
 - **Package manager is pnpm**, but the workspace's `pnpm` field in `package.json` (`overrides`) is ignored by modern pnpm — build-script allowlisting and other pnpm-specific settings live in `pnpm-workspace.yaml` (`allowBuilds:`) instead.
-- **Anonymous identity**: `middleware.ts` issues a `sgz_anon_id` httpOnly cookie to every visitor (no login, matches PRD's "개인정보 최소 수집" principle). `lib/auth/anon-user.ts` (`getAnonId`/`ensureAnonUser`, server-only — uses `next/headers`) resolves it to a `users` row, created lazily on first write (e.g. first review). Don't build a real auth system on top of this without checking with the user first — it's intentionally minimal.
+- **Anonymous identity**: `proxy.ts` (Next.js 16 renamed the `middleware.ts` convention to `proxy.ts`/`export function proxy` — this project migrated already, don't recreate `middleware.ts`) issues a `sgz_anon_id` httpOnly cookie to every visitor (no login, matches PRD's "개인정보 최소 수집" principle). `lib/auth/anon-user.ts` (`getAnonId`/`ensureAnonUser`, server-only — uses `next/headers`) resolves it to a `users` row, created lazily on first write (e.g. first review). Don't build a real auth system on top of this without checking with the user first — it's intentionally minimal.
 - **Server Actions** live in `lib/actions/*.ts` (`"use server"`). `lib/actions/reviews.ts` has `submitReview` (review writes, revalidation, minimal abuse-filtering, and triggers AI summary regeneration) and `suggestReviewHashtags` (AI tag suggestion). `lib/actions/user-profile.ts` has `setMyDepartment` (used by `/fields`' own-major comparison, PRD 8.3). `lib/actions/curriculum.ts` has `generateCurriculumPlan` (F4 — persists the input profile to `users`, then builds and returns a plan; re-invoked wholesale on every exclude-and-recalculate click, there's no server-side plan session state).
 - **AI** (`lib/ai/`): `openai-client.ts` (shared client + `AI_MODEL` constant, `gpt-4o-mini`), `hashtags.ts` (`suggestHashtags` — constrained to `predefinedReviewTags`, re-validated server-side against that list), `summary.ts` (`generateCourseSummary` — 3–5 sentence Korean summary, flags polarized ratings), `curriculum-reasons.ts` (`writeElectiveReasons` — rewrites the reason text for an already-ranked list of elective picks; never chooses which courses, only phrases why). All are plain async functions, not Server Actions themselves. Embeddings (`text-embedding-3-small`) are called directly via `openai.embeddings.create` from the offline scripts below, not from `lib/ai/`.
 - **`lib/curriculum/`** (F4, no AI): `types.ts` (`PlanItem`/`PlanSemester`/`CurriculumPlanInput`/`CurriculumPlanResult`), `plan.ts` (`placeRequiredCourses` — prerequisite-respecting greedy placement across remaining semesters; `fillElectives` — fills remaining per-semester credit budget from a pre-ranked candidate list up to a total credit budget). Pure functions, deterministic, unit-testable without a DB or network call.
@@ -72,7 +74,11 @@ F1/F2/F3/F4 are all on real DB queries now. `lib/mock-data.ts` only has two stat
 
 ## Deployment
 
-Linked to Vercel: project `zip` under team `tarae0419s-projects`, connected to the `Tarae0419/zip` GitHub repo (`.vercel/project.json`, gitignored). `vercel` CLI is a devDependency — invoke via `corepack pnpm exec vercel ...`, not a global install. `DATABASE_URL` and `OPEN_AI_API_KEY` are set on Vercel for all three environments (production/preview/development); if either changes locally, push the new value with `vercel env add <NAME> <environment> --scope tarae0419s-projects` (see `.claude/skills/vercel-cli-with-tokens/SKILL.md` — pipe the value in, never pass secrets as CLI args). Auth is via the user's own `vercel login` session, not a token.
+Linked to Vercel: project `zip` under team `tarae0419s-projects`, connected to the `Tarae0419/zip` GitHub repo (`.vercel/project.json`, gitignored). `vercel` CLI is a devDependency — invoke via `corepack pnpm exec vercel ...`, not a global install (its own scripts need `node_modules/.bin` on `PATH`, e.g. `.claude/skills/vercel-optimize/scripts/*.mjs`). `DATABASE_URL` and `OPEN_AI_API_KEY` are set on Vercel for all three environments (production/preview/development); if either changes locally, push the new value with `vercel env add <NAME> <environment> --scope tarae0419s-projects` (see `.claude/skills/vercel-cli-with-tokens/SKILL.md` — pipe the value in, never pass secrets as CLI args). Auth is via the user's own `vercel login` session, not a token.
+
+**`main` is Vercel's production branch** — every push to `main` auto-deploys straight to production, no preview/staging gate. Know this before pushing.
+
+**Not yet set up**: the Neon-branch-per-Vercel-preview integration (`.claude/skills/neon-branch-preview-sync/SKILL.md`) needs OAuth consent in the Vercel dashboard that can't be done from the CLI — see Sprint 7.1 in `docs/SPRINT_PLAN.md` for exact steps, still pending as of this writing. Observability Plus is also not enabled on this team, so `vercel-optimize`-style route metrics aren't available yet — only scanner/code-level audits work until then.
 
 ## Agents & skills already configured
 
