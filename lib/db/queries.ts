@@ -186,6 +186,36 @@ export async function getDistinctSemesters(): Promise<string[]> {
   return rows.map((r) => r.semester).sort((a, b) => b.localeCompare(a))
 }
 
+/**
+ * "내 시간표" F5 — 학기 선택 후 그 학기에 실제로 개설된 과목만 불러와 담을 수 있게 한다.
+ * 검색어 없이도 둘러볼 수 있어야 하므로(searchCoursesByName은 빈 query에서 아무것도 안 돌려준다),
+ * 별도 조회 함수로 분리했다. 검색어/학과 필터는 선택 사항.
+ */
+export async function getCoursesForSemester({
+  semester,
+  query,
+  department,
+  limit = 30,
+}: {
+  semester: string
+  query?: string
+  department?: string
+  limit?: number
+}): Promise<Course[]> {
+  const conditions = [eq(courses.isPublic, true), eq(courses.semester, semester)]
+  if (query) conditions.push(ilike(courses.name, `%${query}%`))
+  if (department) conditions.push(eq(courses.department, department))
+
+  const rows = await db
+    .select()
+    .from(courses)
+    .where(and(...conditions))
+    .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
+    .limit(limit)
+
+  return attachReviewStats(rows)
+}
+
 /** F2 — "과목명 일치": 과목명에 검색어가 포함된 결과 */
 export async function searchCoursesByName(query: string, filters: SearchFilters): Promise<{ rows: CourseRow[]; view: Course[] }> {
   const conditions = [eq(courses.isPublic, true), ilike(courses.name, `%${query}%`), ...buildFilterConditions(filters)]

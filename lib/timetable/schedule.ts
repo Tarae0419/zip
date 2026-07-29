@@ -24,6 +24,13 @@ function periodEnd(period: number): number {
   return periodStart(period) + CLASS_MINUTES_PER_PERIOD
 }
 
+/** "2026-1" → "2026학년도 1학기". 형식이 다르면(방학 학기 등) 원문을 그대로 돌려준다. */
+export function formatSemesterLabel(semester: string): string {
+  const match = semester.match(/^(\d{4})-(\d)$/)
+  if (!match) return semester
+  return `${match[1]}학년도 ${match[2]}학기`
+}
+
 export function formatMinutes(totalMinutes: number): string {
   const h = Math.floor(totalMinutes / 60)
   const m = totalMinutes % 60

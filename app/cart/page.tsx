@@ -1,12 +1,15 @@
 import { AppHeader } from "@/components/app-header"
 import { CartTimetableView } from "@/components/cart-timetable-view"
+import { getDistinctSemesters } from "@/lib/db/queries"
 
 export const metadata = {
   title: "내 시간표 — 수강길잡이",
   description: "장바구니에 담은 강의의 주간 시간표와 요일별 강의실 이동동선을 확인하세요.",
 }
 
-export default function CartPage() {
+export default async function CartPage() {
+  const availableSemesters = await getDistinctSemesters()
+
   return (
     <div className="min-h-svh">
       <AppHeader />
@@ -18,7 +21,7 @@ export default function CartPage() {
         </p>
 
         <div className="mt-8">
-          <CartTimetableView />
+          <CartTimetableView availableSemesters={availableSemesters} />
         </div>
       </main>
     </div>
