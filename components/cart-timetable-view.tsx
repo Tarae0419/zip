@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { CalendarDays, MapPin, PlusCircle, ShoppingCart, Trash2, X } from "lucide-react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { CalendarDays, MapPin, Plus, ShoppingCart, Trash2, X } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { useCart } from "@/components/cart-provider"
-import { CourseCard } from "@/components/course-card"
-import { SemesterCourseFilterBar } from "@/components/semester-course-filter-bar"
+import { AddCourseModal } from "@/components/add-course-modal"
 import { WeeklyTimetable } from "@/components/weekly-timetable"
 import { CampusMap } from "@/components/campus-map"
 import { WEEKDAYS } from "@/lib/timetable/types"
@@ -28,10 +28,22 @@ export function CartTimetableView({
   query: string
   browsableCourses: Course[]
 }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { cart, mounted, removeCourse } = useCart()
   const [selectedDay, setSelectedDay] = useState<Weekday>("월")
   const [dayManuallySelected, setDayManuallySelected] = useState(false)
   const [managingCourseId, setManagingCourseId] = useState<string | null>(null)
+  const [addModalOpen, setAddModalOpen] = useState(false)
+
+  function handleSemesterChange(nextSemester: string) {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("semester", nextSemester)
+    params.delete("q")
+    params.delete("department")
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   const scopedCart = cart.filter((c) => c.semester === activeSemester)
   const otherSemesterItems = cart.filter((c) => c.semester !== activeSemester)
@@ -67,48 +79,33 @@ export function CartTimetableView({
 
   return (
     <div className="space-y-8">
-      <section id="add-courses">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
         <div className="flex items-center gap-2">
-          <PlusCircle className="size-5 text-primary" aria-hidden="true" />
-          <h2 className="font-display text-lg font-bold text-foreground">과목 추가</h2>
-        </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          학년도를 고르면 그 학기에 개설된 과목만 보여드려요. 과목명이나 학과로 좁혀서 찾아보세요.
-        </p>
-
-        <div className="mt-3">
-          <SemesterCourseFilterBar
-            semester={activeSemester}
-            availableSemesters={availableSemesters}
-            query={query}
-            department={department}
-            departments={departments}
-          />
-        </div>
-
-        {browsableCourses.length === 0 ? (
-          <p className="mt-6 rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            조건에 맞는 과목이 없어요. 다른 과목명이나 학과로 찾아보세요.
-          </p>
-        ) : (
-          <>
-            <p className="mt-4 text-sm text-muted-foreground">
-              {query || (department !== "전체") ? "검색 결과" : "수강인원이 많은 순으로 보여드려요"} · {browsableCourses.length}개
-            </p>
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {browsableCourses.map((course) => (
-                <CourseCard key={course.id} course={course} />
+          <CalendarDays className="size-4 text-primary" aria-hidden="true" />
+          <label className="flex items-center gap-1.5">
+            <span className="sr-only">학년도 선택</span>
+            <select
+              value={activeSemester}
+              onChange={(e) => handleSemesterChange(e.target.value)}
+              className="rounded-lg border border-input bg-background px-2 py-1 font-display text-base font-bold text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+            >
+              {availableSemesters.map((s) => (
+                <option key={s} value={s}>
+                  {formatSemesterLabel(s)}
+                </option>
               ))}
-            </div>
-          </>
-        )}
-      </section>
-
-      <div className="flex items-center gap-2 border-t border-border pt-8">
-        <CalendarDays className="size-4 text-primary" aria-hidden="true" />
-        <span className="font-display text-base font-bold text-foreground">
-          {formatSemesterLabel(activeSemester)} 시간표
-        </span>
+            </select>
+          </label>
+          <span className="font-display text-base font-bold text-foreground">시간표</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setAddModalOpen(true)}
+          className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+        >
+          <Plus className="size-4" aria-hidden="true" />
+          과목 추가
+        </button>
       </div>
 
       {scopedCart.length === 0 ? (
@@ -119,13 +116,15 @@ export function CartTimetableView({
           <p className="mt-4 font-display text-lg font-semibold text-foreground">
             {formatSemesterLabel(activeSemester)}에 담은 강의가 없어요
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">위에서 과목을 담으면 시간표와 이동동선을 확인할 수 있어요.</p>
-          <a
-            href="#add-courses"
-            className="mt-5 inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+          <p className="mt-1 text-sm text-muted-foreground">과목을 담으면 시간표와 이동동선을 확인할 수 있어요.</p>
+          <button
+            type="button"
+            onClick={() => setAddModalOpen(true)}
+            className="mt-5 inline-flex items-center gap-1 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
           >
+            <Plus className="size-4" aria-hidden="true" />
             과목 담으러 가기
-          </a>
+          </button>
         </div>
       ) : (
         <>
@@ -228,6 +227,17 @@ export function CartTimetableView({
             removeCourse(managingCourse.id)
             setManagingCourseId(null)
           }}
+        />
+      )}
+
+      {addModalOpen && (
+        <AddCourseModal
+          semester={activeSemester}
+          query={query}
+          department={department}
+          departments={departments}
+          browsableCourses={browsableCourses}
+          onClose={() => setAddModalOpen(false)}
         />
       )}
     </div>
