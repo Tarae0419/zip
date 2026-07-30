@@ -14,6 +14,7 @@ export function AddCourseModal({
   departments,
   grade,
   browsableCourses,
+  viewerDepartment,
   onClose,
 }: {
   semester: string
@@ -22,6 +23,7 @@ export function AddCourseModal({
   departments: string[]
   grade: string
   browsableCourses: Course[]
+  viewerDepartment: string | null
   onClose: () => void
 }) {
   useEffect(() => {
@@ -73,7 +75,7 @@ export function AddCourseModal({
               </p>
               <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {browsableCourses.map((course) => (
-                  <CourseCard key={course.id} course={course} />
+                  <CourseCard key={course.id} course={course} viewerDepartment={viewerDepartment} />
                 ))}
               </div>
             </>

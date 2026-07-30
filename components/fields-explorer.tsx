@@ -109,6 +109,7 @@ export function FieldsExplorer({
                         <CourseCard
                           key={course.id}
                           course={course}
+                          viewerDepartment={myDepartment}
                           ownMajorLabel={
                             myDepartment
                               ? course.department === myDepartment

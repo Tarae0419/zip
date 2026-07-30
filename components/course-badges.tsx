@@ -2,6 +2,25 @@ import { Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Requirement } from "@/lib/types"
 
+// 학과 종속적인 이수구분 — 개설 학과의 커리큘럼에서만 그 의미(전공필수 등)가 성립한다.
+// 교양/일반선택/교직/군사학은 학과와 무관하게 누구나 같은 의미로 들을 수 있어 그대로 둔다.
+const MAJOR_SPECIFIC_REQUIREMENTS = new Set<Requirement>(["전공필수", "전공선택", "기초필수", "계열공통"])
+
+/**
+ * "전공필수"는 그 과목을 개설한 학과 학생에게만 실제로 필수다 — 다른 학과 학생이 보면 그냥
+ * 일반선택으로 들을 수밖에 없는 과목이므로, 뷰어의 학과가 다르면 표시상 일반선택으로 보정한다.
+ * 뷰어 학과를 모르면(로그인은 했지만 아직 학과를 안 정한 경우 등) 원본 값을 그대로 보여준다.
+ */
+export function resolveDisplayRequirement(
+  requirement: Requirement,
+  courseDepartment: string,
+  viewerDepartment: string | null,
+): Requirement {
+  if (!MAJOR_SPECIFIC_REQUIREMENTS.has(requirement)) return requirement
+  if (!viewerDepartment || courseDepartment === viewerDepartment) return requirement
+  return "일반선택"
+}
+
 const requirementStyles: Record<Requirement, string> = {
   전공필수: "bg-primary/10 text-primary",
   전공선택: "bg-chart-2/15 text-chart-2",

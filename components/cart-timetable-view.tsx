@@ -21,6 +21,7 @@ export function CartTimetableView({
   grade,
   query,
   browsableCourses,
+  viewerDepartment,
 }: {
   availableSemesters: string[]
   activeSemester: string
@@ -29,6 +30,7 @@ export function CartTimetableView({
   grade: string
   query: string
   browsableCourses: Course[]
+  viewerDepartment: string | null
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -256,6 +258,7 @@ export function CartTimetableView({
           departments={departments}
           grade={grade}
           browsableCourses={browsableCourses}
+          viewerDepartment={viewerDepartment}
           onClose={() => setAddModalOpen(false)}
         />
       )}

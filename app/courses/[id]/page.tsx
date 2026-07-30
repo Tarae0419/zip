@@ -5,9 +5,9 @@ import { AppHeader } from "@/components/app-header"
 import { AiSummaryCard } from "@/components/ai-summary-card"
 import { ReviewList } from "@/components/review-list"
 import { ReviewComposer } from "@/components/review-composer"
-import { RatingStars, RequirementBadge } from "@/components/course-badges"
+import { RatingStars, RequirementBadge, resolveDisplayRequirement } from "@/components/course-badges"
 import { CartToggleButton } from "@/components/cart-toggle-button"
-import { getCourseView } from "@/lib/db/queries"
+import { getCourseView, getUserDepartment } from "@/lib/db/queries"
 import { getCartCourseInfo } from "@/lib/actions/cart"
 import { getAnonId } from "@/lib/auth/anon-user"
 import { buildSessionsForCourse, formatMinutes } from "@/lib/timetable/schedule"
@@ -24,7 +24,11 @@ export default async function CourseDetailPage({
 }) {
   const { id } = await params
   const anonId = await getAnonId()
-  const [result, cartInfo] = await Promise.all([getCourseView(id, anonId), getCartCourseInfo(id)])
+  const [result, cartInfo, myDepartment] = await Promise.all([
+    getCourseView(id, anonId),
+    getCartCourseInfo(id),
+    getUserDepartment(anonId),
+  ])
 
   if (!result) {
     notFound()
@@ -32,6 +36,7 @@ export default async function CourseDetailPage({
 
   const { course, reviews } = result
   const scheduleSessions = cartInfo ? buildSessionsForCourse(cartInfo) : []
+  const displayRequirement = resolveDisplayRequirement(course.requirement, course.department, myDepartment)
 
   return (
     <div className="min-h-svh">
@@ -52,7 +57,7 @@ export default async function CourseDetailPage({
             <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">
               {course.name}
             </h1>
-            <RequirementBadge requirement={course.requirement} />
+            <RequirementBadge requirement={displayRequirement} />
           </div>
           <p className="mt-2 text-muted-foreground">
             {course.department} · {course.professor} · {course.credits}학점

@@ -1,6 +1,7 @@
 import { SearchX } from "lucide-react"
 import type { Course } from "@/lib/types"
-import { getDistinctSemesters, searchCoursesByFieldTag, searchCoursesByName, type SearchFilters } from "@/lib/db/queries"
+import { getDistinctSemesters, searchCoursesByFieldTag, searchCoursesByName, getUserDepartment, type SearchFilters } from "@/lib/db/queries"
+import { getAnonId } from "@/lib/auth/anon-user"
 import { SearchFilterBar } from "@/components/search-filter-bar"
 import { SearchResultsView } from "@/components/search-results-view"
 import type { SearchTab } from "@/components/search-tabs"
@@ -26,10 +27,12 @@ export async function SearchResults({
   // 이름 매칭과 분야 매칭은 서로 독립적으로 조회할 수 있다 — 분야 쪽은 일단 제외 없이 받아온 뒤
   // 이름 매칭 결과와 겹치는 것만 자바스크립트에서 걸러낸다. 두 조회를 순서대로(await 후 await) 하면
   // Neon 서버리스 드라이버 특성상 왕복이 두 번 직렬로 쌓여 느려지므로 Promise.all로 동시에 보낸다.
-  const [{ view: nameMatches }, fieldMatchesRaw, availableSemesters] = await Promise.all([
+  const anonId = await getAnonId()
+  const [{ view: nameMatches }, fieldMatchesRaw, availableSemesters, myDepartment] = await Promise.all([
     query ? searchCoursesByName(query, filters) : Promise.resolve({ view: [] as Course[], rows: [] }),
     query ? searchCoursesByFieldTag(query, [], filters) : Promise.resolve([] as Course[]),
     getDistinctSemesters(),
+    getUserDepartment(anonId),
   ])
 
   const nameIds = new Set(nameMatches.map((c) => c.id))
@@ -69,7 +72,13 @@ export async function SearchResults({
           </p>
         </div>
       ) : (
-        <SearchResultsView initialTab={initialTab} nameMatches={nameMatches} fieldMatches={fieldMatches} fieldLabel={query} />
+        <SearchResultsView
+          initialTab={initialTab}
+          nameMatches={nameMatches}
+          fieldMatches={fieldMatches}
+          fieldLabel={query}
+          viewerDepartment={myDepartment}
+        />
       )}
     </div>
   )

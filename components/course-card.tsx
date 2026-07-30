@@ -2,23 +2,27 @@ import Link from "next/link"
 import { ArrowRight, Clock } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { HashtagBadge, RatingStars, requirementAccentColor, RequirementBadge } from "@/components/course-badges"
+import { HashtagBadge, RatingStars, requirementAccentColor, RequirementBadge, resolveDisplayRequirement } from "@/components/course-badges"
 import { CartToggleButton } from "@/components/cart-toggle-button"
 import { formatMinutes, parseTimeSlots } from "@/lib/timetable/schedule"
 
 export function CourseCard({
   course,
   ownMajorLabel,
+  viewerDepartment = null,
   compact = false,
 }: {
   course: Course
   ownMajorLabel?: "내 전공 과목" | "타 전공 과목"
+  // "전공필수" 같은 학과 종속적 이수구분은 뷰어 학과가 다르면 배지에 "일반선택"으로 보정해 보여준다.
+  viewerDepartment?: string | null
   // 홈 "인기 과목" 카드처럼 상세 보기 유도만 하면 되는 자리에서는 장바구니 담기 버튼을 빼고
   // 카드 자체도 살짝 작게 — 시간표에 담을 과목을 "고르는" 화면이 아니라서 담기 버튼이 불필요하다.
   compact?: boolean
 }) {
   // course.timeSlots는 "과목 추가"(시간표) 카드 목록에서만 채워진다 — 다른 화면에서는 undefined라 아무것도 안 뜬다.
   const sessions = course.timeSlots ? parseTimeSlots(course.id, course.name, course.timeSlots) : []
+  const displayRequirement = resolveDisplayRequirement(course.requirement, course.department, viewerDepartment)
 
   return (
     <div
@@ -31,7 +35,7 @@ export function CourseCard({
       <Link href={`/courses/${course.id}`} className="absolute inset-0 z-0" aria-label={`${course.name} 상세보기`} />
 
       {/* 이수구분별 accent bar */}
-      <span aria-hidden="true" className={cn("absolute inset-x-0 top-0 h-[3px]", requirementAccentColor[course.requirement])} />
+      <span aria-hidden="true" className={cn("absolute inset-x-0 top-0 h-[3px]", requirementAccentColor[displayRequirement])} />
 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -39,7 +43,7 @@ export function CourseCard({
             <h3 className="font-display text-base font-semibold text-foreground">
               {course.name}
             </h3>
-            <RequirementBadge requirement={course.requirement} />
+            <RequirementBadge requirement={displayRequirement} />
           </div>
           <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
             <span>

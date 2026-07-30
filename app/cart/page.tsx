@@ -1,6 +1,7 @@
 import { AppHeader } from "@/components/app-header"
 import { CartTimetableView } from "@/components/cart-timetable-view"
-import { getCoursesForSemester, getDistinctDepartments, getDistinctSemesters } from "@/lib/db/queries"
+import { getCoursesForSemester, getDistinctDepartments, getDistinctSemesters, getUserDepartment } from "@/lib/db/queries"
+import { getAnonId } from "@/lib/auth/anon-user"
 
 export const metadata = {
   title: "내 시간표 — 수강길잡이",
@@ -17,7 +18,12 @@ export default async function CartPage({
   // 서로 의존관계가 없는 두 조회를 동시에 보낸다 — Neon HTTP 드라이버는 커넥션을 재사용하지
   // 않아 쿼리 하나당 왕복이 100~250ms씩 붙는데, 예전엔 학기 목록을 먼저 기다린 뒤에야
   // 학과 목록을 요청해서 그 두 배를 매번 물었다.
-  const [availableSemesters, departments] = await Promise.all([getDistinctSemesters(), getDistinctDepartments()])
+  const anonId = await getAnonId()
+  const [availableSemesters, departments, myDepartment] = await Promise.all([
+    getDistinctSemesters(),
+    getDistinctDepartments(),
+    getUserDepartment(anonId),
+  ])
   // 학년도를 명시하지 않았으면 가장 최신 학기를 기본으로 보여준다.
   const activeSemester = semester && availableSemesters.includes(semester) ? semester : availableSemesters[0]
 
@@ -54,6 +60,7 @@ export default async function CartPage({
             grade={selectedGrade ? String(selectedGrade) : "전체"}
             query={query}
             browsableCourses={browsableCourses}
+            viewerDepartment={myDepartment}
           />
         </div>
       </main>
