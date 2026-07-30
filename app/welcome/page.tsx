@@ -64,6 +64,7 @@ export default function WelcomePage() {
         <main>
           <section className="relative overflow-hidden mx-auto max-w-3xl px-4 py-16 text-center md:py-24 md:px-6">
             <Firefly />
+            <Firefly side="right" delayMs={-4500} />
             <span className="animate-fade-in-up inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
               AI 기반 수강 도우미
             </span>

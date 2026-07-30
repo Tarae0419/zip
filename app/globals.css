@@ -237,6 +237,17 @@
     }
   }
 
+  /* 반대편(오른쪽)에서 반대 방향(왼쪽 위)으로 나는 두 번째 반딧불이용 */
+  @keyframes firefly-fly-alt {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(-110px, -36px);
+    }
+  }
+
   @keyframes firefly-bob {
     0%,
     100% {
@@ -268,6 +279,10 @@
 
   .firefly-fly {
     animation: firefly-fly 9s ease-in-out infinite;
+  }
+
+  .firefly-fly-alt {
+    animation: firefly-fly-alt 9s ease-in-out infinite;
   }
 
   .firefly-bob {

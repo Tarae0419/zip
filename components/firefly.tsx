@@ -1,22 +1,31 @@
-// 홈 히어로 장식용 반딧불이 — 순수 장식(aria-hidden, pointer-events-none)이라 콘텐츠에 영향 없다.
+import { useId } from "react"
+
+// 홈/랜딩 히어로 장식용 반딧불이 — 순수 장식(aria-hidden, pointer-events-none)이라 콘텐츠에 영향 없다.
 // 사선으로 은은하게 오가는 큰 움직임(firefly-fly)과 날갯짓/위아래 흔들림(firefly-bob/wing) 애니메이션은
 // prefers-reduced-motion 사용자에게는 app/globals.css의 일괄 override로 꺼진다.
-export function Firefly() {
+// side="right"는 반대편에서 반대 방향(왼쪽 위)으로 나는 두 번째 반딧불이용 — 그라디언트는 한 페이지에
+// 두 마리가 함께 있어도 id가 겹치지 않도록 useId로 매번 새로 만든다.
+export function Firefly({ side = "left", delayMs = 0 }: { side?: "left" | "right"; delayMs?: number } = {}) {
+  const gradientId = useId()
+  const positionClass = side === "left" ? "left-[8%] md:left-[14%]" : "right-[8%] md:right-[14%]"
+  const flyClass = side === "left" ? "firefly-fly" : "firefly-fly-alt"
+
   return (
     <div
       aria-hidden="true"
-      className="firefly-fly pointer-events-none absolute left-[8%] top-16 size-11 opacity-60 md:left-[14%] md:top-14 md:size-14"
+      style={delayMs ? { animationDelay: `${delayMs}ms` } : undefined}
+      className={`${flyClass} ${positionClass} pointer-events-none absolute top-16 size-11 opacity-60 md:top-14 md:size-14`}
     >
       <div className="firefly-bob size-full">
         <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <radialGradient id="firefly-glow" className="firefly-glow-grad" cx="50%" cy="50%" r="50%">
+            <radialGradient id={gradientId} className="firefly-glow-grad" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#ffd76a" stopOpacity="0.55" />
               <stop offset="100%" stopColor="#ffd76a" stopOpacity="0" />
             </radialGradient>
           </defs>
           <ellipse cx="340" cy="370" rx="80" ry="12" fill="#3d3480" opacity="0.06" />
-          <circle cx="380" cy="290" r="70" fill="url(#firefly-glow)" />
+          <circle cx="380" cy="290" r="70" fill={`url(#${gradientId})`} />
           <g className="firefly-wing">
             <ellipse
               cx="255"
