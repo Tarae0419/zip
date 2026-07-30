@@ -15,7 +15,7 @@ const navLinks = [
   { href: "/cart", label: "내 시간표", icon: CalendarDays },
 ]
 
-export function SiteHeader() {
+export function SiteHeader({ userName }: { userName: string | null }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -94,6 +94,9 @@ export function SiteHeader() {
               </Link>
             )
           })}
+          {userName ? (
+            <span className="hidden px-2 text-sm font-medium text-muted-foreground sm:inline">{userName}님</span>
+          ) : null}
           <button
             type="button"
             onClick={handleLogout}

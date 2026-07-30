@@ -293,6 +293,11 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
   - 구현: `components/course-badges.tsx`에 `resolveDisplayRequirement(requirement, courseDepartment, viewerDepartment)` 추가 — 학과 종속적 4종(전공필수/전공선택/기초필수/계열공통)만 대상으로, 뷰어 학과를 알고 있고 과목의 개설학과와 다르면 "일반선택"으로 보정한다. 교양/일반선택/교직/군사학은 원래 학과 무관이라 그대로 둔다. 뷰어 학과를 모르면(로그인했지만 아직 학과 미설정) 원본 값 유지.
   - `CourseCard`에 `viewerDepartment` prop 추가(배지·상단 accent bar 둘 다 보정된 값 사용), 과목 상세 페이지도 동일 로직 적용. 홈/검색/분야탐색/장바구니 과목추가 화면까지 전부 뷰어의 학과를 조회해 내려주도록 연결.
   - **의도적으로 안 바꾼 것**: 검색 페이지의 "이수구분" 필터 자체는 원본 카탈로그 값 기준으로 그대로 둔다(필터까지 뷰어 학과별로 바꾸면 "이 필터로 검색하면 무슨 뜻인지"가 사람마다 달라져 더 헷갈릴 수 있어서) — 배지 표시만 보정한다.
+- [x] 8.9 회원가입 "이름" 필드 추가 + 헤더 인사말
+  - `users`/`email_verifications`에 `name` 컬럼 추가(마이그레이션 `0005_smooth_jane_foster.sql`). `email_verifications.name`은 `NOT NULL`이라, 적용 전 이미 소비됐거나 만료된 대기 행 1건을 정리하고 마이그레이션을 적용했다(진행 중이던 미인증 가입이 있었다면 코드 재요청이 필요했을 상황).
+  - `requestSignup`이 `name`을 받아 검증(빈 값·50자 초과 거부)하고 `email_verifications`에 저장, `verifySignupCode`가 인증 완료 시 `users.name`으로 그대로 복사.
+  - `components/signup-form.tsx`: 학번과 한 줄에 "이름" 입력을 추가하고, 학과 선택은 별도 전체 너비 행으로 이동.
+  - `components/app-header.tsx`를 async 서버 컴포넌트로 바꿔 `getAnonId`+`getUserName`(신규, `lib/db/queries.ts`)을 조회, `SiteHeader`에 `userName` prop으로 전달 — 로그아웃 버튼 왼쪽에 "OOO님" 인사말로 노출. 과거(이름 없이 가입한) 계정은 `name`이 null이라 인사말 없이 로그아웃 버튼만 그대로 보임.
 
 **담당 에이전트**: `nextjs-frontend`(화면), `neon-db`(스키마/시딩), `ai-integration`(임베딩·분류 재실행), `vercel-deploy`(배포)
 

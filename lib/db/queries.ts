@@ -440,6 +440,11 @@ export async function getUserDepartment(anonId: string): Promise<string | null> 
   return row?.department ?? null
 }
 
+export async function getUserName(anonId: string): Promise<string | null> {
+  const [row] = await db.select({ name: users.name }).from(users).where(eq(users.anonId, anonId)).limit(1)
+  return row?.name ?? null
+}
+
 // ── F4 — 커리큘럼 추천 ──────────────────────────────────────────────
 
 export type CurriculumRow = typeof curricula.$inferSelect

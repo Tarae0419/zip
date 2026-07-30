@@ -175,6 +175,7 @@ export const users = pgTable("users", {
   anonId: varchar("anon_id", { length: 64 }).notNull().unique(),
   studentId: varchar("student_id", { length: 20 }).unique(),
   email: varchar("email", { length: 150 }).unique(),
+  name: varchar("name", { length: 50 }), // 실명 — 헤더에 "OOO님" 인사말로 노출(2026-07-30 추가, 과거 계정은 null)
   passwordHash: varchar("password_hash", { length: 255 }),
   emailVerified: boolean("email_verified").notNull().default(false),
   department: varchar("department", { length: 100 }),
@@ -193,6 +194,7 @@ export const emailVerifications = pgTable("email_verifications", {
   id: uuid("id").primaryKey().defaultRandom(),
   studentId: varchar("student_id", { length: 20 }).notNull(),
   email: varchar("email", { length: 150 }).notNull(),
+  name: varchar("name", { length: 50 }).notNull(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   code: varchar("code", { length: 6 }).notNull(),
   expiresAt: timestamp("expires_at").notNull(),

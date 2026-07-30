@@ -23,14 +23,23 @@ export async function requestSignup({
   studentId,
   email,
   password,
+  name,
 }: {
   studentId: string
   email: string
   password: string
+  name: string
 }): Promise<ActionResult> {
   const trimmedStudentId = studentId.trim()
   const trimmedEmail = email.trim().toLowerCase()
+  const trimmedName = name.trim()
 
+  if (!trimmedName) {
+    return { success: false, message: "이름을 입력해주세요." }
+  }
+  if (trimmedName.length > 50) {
+    return { success: false, message: "이름이 너무 길어요." }
+  }
   if (!STUDENT_ID_RE.test(trimmedStudentId)) {
     return { success: false, message: "학번은 6~10자리 숫자로 입력해주세요." }
   }
@@ -65,6 +74,7 @@ export async function requestSignup({
   await db.insert(emailVerifications).values({
     studentId: trimmedStudentId,
     email: trimmedEmail,
+    name: trimmedName,
     passwordHash,
     code,
     expiresAt,
@@ -118,6 +128,7 @@ export async function verifySignupCode({
         anonId: crypto.randomUUID(),
         studentId: pending.studentId,
         email: pending.email,
+        name: pending.name,
         passwordHash: pending.passwordHash,
         emailVerified: true,
         department: trimmedDepartment,

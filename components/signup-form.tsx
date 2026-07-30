@@ -5,7 +5,7 @@ import type React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
-import { Check, Compass, GraduationCap, Loader2, Mail, ShieldCheck } from "lucide-react"
+import { Check, Compass, GraduationCap, Loader2, Mail, ShieldCheck, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { requestSignup, verifySignupCode } from "@/lib/actions/auth"
 import { cn } from "@/lib/utils"
@@ -24,6 +24,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
   const router = useRouter()
   const [step, setStep] = useState<Step>("form")
 
+  const [name, setName] = useState("")
   const [studentId, setStudentId] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -48,7 +49,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
     }
 
     setIsSubmitting(true)
-    const result = await requestSignup({ studentId, email, password })
+    const result = await requestSignup({ studentId, email, password, name })
     setIsSubmitting(false)
 
     if (!result.success) {
@@ -80,7 +81,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
   async function handleResend() {
     setError(null)
     setIsSubmitting(true)
-    const result = await requestSignup({ studentId, email, password })
+    const result = await requestSignup({ studentId, email, password, name })
     setIsSubmitting(false)
     if (!result.success) {
       setError(result.message)
@@ -121,6 +122,26 @@ export function SignupForm({ departments }: { departments: string[] }) {
               <form onSubmit={handleRequestSignup} className="mt-5 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
+                    <label htmlFor="name" className="text-sm font-medium text-foreground">
+                      이름
+                    </label>
+                    <div className="relative">
+                      <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                      <input
+                        id="name"
+                        type="text"
+                        autoComplete="name"
+                        required
+                        maxLength={50}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="홍길동"
+                        className={cn(fieldClass, "pl-9")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
                     <label htmlFor="studentId" className="text-sm font-medium text-foreground">
                       학번
                     </label>
@@ -136,28 +157,28 @@ export function SignupForm({ departments }: { departments: string[] }) {
                       className={fieldClass}
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-1">
-                    <label htmlFor="department" className="text-sm font-medium text-foreground">
-                      학과
-                    </label>
-                    <select
-                      id="department"
-                      required
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className={fieldClass}
-                    >
-                      <option value="" disabled>
-                        선택
+                <div className="space-y-1">
+                  <label htmlFor="department" className="text-sm font-medium text-foreground">
+                    학과
+                  </label>
+                  <select
+                    id="department"
+                    required
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className={fieldClass}
+                  >
+                    <option value="" disabled>
+                      선택
+                    </option>
+                    {departments.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
                       </option>
-                      {departments.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-1">
