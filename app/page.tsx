@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, TrendingUp } from "lucide-react"
 import { AppHeader } from "@/components/app-header"
 import { HeroSearch } from "@/components/hero-search"
 import { CourseCard } from "@/components/course-card"
+import { Firefly } from "@/components/firefly"
 import { popularTags } from "@/lib/mock-data"
 import { getAnonId } from "@/lib/auth/anon-user"
 import { getPopularCourses, getUserDepartment } from "@/lib/db/queries"
@@ -24,6 +25,7 @@ export default async function HomePage() {
             aria-hidden="true"
             className="bg-dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,black,transparent)]"
           />
+          <Firefly />
           <div className="relative mx-auto max-w-3xl px-4 py-16 text-center md:py-24 md:px-6">
             <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
               AI 기반 수강 도우미
@@ -48,7 +50,7 @@ export default async function HomePage() {
                   key={tag}
                   href={`/search?q=${encodeURIComponent(tag)}`}
                   style={{ animationDelay: `${i * 60}ms` }}
-                  className="motion-safe:animate-fade-in-up rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent hover:text-accent-foreground"
+                  className="animate-fade-in-up rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent hover:text-accent-foreground"
                 >
                   #{tag}
                 </Link>

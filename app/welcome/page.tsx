@@ -62,26 +62,26 @@ export default function WelcomePage() {
 
         <main>
           <section className="mx-auto max-w-3xl px-4 py-16 text-center md:py-24 md:px-6">
-            <span className="motion-safe:animate-fade-in-up inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+            <span className="animate-fade-in-up inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
               AI 기반 수강 도우미
             </span>
             <h1
               style={{ animationDelay: "80ms" }}
-              className="motion-safe:animate-fade-in-up mt-5 text-pretty bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text font-display text-3xl font-bold leading-tight tracking-tight text-transparent md:text-5xl"
+              className="animate-fade-in-up mt-5 text-pretty bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text font-display text-3xl font-bold leading-tight tracking-tight text-transparent md:text-5xl"
             >
               내게 딱 맞는 강의, <br className="hidden sm:block" />
               길잡이가 찾아드릴게요
             </h1>
             <p
               style={{ animationDelay: "160ms" }}
-              className="motion-safe:animate-fade-in-up mx-auto mt-4 max-w-xl text-pretty leading-relaxed text-muted-foreground md:text-lg"
+              className="animate-fade-in-up mx-auto mt-4 max-w-xl text-pretty leading-relaxed text-muted-foreground md:text-lg"
             >
               수많은 수강평을 AI가 요약하고, 관심 분야와 진로에 맞는 과목을 추천해요.
             </p>
 
             <div
               style={{ animationDelay: "240ms" }}
-              className="motion-safe:animate-fade-in-up mt-8 flex flex-wrap items-center justify-center gap-3"
+              className="animate-fade-in-up mt-8 flex flex-wrap items-center justify-center gap-3"
             >
               <Button render={<Link href="/signup" />} size="lg">
                 무료로 시작하기
@@ -98,7 +98,7 @@ export default function WelcomePage() {
                 <div
                   key={feature.title}
                   style={{ animationDelay: `${i * 70}ms` }}
-                  className="motion-safe:animate-fade-in-up rounded-2xl border border-border bg-card p-5 shadow-sm shadow-primary/5"
+                  className="animate-fade-in-up rounded-2xl border border-border bg-card p-5 shadow-sm shadow-primary/5"
                 >
                   <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <feature.icon className="size-5" aria-hidden="true" />

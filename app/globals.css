@@ -225,4 +225,78 @@
       0 8px 16px rgba(0, 0, 0, 0.04),
       0 23px 52px rgba(0, 0, 0, 0.05);
   }
+
+  /* 홈 히어로의 반딧불이 장식(components/firefly.tsx) — 순수 장식용(aria-hidden) */
+  @keyframes firefly-fly {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(120px, -70px);
+    }
+  }
+
+  @keyframes firefly-bob {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-8px) rotate(3deg);
+    }
+  }
+
+  @keyframes firefly-flap {
+    0% {
+      transform: scaleX(1);
+    }
+    100% {
+      transform: scaleX(0.85);
+    }
+  }
+
+  @keyframes firefly-glow-pulse {
+    0%,
+    100% {
+      stop-opacity: 0.55;
+    }
+    50% {
+      stop-opacity: 0.15;
+    }
+  }
+
+  .firefly-fly {
+    animation: firefly-fly 9s ease-in-out infinite;
+  }
+
+  .firefly-bob {
+    animation: firefly-bob 1.6s ease-in-out infinite;
+  }
+
+  .firefly-wing {
+    transform-origin: center;
+    animation: firefly-flap 0.35s ease-in-out infinite alternate;
+  }
+
+  .firefly-wing-right {
+    animation-delay: 0.05s;
+  }
+
+  .firefly-glow-grad stop:first-child {
+    animation: firefly-glow-pulse 2.4s ease-in-out infinite;
+  }
+
+  /* prefers-reduced-motion 사용자를 위한 일괄 예외 — Tailwind는 @layer utilities에 직접 적은 커스텀
+     클래스에 대해 motion-safe: 같은 변형 프리픽스를 자동 생성해주지 않아서(빌트인 유틸리티 전용),
+     variant 프리픽스로 감싸는 대신 여기서 한 번에 애니메이션을 꺼주는 방식을 쓴다. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in-up,
+    .animate-grow-bar,
+    .firefly-fly,
+    .firefly-bob,
+    .firefly-wing {
+      animation: none;
+    }
+  }
 }

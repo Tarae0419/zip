@@ -47,7 +47,7 @@ export function AiSummaryCard({
                 </span>
                 <div className="relative h-6 flex-1 overflow-hidden rounded-full bg-card">
                   <div
-                    className="motion-safe:animate-grow-bar flex h-full items-center justify-end rounded-full px-2 transition-[width]"
+                    className="animate-grow-bar flex h-full items-center justify-end rounded-full px-2 transition-[width]"
                     style={{
                       width: `${h.percent}%`,
                       backgroundColor: `color-mix(in oklch, var(--muted-foreground) ${100 - h.percent}%, var(--primary) ${h.percent}%)`,
