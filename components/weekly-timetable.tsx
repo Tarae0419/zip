@@ -3,10 +3,9 @@ import type { CartCourse } from "@/lib/timetable/types"
 import { buildSessionsForCourse, formatMinutes } from "@/lib/timetable/schedule"
 import { cn } from "@/lib/utils"
 
-// 배경을 과목 색으로 옅게 칠하는(반투명) 대신 카드 배경으로 불투명하게 채우고, 과목 구분은
-// 왼쪽 굵은 색 띠(accent)로만 준다 — 다크 모드 chart 색상이 회색조라 반투명 색상 배경 위에
-// 텍스트를 얹으면 대비가 색상마다 들쭉날쭉해지는데, 불투명 카드 배경 + text-foreground 조합이면
-// 어떤 accent 색이든 항상 대비가 보장된다.
+// 배경을 과목 색으로 꽉 채우는 대신 카드 배경으로 불투명하게 채우고, 과목 구분은 왼쪽 굵은 색
+// 띠(accent)로만 준다 — 다크 모드 chart 색상이 회색조라 반투명 색상 배경 위에 텍스트를 얹으면
+// 대비가 색상마다 들쭉날쭉해지는데, 불투명 카드 배경 + text-foreground 조합이면 항상 대비가 보장된다.
 const CHART_ACCENTS = ["border-l-chart-1", "border-l-chart-2", "border-l-chart-3", "border-l-chart-4", "border-l-chart-5"]
 
 const DEFAULT_START = 9 * 60
@@ -76,13 +75,16 @@ export function WeeklyTimetable({
                   const top = ((session.startMinutes - rangeStart) / totalMinutes) * 100
                   const height = ((session.endMinutes - session.startMinutes) / totalMinutes) * 100
                   const isActive = activeCourseId === session.courseId
+                  const sessionMinutes = session.endMinutes - session.startMinutes
+                  // 2교시 이상 이어지는 블록 안에서도 정각 경계가 보이도록 내부에 얇은 구분선을 긋는다.
+                  const innerHourMarks = hourMarks.filter((m) => m > session.startMinutes && m < session.endMinutes)
                   return (
                     <button
                       key={`${session.courseId}-${day}-${i}`}
                       type="button"
                       onClick={() => onSessionClick?.(session.courseId)}
                       className={cn(
-                        "absolute inset-x-1 overflow-hidden rounded-md border border-border border-l-[3px] bg-card px-1.5 py-1 text-left text-[11px] leading-tight text-foreground shadow-sm transition",
+                        "absolute inset-x-1 overflow-hidden rounded-md border border-border border-l-[3px] bg-card px-1.5 py-1 text-left leading-tight text-foreground shadow-sm transition",
                         accent,
                         onSessionClick && "cursor-pointer hover:brightness-95",
                         isActive && "ring-2 ring-primary ring-offset-1",
@@ -90,13 +92,23 @@ export function WeeklyTimetable({
                       style={{ top: `${top}%`, height: `${height}%` }}
                       title={`${session.courseName} · ${session.professor} · ${formatMinutes(session.startMinutes)}~${formatMinutes(session.endMinutes)}${session.location ? ` · ${session.location.building} ${session.location.room}` : ""}`}
                     >
-                      <p className="truncate font-semibold">{session.courseName}</p>
+                      {innerHourMarks.map((m) => (
+                        <span
+                          key={m}
+                          aria-hidden="true"
+                          className="absolute inset-x-0 border-t border-border/60"
+                          style={{ top: `${((m - session.startMinutes) / sessionMinutes) * 100}%` }}
+                        />
+                      ))}
+                      <p className="relative truncate text-sm font-bold">{session.courseName}</p>
                       {session.location && (
-                        <p className="truncate text-muted-foreground">
+                        <p className="relative truncate text-[11px] text-muted-foreground">
                           {session.location.building} {session.location.room}호
                         </p>
                       )}
-                      {session.professor && <p className="truncate text-muted-foreground">{session.professor}</p>}
+                      {session.professor && (
+                        <p className="relative truncate text-[11px] text-muted-foreground">{session.professor}</p>
+                      )}
                     </button>
                   )
                 })}

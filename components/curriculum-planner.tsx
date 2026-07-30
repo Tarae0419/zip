@@ -35,11 +35,13 @@ type InterestField = { id: string; name: string; icon: string; description: stri
 
 export function CurriculumPlanner({
   curriculumDepartments,
+  allDepartments,
   requiredCoursesByDepartment,
   interestFields,
   myDepartment,
 }: {
   curriculumDepartments: string[]
+  allDepartments: string[]
   requiredCoursesByDepartment: Record<string, RequiredCourseOption[]>
   interestFields: InterestField[]
   myDepartment: string | null
@@ -63,7 +65,9 @@ export function CurriculumPlanner({
   const [error, setError] = useState<string | null>(null)
 
   const requiredOptions = requiredCoursesByDepartment[department] ?? []
-  const otherDepartments = curriculumDepartments.filter((d) => d !== department)
+  // 복수전공/부전공은 커리큘럼 추천 계산이 없어도(getCurriculumForDepartment가 null이면 서버 액션이
+  // 단일 전공 기준으로만 계산하고 안내 문구를 넣어준다) 선택 자체는 실제 학과 전체를 대상으로 허용한다.
+  const otherDepartments = allDepartments.filter((d) => d !== department)
 
   function toggleCompleted(code: string) {
     setCompletedCodes((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]))
