@@ -75,9 +75,6 @@ export function WeeklyTimetable({
                   const top = ((session.startMinutes - rangeStart) / totalMinutes) * 100
                   const height = ((session.endMinutes - session.startMinutes) / totalMinutes) * 100
                   const isActive = activeCourseId === session.courseId
-                  const sessionMinutes = session.endMinutes - session.startMinutes
-                  // 2교시 이상 이어지는 블록 안에서도 정각 경계가 보이도록 내부에 얇은 구분선을 긋는다.
-                  const innerHourMarks = hourMarks.filter((m) => m > session.startMinutes && m < session.endMinutes)
                   return (
                     <button
                       key={`${session.courseId}-${day}-${i}`}
@@ -95,23 +92,13 @@ export function WeeklyTimetable({
                       style={{ top: `${top}%`, height: `${height}%` }}
                       title={`${session.courseName} · ${session.professor} · ${formatMinutes(session.startMinutes)}~${formatMinutes(session.endMinutes)}${session.location ? ` · ${session.location.building} ${session.location.room}` : ""}`}
                     >
-                      {innerHourMarks.map((m) => (
-                        <span
-                          key={m}
-                          aria-hidden="true"
-                          className="absolute inset-x-0 border-t border-border/60"
-                          style={{ top: `${((m - session.startMinutes) / sessionMinutes) * 100}%` }}
-                        />
-                      ))}
-                      <p className="relative truncate text-sm font-bold">{session.courseName}</p>
+                      <p className="truncate text-sm font-bold">{session.courseName}</p>
                       {session.location && (
-                        <p className="relative truncate text-[11px] text-muted-foreground">
+                        <p className="truncate text-[11px] text-muted-foreground">
                           {session.location.building} {session.location.room}호
                         </p>
                       )}
-                      {session.professor && (
-                        <p className="relative truncate text-[11px] text-muted-foreground">{session.professor}</p>
-                      )}
+                      {session.professor && <p className="truncate text-[11px] text-muted-foreground">{session.professor}</p>}
                     </button>
                   )
                 })}
