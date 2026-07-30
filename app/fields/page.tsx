@@ -1,17 +1,13 @@
+import { GraduationCap } from "lucide-react"
 import { AppHeader } from "@/components/app-header"
 import { FieldsExplorer, type FieldWithCourses } from "@/components/fields-explorer"
-import { MyDepartmentSelect } from "@/components/my-department-select"
 import { getAnonId } from "@/lib/auth/anon-user"
-import { getDistinctDepartments, getIndustryFieldCourses, getIndustryFields, getUserDepartment } from "@/lib/db/queries"
+import { getIndustryFieldCourses, getIndustryFields, getUserDepartment } from "@/lib/db/queries"
 
 export default async function FieldsPage() {
   const anonId = await getAnonId()
 
-  const [fieldSummaries, departments, myDepartment] = await Promise.all([
-    getIndustryFields(),
-    getDistinctDepartments(),
-    getUserDepartment(anonId),
-  ])
+  const [fieldSummaries, myDepartment] = await Promise.all([getIndustryFields(), getUserDepartment(anonId)])
 
   const fields: FieldWithCourses[] = await Promise.all(
     fieldSummaries.map(async (field) => ({
@@ -34,7 +30,13 @@ export default async function FieldsPage() {
               과목을 추천해드려요.
             </p>
           </div>
-          <MyDepartmentSelect departments={departments} currentDepartment={myDepartment} />
+          {myDepartment ? (
+            <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm">
+              <GraduationCap className="size-4 text-primary" aria-hidden="true" />
+              <span className="text-muted-foreground">내 학과</span>
+              <span className="font-medium text-foreground">{myDepartment}</span>
+            </span>
+          ) : null}
         </div>
 
         <div className="mt-8">
