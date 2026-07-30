@@ -9,6 +9,7 @@ import { RatingStars, RequirementBadge } from "@/components/course-badges"
 import { CartToggleButton } from "@/components/cart-toggle-button"
 import { getCourseView } from "@/lib/db/queries"
 import { getCartCourseInfo } from "@/lib/actions/cart"
+import { getAnonId } from "@/lib/auth/anon-user"
 import { buildSessionsForCourse, formatMinutes } from "@/lib/timetable/schedule"
 import type { Course } from "@/lib/types"
 
@@ -22,7 +23,8 @@ export default async function CourseDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [result, cartInfo] = await Promise.all([getCourseView(id), getCartCourseInfo(id)])
+  const anonId = await getAnonId()
+  const [result, cartInfo] = await Promise.all([getCourseView(id, anonId), getCartCourseInfo(id)])
 
   if (!result) {
     notFound()

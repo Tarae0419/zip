@@ -37,4 +37,7 @@ export type Review = {
   semester: string
   body: string
   hashtags: string[]
+  // 작성자 anonId를 그대로 내려주지 않고(다른 사용자 식별자 노출 방지), 조회 시점의 viewer와
+  // 비교한 결과만 서버에서 계산해 내려준다 — 화면은 이 값으로 "내 리뷰"에만 삭제 버튼을 보여준다.
+  isOwn: boolean
 }

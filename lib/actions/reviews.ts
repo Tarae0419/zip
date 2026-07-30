@@ -142,3 +142,33 @@ export async function suggestReviewHashtags(body: string): Promise<string[]> {
     return []
   }
 }
+
+/**
+ * 본인이 작성한 리뷰만 삭제할 수 있다 — authorAnonId가 현재 세션과 일치하는지 서버에서 직접
+ * 확인한다(클라이언트가 보낸 값을 신뢰하지 않고, 쿠키로 식별되는 anonId만 기준으로 삼는다).
+ * 삭제로 리뷰 수가 줄어도 AI 요약은 그대로 둔다 — submitReview와 마찬가지로 늘어날 때만
+ * 재생성한다(감소를 매번 반영하면 비용 대비 이득이 적다). 화면은 reviewCount가 줄면 요약 카드
+ * 자체를 숨기는 기존 분기(course.reviewCount < MIN_REVIEWS_FOR_SUMMARY)로 이미 처리된다.
+ */
+export async function deleteReview(reviewId: string): Promise<SubmitReviewResult> {
+  const anonId = await getAnonId()
+
+  const [review] = await db
+    .select({ id: reviews.id, authorAnonId: reviews.authorAnonId, courseId: reviews.courseId })
+    .from(reviews)
+    .where(eq(reviews.id, reviewId))
+    .limit(1)
+
+  if (!review) {
+    return { ok: false, error: "이미 삭제된 리뷰예요." }
+  }
+  if (review.authorAnonId !== anonId) {
+    return { ok: false, error: "본인이 작성한 리뷰만 삭제할 수 있어요." }
+  }
+
+  await db.delete(reviews).where(eq(reviews.id, reviewId))
+
+  revalidatePath(`/courses/${review.courseId}`)
+  revalidatePath("/")
+  return { ok: true }
+}

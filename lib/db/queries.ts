@@ -199,7 +199,7 @@ export async function getCanonicalCourseId(siblingIds: string[]): Promise<string
   return rows[0]?.id ?? null
 }
 
-export async function getCourseView(id: string): Promise<{ course: Course; reviews: Review[] } | null> {
+export async function getCourseView(id: string, viewerAnonId?: string): Promise<{ course: Course; reviews: Review[] } | null> {
   if (!UUID_RE.test(id)) return null
 
   const [row] = await db.select().from(courses).where(eq(courses.id, id)).limit(1)
@@ -241,6 +241,7 @@ export async function getCourseView(id: string): Promise<{ course: Course; revie
     semester: r.semester,
     body: r.body,
     hashtags: (r.hashtags as string[]) ?? [],
+    isOwn: viewerAnonId !== undefined && r.authorAnonId === viewerAnonId,
   }))
 
   return { course, reviews: reviewViews }
