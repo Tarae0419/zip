@@ -5,7 +5,7 @@ export function Firefly() {
   return (
     <div
       aria-hidden="true"
-      className="firefly-fly pointer-events-none absolute left-[10%] top-[15%] size-11 opacity-60 md:left-[16%] md:top-[10%] md:size-14"
+      className="firefly-fly pointer-events-none absolute left-[8%] top-0 size-11 opacity-60 md:left-[14%] md:top-[-6%] md:size-14"
     >
       <div className="firefly-bob size-full">
         <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">

@@ -25,8 +25,8 @@ export default async function HomePage() {
             aria-hidden="true"
             className="bg-dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,black,transparent)]"
           />
-          <Firefly />
           <div className="relative mx-auto max-w-3xl px-4 py-16 text-center md:py-24 md:px-6">
+            <Firefly />
             <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
               AI 기반 수강 도우미
             </span>
