@@ -30,6 +30,13 @@ export const requirementTypeEnum = pgEnum("requirement_type", [
   "군사학",
 ])
 
+// PRD 13장(관리자 기능) — 최초 관리자는 회원가입 경로가 아니라 DB에 직접 시딩한다
+// (lib/db/scripts/promote-admin.ts). status는 어뷰징 계정 정지용(삭제 대신 로그인만 차단).
+export const userRoleEnum = pgEnum("user_role", ["user", "admin"])
+export const userStatusEnum = pgEnum("user_status", ["active", "suspended"])
+// curricula 데이터가 학과 사무실 확인을 거친 값인지, 참고용 더미인지 구분(PRD 13.5-4, 8.4 더미 데이터 고지)
+export const curriculumDataStatusEnum = pgEnum("curriculum_data_status", ["illustrative", "confirmed"])
+
 /**
  * PRD 9장 Course 엔티티.
  * 컬럼은 학교 수강편람 원본(개설 교과목 목록 엑셀, 26개 컬럼)을 그대로 반영했다.
@@ -183,6 +190,8 @@ export const users = pgTable("users", {
   grade: smallint("grade"),
   interestFieldIds: jsonb("interest_field_ids").$type<string[]>().default([]),
   completedCourseIds: jsonb("completed_course_ids").$type<string[]>().default([]),
+  role: userRoleEnum("role").notNull().default("user"), // PRD 13.2 — 관리자 페이지 접근 권한
+  status: userStatusEnum("status").notNull().default("active"), // PRD 13.7 — 정지된 계정은 로그인 불가
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 
@@ -215,6 +224,7 @@ export const curricula = pgTable(
       .$type<Record<string, number>>()
       .default({}),
     totalCreditsRequired: integer("total_credits_required").notNull(),
+    dataStatus: curriculumDataStatusEnum("data_status").notNull().default("illustrative"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [uniqueIndex("curricula_department_year_idx").on(table.department, table.admissionYear)],

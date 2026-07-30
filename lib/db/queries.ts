@@ -708,3 +708,288 @@ export async function getElectiveCandidates(
 
   return deduped.slice(0, limit)
 }
+
+// ── PRD 13장 — 관리자 전용 조회 ─────────────────────────────────────
+
+export type AdminDashboardStats = {
+  totalReviews: number
+  hiddenReviews: number
+  hiddenReviewsLast7Days: number
+  totalUsers: number
+  newUsersLast7Days: number
+  adminCount: number
+  totalCourses: number
+  publicCourses: number
+  coursesWithSummary: number
+}
+
+export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
+  const [[reviewRow], [userRow], [courseRow], [summaryRow]] = await Promise.all([
+    db
+      .select({
+        total: sql<string>`count(*)`,
+        hidden: sql<string>`count(*) filter (where ${reviews.isFiltered} = true)`,
+        hiddenRecent: sql<string>`count(*) filter (where ${reviews.isFiltered} = true and ${reviews.createdAt} >= ${cutoff})`,
+      })
+      .from(reviews),
+    db
+      .select({
+        total: sql<string>`count(*)`,
+        recent: sql<string>`count(*) filter (where ${users.createdAt} >= ${cutoff})`,
+        admins: sql<string>`count(*) filter (where ${users.role} = 'admin')`,
+      })
+      .from(users),
+    db
+      .select({
+        total: sql<string>`count(*)`,
+        isPublic: sql<string>`count(*) filter (where ${courses.isPublic} = true)`,
+      })
+      .from(courses),
+    db.select({ count: sql<string>`count(*)` }).from(summaries),
+  ])
+
+  return {
+    totalReviews: Number(reviewRow.total),
+    hiddenReviews: Number(reviewRow.hidden),
+    hiddenReviewsLast7Days: Number(reviewRow.hiddenRecent),
+    totalUsers: Number(userRow.total),
+    newUsersLast7Days: Number(userRow.recent),
+    adminCount: Number(userRow.admins),
+    totalCourses: Number(courseRow.total),
+    publicCourses: Number(courseRow.isPublic),
+    coursesWithSummary: Number(summaryRow.count),
+  }
+}
+
+export type AdminReviewRow = {
+  id: string
+  courseId: string
+  courseName: string
+  courseDepartment: string
+  authorAnonId: string
+  rating: number
+  body: string
+  hashtags: string[]
+  semester: string
+  isFiltered: boolean
+  createdAt: Date
+}
+
+/** PRD 13.3 — 과목명/작성자 anonId로 검색, 숨김 상태로 필터링. 최신순. */
+export async function adminSearchReviews(params: {
+  query?: string
+  onlyHidden?: boolean
+  limit?: number
+  offset?: number
+}): Promise<{ rows: AdminReviewRow[]; total: number }> {
+  const limit = params.limit ?? 30
+  const offset = params.offset ?? 0
+  const trimmed = params.query?.trim()
+
+  const conditions = [
+    trimmed ? or(ilike(courses.name, `%${trimmed}%`), ilike(reviews.authorAnonId, `%${trimmed}%`)) : undefined,
+    params.onlyHidden ? eq(reviews.isFiltered, true) : undefined,
+  ].filter((c): c is NonNullable<typeof c> => Boolean(c))
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+  const [rows, [{ count }]] = await Promise.all([
+    db
+      .select({
+        id: reviews.id,
+        courseId: reviews.courseId,
+        courseName: courses.name,
+        courseDepartment: courses.department,
+        authorAnonId: reviews.authorAnonId,
+        rating: reviews.rating,
+        body: reviews.body,
+        hashtags: reviews.hashtags,
+        semester: reviews.semester,
+        isFiltered: reviews.isFiltered,
+        createdAt: reviews.createdAt,
+      })
+      .from(reviews)
+      .innerJoin(courses, eq(courses.id, reviews.courseId))
+      .where(whereClause)
+      .orderBy(desc(reviews.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ count: sql<string>`count(*)` })
+      .from(reviews)
+      .innerJoin(courses, eq(courses.id, reviews.courseId))
+      .where(whereClause),
+  ])
+
+  return {
+    rows: rows.map((r) => ({ ...r, hashtags: (r.hashtags as string[]) ?? [] })),
+    total: Number(count),
+  }
+}
+
+export type AdminCourseRow = {
+  id: string
+  code: string | null
+  name: string
+  department: string
+  professor: string | null
+  credits: number
+  requirementType: string
+  semester: string
+  isPublic: boolean
+}
+
+/** PRD 13.6 — 과목명/개설학과로 검색. isPublic 토글용 목록. */
+export async function adminSearchCourses(params: {
+  query?: string
+  limit?: number
+  offset?: number
+}): Promise<{ rows: AdminCourseRow[]; total: number }> {
+  const limit = params.limit ?? 30
+  const offset = params.offset ?? 0
+  const trimmed = params.query?.trim()
+  const whereClause = trimmed
+    ? or(ilike(courses.name, `%${trimmed}%`), ilike(courses.department, `%${trimmed}%`), ilike(courses.code, `%${trimmed}%`))
+    : undefined
+
+  const [rows, [{ count }]] = await Promise.all([
+    db
+      .select({
+        id: courses.id,
+        code: courses.code,
+        name: courses.name,
+        department: courses.department,
+        professor: courses.professor,
+        credits: courses.credits,
+        requirementType: courses.requirementType,
+        semester: courses.semester,
+        isPublic: courses.isPublic,
+      })
+      .from(courses)
+      .where(whereClause)
+      .orderBy(desc(courses.semester), courses.name)
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: sql<string>`count(*)` }).from(courses).where(whereClause),
+  ])
+
+  return { rows, total: Number(count) }
+}
+
+export type CourseAdminDetail = {
+  id: string
+  code: string | null
+  name: string
+  department: string
+  semester: string
+  isPublic: boolean
+  prerequisiteCodes: string[]
+  summary: { body: string; basedReviewCount: number; generatedAt: Date } | null
+  reviewCount: number
+  fieldTags: { id: string; name: string }[]
+  industryTags: { id: string; name: string; relevanceScore: number }[]
+}
+
+/** PRD 13.3/13.4/13.6 — 과목 상세 검수 화면(AI 요약·분야 태그·산업분야 태그·isPublic·선수과목)에 쓰는 조회. */
+export async function getCourseAdminDetail(courseId: string): Promise<CourseAdminDetail | null> {
+  const [course] = await db.select().from(courses).where(eq(courses.id, courseId)).limit(1)
+  if (!course) return null
+
+  const siblingIds = await getSiblingCourseIds(course)
+
+  const [summaryRow, reviewCountRow, fieldTagRows, industryTagRows] = await Promise.all([
+    db.select().from(summaries).where(eq(summaries.courseId, course.id)).limit(1),
+    db
+      .select({ count: sql<string>`count(*)` })
+      .from(reviews)
+      .where(and(inArray(reviews.courseId, siblingIds), eq(reviews.isFiltered, false))),
+    db
+      .select({ id: fieldTags.id, name: fieldTags.name })
+      .from(courseFieldTags)
+      .innerJoin(fieldTags, eq(fieldTags.id, courseFieldTags.fieldTagId))
+      .where(eq(courseFieldTags.courseId, course.id)),
+    db
+      .select({ id: industryTags.id, name: industryTags.name, relevanceScore: courseIndustryTags.relevanceScore })
+      .from(courseIndustryTags)
+      .innerJoin(industryTags, eq(industryTags.id, courseIndustryTags.industryTagId))
+      .where(eq(courseIndustryTags.courseId, course.id))
+      .orderBy(desc(courseIndustryTags.relevanceScore)),
+  ])
+
+  return {
+    id: course.id,
+    code: course.code,
+    name: course.name,
+    department: course.department,
+    semester: course.semester,
+    isPublic: course.isPublic,
+    prerequisiteCodes: (course.prerequisiteCodes as string[]) ?? [],
+    summary: summaryRow[0] ?? null,
+    reviewCount: Number(reviewCountRow[0]?.count ?? 0),
+    fieldTags: fieldTagRows,
+    industryTags: industryTagRows,
+  }
+}
+
+export async function getAllFieldTags(): Promise<{ id: string; name: string }[]> {
+  return db.select({ id: fieldTags.id, name: fieldTags.name }).from(fieldTags).orderBy(fieldTags.name)
+}
+
+export async function getAllIndustryTags(): Promise<{ id: string; name: string }[]> {
+  return db.select({ id: industryTags.id, name: industryTags.name }).from(industryTags).orderBy(industryTags.name)
+}
+
+export type AdminUserRow = {
+  id: string
+  studentId: string | null
+  name: string | null
+  email: string | null
+  department: string | null
+  role: "user" | "admin"
+  status: "active" | "suspended"
+  createdAt: Date
+}
+
+/** PRD 13.7 — 학번/이름/이메일로 검색. 비밀번호 해시 등 민감정보는 select 대상에 아예 포함하지 않는다. */
+export async function adminSearchUsers(params: {
+  query?: string
+  limit?: number
+  offset?: number
+}): Promise<{ rows: AdminUserRow[]; total: number }> {
+  const limit = params.limit ?? 30
+  const offset = params.offset ?? 0
+  const trimmed = params.query?.trim()
+  const whereClause = trimmed
+    ? or(ilike(users.studentId, `%${trimmed}%`), ilike(users.name, `%${trimmed}%`), ilike(users.email, `%${trimmed}%`))
+    : undefined
+
+  const [rows, [{ count }]] = await Promise.all([
+    db
+      .select({
+        id: users.id,
+        studentId: users.studentId,
+        name: users.name,
+        email: users.email,
+        department: users.department,
+        role: users.role,
+        status: users.status,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(whereClause)
+      .orderBy(desc(users.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: sql<string>`count(*)` }).from(users).where(whereClause),
+  ])
+
+  return { rows, total: Number(count) }
+}
+
+export type AdminCurriculumRow = typeof curricula.$inferSelect
+
+/** PRD 13.5 — 목록 화면용. 학과 수가 적어(현재 2개) 페이지네이션 없이 전체 반환. */
+export async function getAllCurricula(): Promise<AdminCurriculumRow[]> {
+  return db.select().from(curricula).orderBy(curricula.department, desc(curricula.admissionYear))
+}

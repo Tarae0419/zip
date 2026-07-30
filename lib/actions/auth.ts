@@ -162,6 +162,11 @@ export async function login({
   const passwordMatches = await verifyPassword(password, user.passwordHash)
   if (!passwordMatches) return genericError
 
+  // PRD 13.7 — 정지된 계정은 삭제하지 않고 로그인만 막는다.
+  if (user.status === "suspended") {
+    return { success: false, message: "정지된 계정이에요. 문의가 필요하면 학교 측에 연락해주세요." }
+  }
+
   await createSession(user.anonId, rememberMe)
   return { success: true }
 }
