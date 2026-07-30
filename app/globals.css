@@ -289,13 +289,12 @@
 
   /* prefers-reduced-motion 사용자를 위한 일괄 예외 — Tailwind는 @layer utilities에 직접 적은 커스텀
      클래스에 대해 motion-safe: 같은 변형 프리픽스를 자동 생성해주지 않아서(빌트인 유틸리티 전용),
-     variant 프리픽스로 감싸는 대신 여기서 한 번에 애니메이션을 꺼주는 방식을 쓴다. */
+     variant 프리픽스로 감싸는 대신 여기서 한 번에 애니메이션을 꺼주는 방식을 쓴다.
+     반딧불이(firefly-*)는 순수 배경 장식이라 예외로 두고 계속 움직이게 둔다 — 등장 애니메이션과
+     달리 콘텐츠 흐름과 무관해 전정기관 자극 우려가 낮다고 판단. */
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-in-up,
-    .animate-grow-bar,
-    .firefly-fly,
-    .firefly-bob,
-    .firefly-wing {
+    .animate-grow-bar {
       animation: none;
     }
   }

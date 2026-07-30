@@ -321,7 +321,8 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 - [x] 8.11 홈 히어로에 반딧불이 장식 애니메이션 추가
   - 사용자가 제공한 순수 HTML/CSS 데모(`반딧불.html`, 저장소 루트, 미커밋)를 `components/firefly.tsx`로 이식 — 몸통·날개·꼬리 발광 SVG는 그대로 가져오고, 화면 전체를 도는 원래 경로 대신 히어로 영역 안에서 사선으로 오가는 은은한 움직임으로 축소(불투명도 60%, 크기 축소).
   - **버그 발견**: 이 작업 중 `motion-safe:firefly-fly`처럼 Tailwind 빌트인이 아닌 `@layer utilities` 커스텀 클래스에 `motion-safe:` 같은 variant 프리픽스를 붙여도 Tailwind가 해당 변형 규칙을 생성해주지 않는다는 것을 발견했다 — 컴파일된 CSS를 직접 확인해 검증. 이 때문에 이미 배포돼 있던 `motion-safe:animate-fade-in-up`(랜딩 페이지 8.10 등장 애니메이션)과 `motion-safe:animate-grow-bar`(수강평 해시태그 막대바 애니메이션, F1)가 실제로는 전혀 동작하지 않고 있었다.
-  - **수정**: variant 프리픽스로 감싸는 방식 대신, `app/globals.css`에 `@media (prefers-reduced-motion: reduce) { .animate-fade-in-up, .animate-grow-bar, .firefly-fly, .firefly-bob, .firefly-wing { animation: none } }` 한 곳으로 모아 끄는 방식으로 바꾸고, 각 컴포넌트의 `motion-safe:` 프리픽스를 제거했다 — 컴파일된 CSS에 이 미디어쿼리 블록이 실제로 생성되는 것까지 확인.
+  - **수정**: variant 프리픽스로 감싸는 방식 대신, `app/globals.css`에 `@media (prefers-reduced-motion: reduce) { .animate-fade-in-up, .animate-grow-bar { animation: none } }`로 모아 끄는 방식으로 바꾸고, 각 컴포넌트의 `motion-safe:` 프리픽스를 제거했다 — 컴파일된 CSS에 이 미디어쿼리 블록이 실제로 생성되는 것까지 확인.
+  - **배포 후 사용자 신고**: "반딧불이 전혀 움직이지 않는다" — 원인은 이 세션 작업용 PC의 Windows "애니메이션 효과"가 꺼져 있어(`SystemParametersInfo(SPI_GETCLIENTAREAANIMATION)`로 직접 확인) 브라우저가 `prefers-reduced-motion: reduce`로 인식했고, 위 수정이 의도대로 반딧불이를 정지시킨 것이었다(버그 아님). 다만 반딧불이는 콘텐츠 흐름과 무관한 순수 배경 장식이라 이 설정을 따를 필요가 낮다고 보고, `firefly-fly`/`firefly-bob`/`firefly-wing`은 reduced-motion 예외 목록에서 제외해 항상 움직이도록 최종 조정했다(`animate-fade-in-up`/`animate-grow-bar`는 그대로 존중).
 
 **담당 에이전트**: `nextjs-frontend`(화면), `neon-db`(스키마/시딩), `ai-integration`(임베딩·분류 재실행), `vercel-deploy`(배포)
 
