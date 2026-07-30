@@ -5,17 +5,25 @@ import type { PlanItem, PlanItemType, PlanSemester } from "./types"
 
 const TARGET_CREDITS_PER_SEMESTER = 16
 const MAX_CREDITS_PER_SEMESTER = 18
+// 한 학년 위 과목까지는 미리 들을 수 있게 허용한다 — 완전히 못 박으면 3학년 2학기에 딱 한 학기
+// 차이인 4학년 1학기 과목조차 못 들어가는 등 너무 빡빡했다.
+const GRADE_LOOKAHEAD = 1
 
 /** 현재 학년·학기를 시작점으로, 계획에 들어가는 각 학기가 몇 학년에 해당하는지 순서대로 계산한다. */
 export function computeSemesterGrades(count: number, startGrade: number, startSemester: 1 | 2): number[] {
   return Array.from({ length: count }, (_, i) => startGrade + Math.floor((startSemester - 1 + i) / 2))
 }
 
+/** 학생 학년(+GRADE_LOOKAHEAD 선이수 허용)으로 과목의 권장 학년을 감당할 수 있는지. 학년 정보가 없으면 항상 가능. */
+function isGradeEligible(studentGrade: number, courseGrade: number | null): boolean {
+  return courseGrade === null || courseGrade <= studentGrade + GRADE_LOOKAHEAD
+}
+
 /** 과목의 최소 권장 학년(course_department_tracks 기준)을 만족하는 가장 이른 학기 인덱스. 학년 정보가 없으면 제약 없음(0). */
 function earliestGradeEligibleIndex(semesterGrades: number[], grade: number | null): number {
   if (grade === null) return 0
-  const idx = semesterGrades.findIndex((g) => g >= grade)
-  // 남은 학기 안에 그 학년에 도달하지 못하면(예: 4학기만 남았는데 4학년 과목) 그래도 마지막 학기에는 배치 가능하게 한다.
+  const idx = semesterGrades.findIndex((g) => isGradeEligible(g, grade))
+  // 남은 학기 안에 그 학년(-1)에 도달하지 못하면(예: 4학기만 남았는데 4학년 과목) 그래도 마지막 학기에는 배치 가능하게 한다.
   return idx === -1 ? semesterGrades.length - 1 : idx
 }
 
@@ -124,7 +132,7 @@ export function fillMajorElectives(
       if (semesterCredits[s] >= TARGET_CREDITS_PER_SEMESTER || totalCreditsPlaced >= creditBudget) break
       if (usedCourseCodes.has(candidate.code)) continue
       // 학생 학년이 아직 이 과목의 권장 학년에 못 미치면 이번 학기엔 건너뛰고, 나중 학기에 다시 후보로 본다.
-      if (candidate.grade !== null && candidate.grade > semesterGrades[s]) continue
+      if (!isGradeEligible(semesterGrades[s], candidate.grade)) continue
       if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) continue
 
       const tagName = candidate.matchedIndustryTagId ? interestFieldNameById.get(candidate.matchedIndustryTagId) : null
@@ -172,7 +180,7 @@ export function fillElectives(
     for (const candidate of candidates) {
       if (semesterCredits[s] >= TARGET_CREDITS_PER_SEMESTER || totalElectiveCreditsPlaced >= creditBudget) break
       if (usedCandidateCodes.has(candidate.code)) continue
-      if (candidate.grade !== null && candidate.grade > semesterGrades[s]) continue
+      if (!isGradeEligible(semesterGrades[s], candidate.grade)) continue
       if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) continue
 
       const tagName = interestFieldNameById.get(candidate.industryTagId) ?? "관심"

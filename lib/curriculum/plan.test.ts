@@ -88,13 +88,19 @@ describe("placeRequiredCourses", () => {
     expect(semesterItems[1].length).toBeGreaterThan(0)
   })
 
-  it("does not place a required course tagged for a later grade before the student reaches it", () => {
+  it("allows a course one grade above the student's current grade right away (lookahead)", () => {
+    const courses = [course({ code: "NEXTUP", name: "한학년위과목", grade: 3 })]
+    const grades = computeSemesterGrades(2, 2, 1) // 2학년 내내 → [2, 2]
+    const { semesterItems } = placeRequiredCourses([{ courses, type: "전공필수" }], 2, grades)
+    expect(semesterItems[0].map((i) => i.courseCode)).toContain("NEXTUP")
+  })
+
+  it("does not place a required course tagged two grades above the student's current grade", () => {
     const courses = [course({ code: "SENIOR", name: "고학년필수", grade: 4 })]
-    // 2학년 2학기부터 4학기 진행 → [2, 3, 3, 4]학년
-    const grades = computeSemesterGrades(4, 2, 2)
-    const { semesterItems } = placeRequiredCourses([{ courses, type: "전공필수" }], 4, grades)
+    const grades = computeSemesterGrades(2, 2, 1) // 2학년 내내 → [2, 2], lookahead(1)로도 4학년엔 못 미침
+    const { semesterItems } = placeRequiredCourses([{ courses, type: "전공필수" }], 2, grades)
     expect(semesterItems[0]).toHaveLength(0)
-    expect(semesterItems[3].map((i) => i.courseCode)).toContain("SENIOR")
+    expect(semesterItems[1].map((i) => i.courseCode)).toContain("SENIOR") // 그래도 마지막 학기엔 배치됨
   })
 
   it("tags a second group as 복수전공필수", () => {
@@ -197,15 +203,22 @@ describe("fillMajorElectives", () => {
     expect(semesterItems2[0][0].reason).toContain("전공선택 학점 요건")
   })
 
-  it("does not place a 4학년 course into a semester before the student reaches 4학년", () => {
-    const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[], [], [], []]
-    const semesterCredits = [0, 0, 0, 0]
-    // 2학년 2학기부터 4학기 진행 → [2, 3, 3, 4]학년
-    const grades = computeSemesterGrades(4, 2, 2)
+  it("does not place a course two grades above the student's current grade into an early semester", () => {
+    const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[], []]
+    const semesterCredits = [0, 0]
+    const grades = computeSemesterGrades(2, 2, 1) // 2학년 내내 → [2, 2]
     const candidates = [majorCandidate({ code: "SENIOR", name: "고학년과목", grade: 4 })]
     fillMajorElectives(semesterItems, semesterCredits, candidates, "테스트학과", new Map(), 20, grades)
     expect(semesterItems[0].find((i) => i.courseCode === "SENIOR")).toBeUndefined()
-    expect(semesterItems[3].find((i) => i.courseCode === "SENIOR")).toBeDefined()
+  })
+
+  it("allows a course one grade above the student's current grade right away (lookahead)", () => {
+    const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[], []]
+    const semesterCredits = [0, 0]
+    const grades = computeSemesterGrades(2, 2, 1) // 2학년 내내 → [2, 2]
+    const candidates = [majorCandidate({ code: "NEXTUP", name: "한학년위과목", grade: 3 })]
+    fillMajorElectives(semesterItems, semesterCredits, candidates, "테스트학과", new Map(), 20, grades)
+    expect(semesterItems[0].find((i) => i.courseCode === "NEXTUP")).toBeDefined()
   })
 })
 
