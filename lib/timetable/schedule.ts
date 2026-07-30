@@ -109,7 +109,7 @@ export function parseTimeSlots(courseId: string, courseName: string, timeSlots: 
     flushRun(runStart, prev)
   }
 
-  return sessions.sort((a, b) => a.startMinutes - b.startMinutes)
+  return sessions.sort((a, b) => WEEKDAY_CHARS.indexOf(a.day) - WEEKDAY_CHARS.indexOf(b.day) || a.startMinutes - b.startMinutes)
 }
 
 /** 장바구니 과목 하나의 timeSlots+classroom을 합쳐 위치가 채워진 ClassSession[]으로 변환한다. */
