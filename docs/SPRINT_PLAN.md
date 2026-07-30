@@ -283,6 +283,11 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 - [x] 8.5 F1 — 본인 수강평 삭제 기능
   - `lib/actions/reviews.ts`의 `deleteReview` — 클라이언트가 보낸 값을 믿지 않고, 리뷰의 `authorAnonId`가 현재 세션 쿠키의 anonId와 일치하는지 서버에서 직접 확인한 뒤에만 삭제
 - [x] 8.6 F2 — 교양(gen-ed) 과목 카탈로그 추가 = Sprint 3.5 완료 처리 (상세는 위 3.5 항목 참고)
+- [x] 8.7 F2 — 일반선택/교직/군사학 카탈로그 추가, 학수번호 없는 과목 재수입 시 중복 삽입되던 버그 발견·수정
+  - `requirementTypeEnum`에 `일반선택`/`교직`/`군사학` 3개 값 추가(마이그레이션 `0004_medical_agent_zero.sql`, 순수 `ALTER TYPE ... ADD VALUE`라 안전), `Requirement`/`requirementAccentColor`/`requirementStyles`/검색 필터 옵션 등 8개 값을 다루는 곳 전부 갱신
+  - **버그 발견**: `courses_code_section_semester_idx`가 `code`가 NULL인 row끼리는 서로 다르다고 취급해(Postgres 유니크 인덱스의 NULL 시맨틱), `import-courses.ts`를 재실행할 때마다 학수번호 없는 과목(교양·일반선택 다수, 학부전공 일부)이 계속 새 row로 중복 삽입되고 있었다 — 이번 세션 이전의 과거 재실행분까지 포함해 총 1302개 그룹, 2341건의 중복 row가 쌓여 있었다. 리뷰가 갈라진 사례는 없었지만(확인함), 검색 결과에 같은 과목이 여러 번 뜨는 문제로 이어질 수 있었다.
+  - **수정**: `insertOne`에서 `code`가 없는 행은 `onConflictDoNothing` 대신 `(교과목명, 개설학과, 분반, 학기)`로 먼저 존재 여부를 직접 확인하도록 변경 — 재실행해도 이제 진짜로 0건 삽입됨을 확인.
+  - 일반선택/군사학 카탈로그는 일부 row의 "학과" 컬럼이 통째로 비어 있음(원본 데이터 결측) — 군사학은 전 row가 예외 없이 "교무처 학사지원과" 소속이라 그 값으로 안전하게 채워 넣었고, 일반선택은 학과가 원예학과·약학과·체육교육과 등으로 다양해 추론할 수 없어 그 row들은 그대로 스킵(형식오류로 카운트)했다.
 
 **담당 에이전트**: `nextjs-frontend`(화면), `neon-db`(스키마/시딩), `ai-integration`(임베딩·분류 재실행), `vercel-deploy`(배포)
 
@@ -312,6 +317,9 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 | 2026-07-30 | 홈 "인기 과목" 정렬 기준 재검토 | `enrolledCount` → 최근 30일 리뷰 증가량 + 평균 평점 3.5 이상 | 1.5/4.5에서 남겨둔 "리뷰 쌓이면 재검토" 약속을 실제로 이행(Sprint 8.2). 후보가 limit보다 적으면 `enrolledCount` 순으로 남은 자리를 채우는 폴백 유지. |
 | 2026-07-30 | F4 학년 제약 허용 폭 | 1개 학년 선이수까지 허용(`GRADE_LOOKAHEAD = 1`) | 완전히 못 박으면 3학년 2학기생조차 한 학기 차이인 4학년 1학기 과목을 못 받는 등 너무 빡빡했다(Sprint 8.3). |
 | 2026-07-30 | 산업분야 카테고리 확장 | 6개 → 11개 | 사용자 요청. 기존 임베딩·연관도 스코어링 파이프라인 그대로 재사용, 신규 카테고리만 추가 시딩(Sprint 8.4). |
+| 2026-07-30 | 이수구분 카탈로그 확장 | 4개(전공필수/전공선택/기초필수/계열공통) → 8개, 일반선택/교직/군사학 추가 | 사용자가 파일 제공. `requirementTypeEnum`에 `ALTER TYPE ADD VALUE`로 추가(마이그레이션 0004). |
+| 2026-07-30 | `import-courses.ts` 재실행 시 학수번호 없는 과목 중복 삽입 버그 | (교과목명, 개설학과, 분반, 학기)로 사전 존재 확인하도록 수정 | Postgres 유니크 인덱스가 NULL을 서로 다르다고 취급해서 생긴 문제. 과거 재실행분까지 포함해 누적된 중복 2341건을 정리(리뷰 유실 없음, Sprint 8.7 참고). |
+| 2026-07-30 | 군사학/일반선택 학과 결측 처리 | 군사학은 "교무처 학사지원과"로 일괄 백필, 일반선택은 결측 row 스킵 | 군사학은 원본에 학과가 있는 row 전부 같은 값이라 안전하게 추론 가능했지만, 일반선택은 학과가 다양해 추론 불가 — 억지로 채우지 않고 스킵(Sprint 8.7). |
 | 2026-07-29 | Vercel 프로젝트 연결 | 팀 `tarae0419s-projects`에 `zip` 프로젝트 생성, GitHub(`Tarae0419/zip`) 연동 | 계정에 있던 기존 `curator` 프로젝트는 이 앱과 무관해 건드리지 않음. `DATABASE_URL`/`OPEN_AI_API_KEY`를 production/preview/development 세 환경에 등록. |
 | 2026-07-29 | pnpm 설정 위치 | `package.json`의 `pnpm.overrides` → `pnpm-workspace.yaml`의 `overrides:`로 이동 | 첫 Vercel 배포가 `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`로 실패해서 발견. 최신 pnpm은 `package.json`의 `pnpm` 필드를 더 이상 읽지 않는다(세션 내내 뜬 경고의 원인이었음). |
 | 2026-07-29 | `main` 푸시 = 프로덕션 배포 | 기존 동작 그대로 유지, 문서화만 함 | Vercel Git 연동에서 `main`이 프로덕션 브랜치로 인식돼, 별도 `--prod` 없이도 `main` 푸시마다 자동으로 프로덕션에 배포되고 있었다는 걸 Sprint 7에서 확인. 프리뷰 단계 없이 바로 프로덕션에 나간다는 뜻 — 7.1(Neon 프리뷰 브랜치)과 별개로 feature-branch/PR 워크플로 도입을 고려할 만하지만 지금은 결정하지 않음. |

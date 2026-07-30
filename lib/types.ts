@@ -3,7 +3,7 @@
 // lib/db/queries.ts가 DB row를 이 타입으로 변환하는 역할을 맡는다.
 
 // courses.requirement_type과 동일한 값 집합(lib/db/schema.ts의 requirementTypeEnum 참고).
-export type Requirement = "전공필수" | "전공선택" | "기초필수" | "계열공통" | "교양"
+export type Requirement = "전공필수" | "전공선택" | "기초필수" | "계열공통" | "교양" | "일반선택" | "교직" | "군사학"
 
 export type HashtagStat = {
   tag: string

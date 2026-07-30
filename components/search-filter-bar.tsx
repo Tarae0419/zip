@@ -5,7 +5,7 @@ import { SlidersHorizontal } from "lucide-react"
 
 const creditOptions = ["전체", "1", "2", "3", "4"]
 const gradeOptions = ["전체", "1", "2", "3", "4"]
-const requirementOptions = ["전체", "전공필수", "전공선택", "기초필수", "계열공통", "교양"]
+const requirementOptions = ["전체", "전공필수", "전공선택", "기초필수", "계열공통", "교양", "일반선택", "교직", "군사학"]
 
 // 검색 필터/정렬은 URL 쿼리스트링에 반영한다 — 서버 컴포넌트(search-results.tsx)가
 // searchParams를 읽어 실제 DB 쿼리 조건으로 사용하므로, 이 컴포넌트는 상태를 들고 있지 않고
