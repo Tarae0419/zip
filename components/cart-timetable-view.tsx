@@ -55,6 +55,9 @@ export function CartTimetableView({
   const otherSemesterItems = cart.filter((c) => c.semester !== activeSemester)
   const totalCredits = scopedCart.reduce((sum, c) => sum + c.credits, 0)
   const managingCourse = scopedCart.find((c) => c.id === managingCourseId) ?? null
+  // 시간표 그리드에 블록으로 안 뜨는(수업 시간 정보가 없는) 과목은 별도 목록으로 계속 보여준다 —
+  // 안 그러면 관리(삭제)할 방법이 아예 없어진다.
+  const noScheduleCourses = scopedCart.filter((c) => buildSessionsForCourse(c).length === 0)
 
   // Esc로 관리 팝업 닫기
   useEffect(() => {
@@ -136,45 +139,53 @@ export function CartTimetableView({
       ) : (
         <>
           <section>
-            <h2 className="font-display text-lg font-bold text-foreground">주간 시간표</h2>
-            <p className="mt-1 text-sm text-muted-foreground">과목을 클릭하면 삭제 등 관리를 할 수 있어요.</p>
-            <div className="mt-3">
-              <WeeklyTimetable cart={scopedCart} activeCourseId={managingCourseId} onSessionClick={setManagingCourseId} />
-            </div>
-          </section>
-
-          <section>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-lg font-bold text-foreground">
-                담은 강의
+                주간 시간표
                 <span className="ml-2 text-base font-normal text-muted-foreground">{scopedCart.length}개</span>
               </h2>
               <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-secondary-foreground">
                 총 {totalCredits}학점
               </span>
             </div>
-
-            <ul className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
-              {scopedCart.map((course) => (
-                <li key={course.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <button type="button" onClick={() => setManagingCourseId(course.id)} className="min-w-0 flex-1 text-left">
-                    <p className="truncate font-medium text-foreground">{course.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {course.department} · {course.professor} · {course.credits}학점
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeCourse(course.id)}
-                    aria-label={`${course.name} 장바구니에서 삭제`}
-                    className="shrink-0 rounded-full p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <p className="mt-1 text-sm text-muted-foreground">과목을 클릭하면 삭제 등 관리를 할 수 있어요.</p>
+            <div className="mt-3">
+              <WeeklyTimetable cart={scopedCart} activeCourseId={managingCourseId} onSessionClick={setManagingCourseId} />
+            </div>
           </section>
+
+          {noScheduleCourses.length > 0 && (
+            <section>
+              <h2 className="font-display text-lg font-bold text-foreground">
+                시간 정보가 없는 과목
+                <span className="ml-2 text-base font-normal text-muted-foreground">{noScheduleCourses.length}개</span>
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                수업 시간 정보가 없어 위 시간표에는 표시되지 않지만, 담은 과목에는 포함돼 있어요.
+              </p>
+
+              <ul className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                {noScheduleCourses.map((course) => (
+                  <li key={course.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-foreground">{course.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {course.department} · {course.professor} · {course.credits}학점
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeCourse(course.id)}
+                      aria-label={`${course.name} 장바구니에서 삭제`}
+                      className="shrink-0 rounded-full p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section>
             <h2 className="font-display text-lg font-bold text-foreground">요일별 이동동선</h2>

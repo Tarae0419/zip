@@ -3,13 +3,11 @@ import type { CartCourse } from "@/lib/timetable/types"
 import { buildSessionsForCourse, formatMinutes } from "@/lib/timetable/schedule"
 import { cn } from "@/lib/utils"
 
-const CHART_COLORS = [
-  { bg: "bg-chart-1/15", border: "border-chart-1/40", text: "text-chart-1" },
-  { bg: "bg-chart-2/15", border: "border-chart-2/40", text: "text-chart-2" },
-  { bg: "bg-chart-3/15", border: "border-chart-3/40", text: "text-chart-3" },
-  { bg: "bg-chart-4/15", border: "border-chart-4/40", text: "text-chart-4" },
-  { bg: "bg-chart-5/15", border: "border-chart-5/40", text: "text-chart-5" },
-]
+// 배경을 과목 색으로 옅게 칠하는(반투명) 대신 카드 배경으로 불투명하게 채우고, 과목 구분은
+// 왼쪽 굵은 색 띠(accent)로만 준다 — 다크 모드 chart 색상이 회색조라 반투명 색상 배경 위에
+// 텍스트를 얹으면 대비가 색상마다 들쭉날쭉해지는데, 불투명 카드 배경 + text-foreground 조합이면
+// 어떤 accent 색이든 항상 대비가 보장된다.
+const CHART_ACCENTS = ["border-l-chart-1", "border-l-chart-2", "border-l-chart-3", "border-l-chart-4", "border-l-chart-5"]
 
 const DEFAULT_START = 9 * 60
 const DEFAULT_END = 18 * 60
@@ -23,7 +21,7 @@ export function WeeklyTimetable({
   activeCourseId?: string | null
   onSessionClick?: (courseId: string) => void
 }) {
-  const colorByCourseId = new Map(cart.map((course, i) => [course.id, CHART_COLORS[i % CHART_COLORS.length]]))
+  const accentByCourseId = new Map(cart.map((course, i) => [course.id, CHART_ACCENTS[i % CHART_ACCENTS.length]]))
   const allSessions = cart.flatMap((course) => buildSessionsForCourse(course))
 
   const minStart = Math.min(DEFAULT_START, ...allSessions.map((s) => s.startMinutes))
@@ -47,7 +45,9 @@ export function WeeklyTimetable({
             {hourMarks.map((m) => (
               <div
                 key={m}
-                className="absolute right-2 -translate-y-1/2 text-xs text-muted-foreground"
+                // 정각 선 위에 라벨이 정중앙(-translate-y-1/2)으로 겹치면 "09:00"의 "-"가 선과
+                // 딱 맞아떨어져 헷갈린다는 피드백 — 선보다 살짝 아래로 내려서 선 바로 위 라벨처럼 보이게 한다.
+                className="absolute right-2 -translate-y-1/4 text-xs text-muted-foreground"
                 style={{ top: ((m - rangeStart) / totalMinutes) * 100 + "%" }}
               >
                 {formatMinutes(m)}
@@ -72,7 +72,7 @@ export function WeeklyTimetable({
                   />
                 ))}
                 {daySessions.map((session, i) => {
-                  const color = colorByCourseId.get(session.courseId) ?? CHART_COLORS[0]
+                  const accent = accentByCourseId.get(session.courseId) ?? CHART_ACCENTS[0]
                   const top = ((session.startMinutes - rangeStart) / totalMinutes) * 100
                   const height = ((session.endMinutes - session.startMinutes) / totalMinutes) * 100
                   const isActive = activeCourseId === session.courseId
@@ -82,18 +82,21 @@ export function WeeklyTimetable({
                       type="button"
                       onClick={() => onSessionClick?.(session.courseId)}
                       className={cn(
-                        "absolute inset-x-1 overflow-hidden rounded-md border px-1.5 py-1 text-left text-[11px] leading-tight transition",
-                        color.bg,
-                        color.border,
-                        color.text,
+                        "absolute inset-x-1 overflow-hidden rounded-md border border-border border-l-[3px] bg-card px-1.5 py-1 text-left text-[11px] leading-tight text-foreground shadow-sm transition",
+                        accent,
                         onSessionClick && "cursor-pointer hover:brightness-95",
                         isActive && "ring-2 ring-primary ring-offset-1",
                       )}
                       style={{ top: `${top}%`, height: `${height}%` }}
-                      title={`${session.courseName} · ${formatMinutes(session.startMinutes)}~${formatMinutes(session.endMinutes)}${session.location ? ` · ${session.location.building} ${session.location.room}` : ""}`}
+                      title={`${session.courseName} · ${session.professor} · ${formatMinutes(session.startMinutes)}~${formatMinutes(session.endMinutes)}${session.location ? ` · ${session.location.building} ${session.location.room}` : ""}`}
                     >
                       <p className="truncate font-semibold">{session.courseName}</p>
-                      {session.location && <p className="truncate opacity-80">{session.location.building}</p>}
+                      {session.location && (
+                        <p className="truncate text-muted-foreground">
+                          {session.location.building} {session.location.room}호
+                        </p>
+                      )}
+                      {session.professor && <p className="truncate text-muted-foreground">{session.professor}</p>}
                     </button>
                   )
                 })}

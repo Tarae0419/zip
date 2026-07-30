@@ -23,7 +23,8 @@
     "db:seed-curricula": "tsx --env-file=.env.local lib/db/scripts/seed-curricula.ts",
     "db:seed-sample-reviews": "tsx --env-file=.env.local lib/db/scripts/seed-sample-reviews.ts",
     "db:seed-popular-reviews": "tsx --env-file=.env.local lib/db/scripts/seed-popular-course-reviews.ts",
-    "db:seed-bulk-reviews": "tsx --env-file=.env.local lib/db/scripts/seed-bulk-reviews.ts"
+    "db:seed-bulk-reviews": "tsx --env-file=.env.local lib/db/scripts/seed-bulk-reviews.ts",
+    "db:geocode-buildings": "tsx --env-file=.env.local lib/db/scripts/geocode-buildings.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

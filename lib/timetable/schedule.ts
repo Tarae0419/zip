@@ -6,6 +6,19 @@
 // 실제 캠퍼스 배치·이동시간과 다를 수 있다는 문구를 CampusMap에서 항상 함께 보여준다.
 
 import type { CampusStop, CartCourse, ClassSession, ParsedLocation, TimeConflict, Weekday } from "./types"
+import buildingCoordinatesData from "./building-coordinates.json"
+
+type BuildingCoordinate = { campus: string; building: string; lat: number; lng: number }
+const buildingCoordinates = buildingCoordinatesData as BuildingCoordinate[]
+const buildingCoordinateByKey = new Map(buildingCoordinates.map((b) => [`${b.campus}|${b.building}`, { lat: b.lat, lng: b.lng }]))
+
+/**
+ * 카카오 로컬 API로 한 번 조사해둔 실제 위경도(lib/timetable/building-coordinates.json, pnpm db:geocode-buildings
+ * 로 갱신) — 못 찾은 소수 건물은 null을 반환하고, 호출부가 getBuildingPosition의 스케매틱 추정 배치로 폴백한다.
+ */
+export function getRealCoordinate(location: ParsedLocation): { lat: number; lng: number } | null {
+  return buildingCoordinateByKey.get(`${location.campus}|${location.building}`) ?? null
+}
 
 const WEEKDAY_CHARS = ["월", "화", "수", "목", "금", "토", "일"] as const
 const KNOWN_CAMPUSES = ["전주", "익산", "남원", "고창", "새만금"]
@@ -90,6 +103,7 @@ export function parseTimeSlots(courseId: string, courseName: string, timeSlots: 
       sessions.push({
         courseId,
         courseName,
+        professor: "", // buildSessionsForCourse에서 별도로 채움
         day,
         startMinutes: periodStart(start),
         endMinutes: periodEnd(end),
@@ -115,7 +129,11 @@ export function parseTimeSlots(courseId: string, courseName: string, timeSlots: 
 /** 장바구니 과목 하나의 timeSlots+classroom을 합쳐 위치가 채워진 ClassSession[]으로 변환한다. */
 export function buildSessionsForCourse(course: CartCourse): ClassSession[] {
   const location = parseClassroom(course.classroom)
-  return parseTimeSlots(course.id, course.name, course.timeSlots).map((session) => ({ ...session, location }))
+  return parseTimeSlots(course.id, course.name, course.timeSlots).map((session) => ({
+    ...session,
+    location,
+    professor: course.professor,
+  }))
 }
 
 /** 장바구니 전체 과목의 세션을 모아 특정 요일 것만 시간순으로 반환한다. */
@@ -199,8 +217,32 @@ export function getBuildingPosition(location: ParsedLocation): { x: number; y: n
   return { x, y }
 }
 
-/** 두 건물 간 도보 이동시간 추정치(분). 좌표 거리 기반이며 실측이 아니다. 최소 3분. */
+const EARTH_RADIUS_M = 6371000
+const WALK_METERS_PER_MINUTE = 67 // 도보 약 4km/h 가정
+
+/** 실제 위경도가 있는 두 지점 사이의 직선거리(m) — Haversine 공식. */
+function haversineMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const sinLat = Math.sin(dLat / 2)
+  const sinLng = Math.sin(dLng / 2)
+  const h = sinLat * sinLat + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * sinLng * sinLng
+  return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h))
+}
+
+/**
+ * 두 건물 간 도보 이동시간 추정치(분). 두 건물 모두 실좌표(building-coordinates.json)가 있으면
+ * 직선거리 기반으로 계산하고(그래도 실제 도보 경로 측정치는 아님), 하나라도 없으면 기존 스케매틱
+ * 좌표 거리 기반 추정으로 폴백한다. 최소 3분.
+ */
 export function estimateWalkMinutes(a: ParsedLocation, b: ParsedLocation): number {
+  const realA = getRealCoordinate(a)
+  const realB = getRealCoordinate(b)
+  if (realA && realB) {
+    return Math.max(3, Math.round(haversineMeters(realA, realB) / WALK_METERS_PER_MINUTE))
+  }
+
   const pa = getBuildingPosition(a)
   const pb = getBuildingPosition(b)
   const dist = Math.hypot(pa.x - pb.x, pa.y - pb.y)

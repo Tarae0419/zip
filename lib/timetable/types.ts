@@ -28,6 +28,7 @@ export type ParsedLocation = {
 export type ClassSession = {
   courseId: string
   courseName: string
+  professor: string
   day: Weekday
   startMinutes: number
   endMinutes: number

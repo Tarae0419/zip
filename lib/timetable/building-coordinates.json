@@ -1,0 +1,578 @@
+[
+  {
+    "campus": "고창",
+    "building": "공학관",
+    "lat": 35.43439614002691,
+    "lng": 126.6573835293668,
+    "matchedName": "전북대학교 고창캠퍼스 (건물 단위 매칭 실패 — 캠퍼스 대표 좌표로 대체)",
+    "address": "전북특별자치도 고창군 고창읍 도산리 610-2",
+    "needsReview": true
+  },
+  {
+    "campus": "새만금",
+    "building": "캠퍼스관",
+    "lat": 35.9618670700571,
+    "lng": 126.56066995283,
+    "matchedName": "전북새만금산학융합지구 캠퍼스관",
+    "address": "전북특별자치도 군산시 오식도동 515-7",
+    "needsReview": false
+  },
+  {
+    "campus": "익산",
+    "building": "도서관",
+    "lat": 35.942982104653,
+    "lng": 126.959254581469,
+    "matchedName": "전북대학교 특성화캠퍼스 도서관",
+    "address": "전북특별자치도 익산시 마동 194-5",
+    "needsReview": false
+  },
+  {
+    "campus": "익산",
+    "building": "동물병원",
+    "lat": 35.94133152082351,
+    "lng": 126.9607316491084,
+    "matchedName": "전북대학교 전북동물의료센터",
+    "address": "전북특별자치도 익산시 마동 194-5",
+    "needsReview": false
+  },
+  {
+    "campus": "익산",
+    "building": "제1 수의학관",
+    "lat": 35.9423152124937,
+    "lng": 126.959334720483,
+    "matchedName": "전북대학교 특성화캠퍼스 제1수의학관",
+    "address": "전북특별자치도 익산시 마동 194-5",
+    "needsReview": false
+  },
+  {
+    "campus": "익산",
+    "building": "제1 환생대관",
+    "lat": 35.9413960649578,
+    "lng": 126.959689839183,
+    "matchedName": "전북대학교 특성화캠퍼스 제1환생대관",
+    "address": "전북특별자치도 익산시 마동 194-5",
+    "needsReview": false
+  },
+  {
+    "campus": "익산",
+    "building": "제2 수의학관",
+    "lat": 35.9424632115541,
+    "lng": 126.959915388287,
+    "matchedName": "전북대학교특성화캠퍼스 제2수의학관",
+    "address": "전북특별자치도 익산시 마동 194-5",
+    "needsReview": false
+  },
+  {
+    "campus": "익산",
+    "building": "제2 환생대관",
+    "lat": 35.9413960649578,
+    "lng": 126.959689839183,
+    "matchedName": "전북대학교 특성화캠퍼스 제1환생대관과 같은 주소(단지) — 건물 단위 매칭 실패",
+    "address": "전북특별자치도 익산시 마동 194-5",
+    "needsReview": true
+  },
+  {
+    "campus": "익산",
+    "building": "제3 환생대관",
+    "lat": 35.9429318248829,
+    "lng": 126.959817621599,
+    "matchedName": "전북대학교 제3환생대관",
+    "address": "전북특별자치도 익산시 마동 194-5",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "간호대학",
+    "lat": 35.8470303165277,
+    "lng": 127.144914313466,
+    "matchedName": "전북대학교 간호대학",
+    "address": "전북특별자치도 전주시 덕진구 인후동2가 71-6",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "경상대학 1호관",
+    "lat": 35.8447142698484,
+    "lng": 127.133880680706,
+    "matchedName": "전북대학교 경상대학1호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "경상대학 2호관",
+    "lat": 35.8447127079081,
+    "lng": 127.135275406026,
+    "matchedName": "전북대학교 경상대학 2호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "경상대학 3호관",
+    "lat": 35.8445857677654,
+    "lng": 127.13595262867,
+    "matchedName": "전북대학교 경상대학3호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "골프학습장",
+    "lat": 35.847560442290515,
+    "lng": 127.12552565265499,
+    "matchedName": "전북대학교 골프연습장",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 1호관",
+    "lat": 35.8466408563297,
+    "lng": 127.132524579445,
+    "matchedName": "전북대학교 공과대학1호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 2호관",
+    "lat": 35.8469482707503,
+    "lng": 127.131626240959,
+    "matchedName": "전북대학교 공과대학2호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 3호관",
+    "lat": 35.8469750644007,
+    "lng": 127.133481547523,
+    "matchedName": "전북대학교 공과대학3호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 4호관",
+    "lat": 35.8475169048745,
+    "lng": 127.132499469759,
+    "matchedName": "전북대학교 공과대학4호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 5호관",
+    "lat": 35.8475543060187,
+    "lng": 127.131268585263,
+    "matchedName": "전북대학교 공과대학5호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 6호관",
+    "lat": 35.8471218088784,
+    "lng": 127.134433779393,
+    "matchedName": "전북대학교 공과대학 6호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 7호관",
+    "lat": 35.8460547484639,
+    "lng": 127.134409839674,
+    "matchedName": "전북대학교 공과대학 7호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 8호관",
+    "lat": 35.8482800608832,
+    "lng": 127.133501446021,
+    "matchedName": "전북대학교 공과대학8호관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 664-14",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 9호관",
+    "lat": 35.8476346299967,
+    "lng": 127.133619916763,
+    "matchedName": "전북대학교 공과대학9호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "공과대학 부속공장",
+    "lat": 35.8465877502752,
+    "lng": 127.134893370531,
+    "matchedName": "전북대학교 공과대학부속공장",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "과학관",
+    "lat": 35.8457968499907,
+    "lng": 127.129614131596,
+    "matchedName": "전북대학교 제1과학관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "글로벌인재관",
+    "lat": 35.8456018768555,
+    "lng": 127.133187014551,
+    "matchedName": "전북대학교 글로벌인재관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "농업생명과학대학1호관",
+    "lat": 35.8491554405294,
+    "lng": 127.130806288721,
+    "matchedName": "전북대학교 농업생명과학대학1호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "농업생명과학대학2호관",
+    "lat": 35.8490966084667,
+    "lng": 127.131860044592,
+    "matchedName": "전북대학교 농업생명과학대학 2호관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 664-14",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "농업생명과학대학3호관",
+    "lat": 35.8486068725286,
+    "lng": 127.134617830688,
+    "matchedName": "전북대학교 농업생명과학대학3호관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 664-14",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "농업생명과학대학4호관",
+    "lat": 35.848418316436,
+    "lng": 127.135591653031,
+    "matchedName": "전북대학교 농업생명과학대학4호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "농업생명과학대학본관",
+    "lat": 35.8493079326233,
+    "lng": 127.13310465213,
+    "matchedName": "전북대학교 농업생명과학대학본관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 664-14",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "미술관",
+    "lat": 35.8462181066445,
+    "lng": 127.126732324568,
+    "matchedName": "전북대학교 예술대학 미술관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 664-14",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "반도체물성 연구소",
+    "lat": 35.8478840390612,
+    "lng": 127.145467138113,
+    "matchedName": "전북대학교 반도체물성연구소 주차장",
+    "address": "전북특별자치도 전주시 덕진구 인후동2가 71-6",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "법학전문대학원",
+    "lat": 35.845000420363434,
+    "lng": 127.13266021676434,
+    "matchedName": "전북대학교 전주캠퍼스 법학전문대학원",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "사범대 본관",
+    "lat": 35.8426092637712,
+    "lng": 127.131953354977,
+    "matchedName": "전북대학교 전주캠퍼스 사범대학본관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "사회과학대학",
+    "lat": 35.8440619339729,
+    "lng": 127.13372461591,
+    "matchedName": "전북대학교 사회과학대학",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "생명과학관",
+    "lat": 35.84752485920509,
+    "lng": 127.14437058596458,
+    "matchedName": "전북대학교 의학전문대학원생명과학관",
+    "address": "전북특별자치도 전주시 덕진구 인후동2가 산 2-19",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "생활과학대학",
+    "lat": 35.8425499022513,
+    "lng": 127.132661670689,
+    "matchedName": "전북대학교 생활과학대학",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "약학대학 1호관",
+    "lat": 35.84839850918783,
+    "lng": 127.14484263510157,
+    "matchedName": "전북대학교 약학대학",
+    "address": "전북특별자치도 전주시 덕진구 인후동2가 산 2-19",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "예술대학 2호관",
+    "lat": 35.8508384013013,
+    "lng": 127.128001669901,
+    "matchedName": "전북대학교 예술대학 2호관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 1327-37",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "예술대학 본관",
+    "lat": 35.8504642275575,
+    "lng": 127.127297012122,
+    "matchedName": "전북대학교 예술대학 본관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 1327-37",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "예체능관",
+    "lat": 35.8477831815136,
+    "lng": 127.129648358852,
+    "matchedName": "전북대학교 예체능관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "의과대학 4호관(의생명융합관)",
+    "lat": 35.8468492907485,
+    "lng": 127.144059413733,
+    "matchedName": "전북대학교 의과대학4호관(의생명융합관)",
+    "address": "전북특별자치도 전주시 덕진구 인후동2가 71-6",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "의과대학 본관",
+    "lat": 35.847049210889786,
+    "lng": 127.14268161098943,
+    "matchedName": "전북대학교 의과대학 (건물 단위 매칭 실패 — 단과대학 대표 좌표로 대체)",
+    "address": "전북특별자치도 전주시 덕진구 금암동 634-18",
+    "needsReview": true
+  },
+  {
+    "campus": "전주",
+    "building": "의학계열공용관(치과대학 4호관)",
+    "lat": 35.8473884799284,
+    "lng": 127.137706415336,
+    "matchedName": "전북대학교 치과대학 4호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 634-18",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "인문대학1호관",
+    "lat": 35.8432408002703,
+    "lng": 127.1329926793,
+    "matchedName": "전북대학교 인문대학1호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "인문대학2호관",
+    "lat": 35.8441675595269,
+    "lng": 127.132750704153,
+    "matchedName": "전북대학교 인문대학2호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "인문사회관",
+    "lat": 35.8431496619279,
+    "lng": 127.133904617076,
+    "matchedName": "전북대학교 인문사회관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "자연과학대학1호관",
+    "lat": 35.8452692890559,
+    "lng": 127.127390548219,
+    "matchedName": "전북대학교 자연과학대학1호관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 664-14",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "자연과학대학2호관",
+    "lat": 35.8450946760627,
+    "lng": 127.128864702863,
+    "matchedName": "전북대학교 자연과학대학2호관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 664-14",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "자연과학대학4호관",
+    "lat": 35.8466464497086,
+    "lng": 127.130709184431,
+    "matchedName": "전북대학교 자연과학대학4호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "자연과학대학5호관",
+    "lat": 35.8461597722582,
+    "lng": 127.130708385855,
+    "matchedName": "전북대학교 자연과학대학5호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "자연과학대학본관",
+    "lat": 35.8474720758159,
+    "lng": 127.130639693439,
+    "matchedName": "전북대학교 자연과학대학본관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "정보화 교육동",
+    "lat": 35.8437862330337,
+    "lng": 127.135260549853,
+    "matchedName": "전북대학교 정보혁신처 교육동",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "진수당",
+    "lat": 35.8451423843715,
+    "lng": 127.13141515361,
+    "matchedName": "전북대학교 전주캠퍼스 진수당",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "창조 1관",
+    "lat": 35.847545992351,
+    "lng": 127.135510466536,
+    "matchedName": "전북대학교 창조1관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "창조 2관",
+    "lat": 35.8471816757901,
+    "lng": 127.135695816246,
+    "matchedName": "전북대학교 전주캠퍼스 창조2관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "체육관",
+    "lat": 35.8470631946684,
+    "lng": 127.125290193604,
+    "matchedName": "전북대학교 체육관",
+    "address": "전북특별자치도 전주시 덕진구 덕진동1가 664-14",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "치과대학 2호관",
+    "lat": 35.8455780952926,
+    "lng": 127.13828332171,
+    "matchedName": "전북대학교 치과대학 2호관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 634-18",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "치과대학 본관",
+    "lat": 35.845898865397,
+    "lng": 127.138350295144,
+    "matchedName": "전북대학교 치과대학 (건물 단위 매칭 실패 — 단과대학 대표 좌표로 대체)",
+    "address": "전북특별자치도 전주시 덕진구 금암동 634-18",
+    "needsReview": true
+  },
+  {
+    "campus": "전주",
+    "building": "학군단",
+    "lat": 35.8461257214014,
+    "lng": 127.131519168386,
+    "matchedName": "전북대학교 전주캠퍼스 학군단",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "해상풍력국제공동연구소",
+    "lat": 35.84790022146429,
+    "lng": 127.13627598627393,
+    "matchedName": "전북대학교 해상풍력연구소",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "후생관",
+    "lat": 35.847744452910966,
+    "lng": 127.13454442017026,
+    "matchedName": "전북대학교 후생관",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  },
+  {
+    "campus": "전주",
+    "building": "JBNU인터내셔널센터",
+    "lat": 35.844372980920056,
+    "lng": 127.13034016977356,
+    "matchedName": "전북대학교 전주캠퍼스 JBNU인터내셔널센터",
+    "address": "전북특별자치도 전주시 덕진구 금암동 663",
+    "needsReview": false
+  }
+]

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type MouseEvent } from "react"
+import { createPortal } from "react-dom"
 import { AlertTriangle, Check, Loader2, ShoppingCart, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/components/cart-provider"
@@ -77,7 +78,11 @@ export function CartToggleButton({
         {inCart ? "담김" : "장바구니 담기"}
       </button>
 
-      {conflict && <TimeConflictModal conflict={conflict} onClose={() => setConflict(null)} />}
+      {/* CourseCard 조상이 hover 시 transform(translate)을 걸어서(카드 살짝 뜨는 효과) fixed 모달이 그
+          카드 안에 갇혀 렌더링되는 문제가 있었다 — body로 포탈해서 뷰포트 기준으로 항상 중앙에 뜨게 한다. */}
+      {conflict && typeof document !== "undefined"
+        ? createPortal(<TimeConflictModal conflict={conflict} onClose={() => setConflict(null)} />, document.body)
+        : null}
     </>
   )
 }

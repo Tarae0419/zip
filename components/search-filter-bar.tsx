@@ -3,14 +3,6 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { SlidersHorizontal } from "lucide-react"
 
-export type SortKey = "relevance" | "rating" | "reviews"
-
-const sortOptions: { key: SortKey; label: string }[] = [
-  { key: "relevance", label: "관련도순" },
-  { key: "rating", label: "평점순" },
-  { key: "reviews", label: "리뷰많은순" },
-]
-
 const creditOptions = ["전체", "1", "2", "3", "4"]
 const gradeOptions = ["전체", "1", "2", "3", "4"]
 const requirementOptions = ["전체", "전공필수", "전공선택", "기초필수", "계열공통", "교양"]
@@ -19,14 +11,12 @@ const requirementOptions = ["전체", "전공필수", "전공선택", "기초필
 // searchParams를 읽어 실제 DB 쿼리 조건으로 사용하므로, 이 컴포넌트는 상태를 들고 있지 않고
 // 링크 이동(router.replace)만 담당한다.
 export function SearchFilterBar({
-  sort,
   credit,
   grade,
   requirement,
   semester,
   availableSemesters,
 }: {
-  sort: SortKey
   credit: string
   grade: string
   requirement: string
@@ -80,24 +70,6 @@ export function SearchFilterBar({
         options={["전체", ...availableSemesters]}
         formatOption={(o) => (o === "전체" ? o : `${o}학기`)}
       />
-
-      <div className="ml-auto flex items-center gap-1 rounded-full bg-secondary p-1">
-        {sortOptions.map((opt) => (
-          <button
-            key={opt.key}
-            type="button"
-            aria-pressed={sort === opt.key}
-            onClick={() => updateParam("sort", opt.key === "relevance" ? "전체" : opt.key)}
-            className={
-              sort === opt.key
-                ? "rounded-full bg-card px-3 py-1.5 text-sm font-semibold text-primary shadow-sm"
-                : "rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
-            }
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
     </div>
   )
 }

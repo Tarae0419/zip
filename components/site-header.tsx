@@ -7,7 +7,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Compass, Search, Sparkles, CalendarDays, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useCart } from "@/components/cart-provider"
 import { logout } from "@/lib/actions/auth"
 
 const navLinks = [
@@ -21,7 +20,6 @@ export function SiteHeader() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [query, setQuery] = useState("")
-  const { cart, mounted } = useCart()
 
   // 검색 결과 화면에서는 현재 검색어를 검색창에 반영
   useEffect(() => {
@@ -93,11 +91,6 @@ export function SiteHeader() {
               >
                 <Icon className="size-4" aria-hidden="true" />
                 <span className="hidden sm:inline">{link.label}</span>
-                {link.href === "/cart" && mounted && cart.length > 0 && (
-                  <span className="inline-flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                    {cart.length}
-                  </span>
-                )}
               </Link>
             )
           })}

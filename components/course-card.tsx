@@ -9,15 +9,24 @@ import { formatMinutes, parseTimeSlots } from "@/lib/timetable/schedule"
 export function CourseCard({
   course,
   ownMajorLabel,
+  compact = false,
 }: {
   course: Course
   ownMajorLabel?: "내 전공 과목" | "타 전공 과목"
+  // 홈 "인기 과목" 카드처럼 상세 보기 유도만 하면 되는 자리에서는 장바구니 담기 버튼을 빼고
+  // 카드 자체도 살짝 작게 — 시간표에 담을 과목을 "고르는" 화면이 아니라서 담기 버튼이 불필요하다.
+  compact?: boolean
 }) {
   // course.timeSlots는 "과목 추가"(시간표) 카드 목록에서만 채워진다 — 다른 화면에서는 undefined라 아무것도 안 뜬다.
   const sessions = course.timeSlots ? parseTimeSlots(course.id, course.name, course.timeSlots) : []
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 pt-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
+    <div
+      className={cn(
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5",
+        compact ? "p-4 pt-5" : "p-5 pt-6",
+      )}
+    >
       {/* 카드 전체를 클릭 영역으로 유지하되(stretched-link), 장바구니 버튼은 z-10으로 위에 떠서 독립적으로 클릭된다 */}
       <Link href={`/courses/${course.id}`} className="absolute inset-0 z-0" aria-label={`${course.name} 상세보기`} />
 
@@ -68,18 +77,18 @@ export function CourseCard({
         </p>
       )}
 
-      <div className="mt-3">
+      <div className={compact ? "mt-2.5" : "mt-3"}>
         <RatingStars rating={course.rating} reviewCount={course.reviewCount} />
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {course.hashtags.slice(0, 3).map((h) => (
+      <div className={cn("flex flex-wrap gap-1.5", compact ? "mt-3" : "mt-4")}>
+        {course.hashtags.slice(0, compact ? 2 : 3).map((h) => (
           <HashtagBadge key={h.tag} tag={h.tag} percent={h.percent} />
         ))}
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-        <CartToggleButton courseId={course.id} size="sm" />
+      <div className={cn("mt-auto flex items-center gap-2 pt-3", compact ? "justify-end" : "justify-between")}>
+        {!compact && <CartToggleButton courseId={course.id} size="sm" />}
         <div className="flex items-center gap-1 text-sm font-medium text-primary opacity-0 transition-opacity duration-200 motion-safe:group-hover:opacity-100">
           자세히 보기
           <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
