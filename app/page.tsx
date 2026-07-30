@@ -1,17 +1,17 @@
 import Link from "next/link"
-import { ArrowRight, BookOpen, Building2, CalendarDays, TrendingUp } from "lucide-react"
+import { ArrowRight, CalendarDays, TrendingUp } from "lucide-react"
 import { AppHeader } from "@/components/app-header"
 import { HeroSearch } from "@/components/hero-search"
 import { CourseCard } from "@/components/course-card"
 import { popularTags } from "@/lib/mock-data"
 import { getAnonId } from "@/lib/auth/anon-user"
-import { getCourseStats, getPopularCourses, getUserDepartment } from "@/lib/db/queries"
+import { getPopularCourses, getUserDepartment } from "@/lib/db/queries"
 
 export default async function HomePage() {
   const anonId = await getAnonId()
   const myDepartment = await getUserDepartment(anonId)
   // 학과 정보가 있으면 "본인 학과 인기 과목"으로, 없으면(아직 /fields에서 설정 안 한 경우) 전체 기준으로 보여준다.
-  const [popularCourses, stats] = await Promise.all([getPopularCourses(6, myDepartment ?? undefined), getCourseStats()])
+  const popularCourses = await getPopularCourses(6, myDepartment ?? undefined)
 
   return (
     <div className="min-h-svh">
@@ -35,18 +35,6 @@ export default async function HomePage() {
             <p className="mx-auto mt-4 max-w-xl text-pretty leading-relaxed text-muted-foreground md:text-lg">
               수많은 수강평을 AI가 요약하고, 관심 분야와 진로에 맞는 과목을 추천해요.
             </p>
-
-            {/* 실제 DB 기준 통계 배지 */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm">
-                <BookOpen className="size-3.5 text-primary" aria-hidden="true" />
-                {stats.courseCount.toLocaleString("ko-KR")}+ 개설 과목
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm">
-                <Building2 className="size-3.5 text-primary" aria-hidden="true" />
-                {stats.departmentCount.toLocaleString("ko-KR")}개 학과 데이터
-              </span>
-            </div>
 
             <div className="mx-auto mt-8 max-w-xl">
               <HeroSearch />
