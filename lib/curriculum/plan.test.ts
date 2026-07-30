@@ -142,6 +142,19 @@ describe("fillElectives", () => {
     expect(totalElectiveCreditsPlaced).toBeGreaterThan(0)
   })
 
+  it("prefers a course that exactly fits the semester's grade over a higher-relevance lookahead-only course", () => {
+    const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[], []]
+    const semesterCredits = [0, 0]
+    // ADV는 연관도가 더 높아 후보 목록에서 앞이지만, 2학년 학기엔 선이수(lookahead)로만 들어간다.
+    // BASIC은 연관도는 낮아도 그 학기 학년에 그대로 맞는다 — 예산이 하나만 허용하면 BASIC이 먼저 채워져야 한다.
+    const candidates = [
+      candidate({ code: "ADV", name: "고학년관심과목", grade: 3, relevanceScore: 0.9 }),
+      candidate({ code: "BASIC", name: "저학년관심과목", grade: 2, relevanceScore: 0.1 }),
+    ]
+    fillElectives(semesterItems, semesterCredits, candidates, new Map(), 3, [2, 2])
+    expect(semesterItems[0].map((i) => i.courseCode)).toEqual(["BASIC"])
+  })
+
   it("adds an own-major disclaimer to the reason only when isOwnMajor is false", () => {
     const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[]]
     const semesterCredits = [0]

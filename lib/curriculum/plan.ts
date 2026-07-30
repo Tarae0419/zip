@@ -127,33 +127,45 @@ export function fillMajorElectives(
   const usedCourseCodes = new Set<string>()
   let totalCreditsPlaced = 0
 
+  function tryPlace(s: number, candidate: OwnMajorElectiveCandidate): boolean {
+    if (usedCourseCodes.has(candidate.code)) return false
+    if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) return false
+
+    const tagName = candidate.matchedIndustryTagId ? interestFieldNameById.get(candidate.matchedIndustryTagId) : null
+    const reason = tagName
+      ? `전공선택 학점 요건을 채우는 과목이면서, ${tagName} 분야와도 연관도가 높습니다.`
+      : "전공선택 학점 요건을 채우기 위한 과목입니다."
+
+    semesterItems[s].push({
+      courseCode: candidate.code,
+      courseId: candidate.courseId,
+      name: candidate.name,
+      department,
+      credits: candidate.credits,
+      type: "전공선택",
+      reason,
+      isOwnMajor: true,
+      matchedIndustryTagId: candidate.matchedIndustryTagId ?? undefined,
+    })
+    semesterCredits[s] += candidate.credits
+    totalCreditsPlaced += candidate.credits
+    usedCourseCodes.add(candidate.code)
+    return true
+  }
+
   for (let s = 0; s < semesterItems.length; s++) {
+    // 먼저 그 학기 학년에 원래 맞는 과목부터 채우고(선이수 없이도 되는 것 우선), 자리가 남으면
+    // 그다음에야 한 학년 선이수(lookahead) 과목을 본다 — 안 그러면 연관도 높은 고학년 과목이
+    // 먼저 자리를 차지해서 저학년 과목들이 뒤로 밀려 마지막 학기에 몰리는 문제가 있었다.
     for (const candidate of candidates) {
       if (semesterCredits[s] >= TARGET_CREDITS_PER_SEMESTER || totalCreditsPlaced >= creditBudget) break
-      if (usedCourseCodes.has(candidate.code)) continue
-      // 학생 학년이 아직 이 과목의 권장 학년에 못 미치면 이번 학기엔 건너뛰고, 나중 학기에 다시 후보로 본다.
+      if (candidate.grade !== null && candidate.grade > semesterGrades[s]) continue
+      tryPlace(s, candidate)
+    }
+    for (const candidate of candidates) {
+      if (semesterCredits[s] >= TARGET_CREDITS_PER_SEMESTER || totalCreditsPlaced >= creditBudget) break
       if (!isGradeEligible(semesterGrades[s], candidate.grade)) continue
-      if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) continue
-
-      const tagName = candidate.matchedIndustryTagId ? interestFieldNameById.get(candidate.matchedIndustryTagId) : null
-      const reason = tagName
-        ? `전공선택 학점 요건을 채우는 과목이면서, ${tagName} 분야와도 연관도가 높습니다.`
-        : "전공선택 학점 요건을 채우기 위한 과목입니다."
-
-      semesterItems[s].push({
-        courseCode: candidate.code,
-        courseId: candidate.courseId,
-        name: candidate.name,
-        department,
-        credits: candidate.credits,
-        type: "전공선택",
-        reason,
-        isOwnMajor: true,
-        matchedIndustryTagId: candidate.matchedIndustryTagId ?? undefined,
-      })
-      semesterCredits[s] += candidate.credits
-      totalCreditsPlaced += candidate.credits
-      usedCourseCodes.add(candidate.code)
+      tryPlace(s, candidate)
     }
   }
 
@@ -176,31 +188,44 @@ export function fillElectives(
   const usedCandidateCodes = new Set<string>()
   let totalElectiveCreditsPlaced = 0
 
+  function tryPlace(s: number, candidate: ElectiveCandidate): boolean {
+    if (usedCandidateCodes.has(candidate.code)) return false
+    if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) return false
+
+    const tagName = interestFieldNameById.get(candidate.industryTagId) ?? "관심"
+    const majorNote = candidate.isOwnMajor ? "" : ` (${candidate.department} 개설 — 타 전공 수강 가능 여부는 별도 확인이 필요해요)`
+    const reason = `${tagName} 분야 연관도가 높고 전공선택 학점으로 인정됩니다.${majorNote}`
+
+    semesterItems[s].push({
+      courseCode: candidate.code,
+      courseId: candidate.courseId,
+      name: candidate.name,
+      department: candidate.department,
+      credits: candidate.credits,
+      type: "관심분야",
+      reason,
+      isOwnMajor: candidate.isOwnMajor,
+      matchedIndustryTagId: candidate.industryTagId,
+    })
+    semesterCredits[s] += candidate.credits
+    totalElectiveCreditsPlaced += candidate.credits
+    usedCandidateCodes.add(candidate.code)
+    return true
+  }
+
   for (let s = 0; s < semesterItems.length; s++) {
+    // fillMajorElectives와 같은 이유로 2패스 — 이 학기 학년에 그대로 맞는 관심분야 과목부터 채우고,
+    // 자리가 남을 때만 한 학년 선이수(lookahead) 과목으로 채운다. 그래야 관심분야 추천도 전체 학기에
+    // 고르게 퍼지고, 뒷 학기에만 몰리지 않는다.
     for (const candidate of candidates) {
       if (semesterCredits[s] >= TARGET_CREDITS_PER_SEMESTER || totalElectiveCreditsPlaced >= creditBudget) break
-      if (usedCandidateCodes.has(candidate.code)) continue
+      if (candidate.grade !== null && candidate.grade > semesterGrades[s]) continue
+      tryPlace(s, candidate)
+    }
+    for (const candidate of candidates) {
+      if (semesterCredits[s] >= TARGET_CREDITS_PER_SEMESTER || totalElectiveCreditsPlaced >= creditBudget) break
       if (!isGradeEligible(semesterGrades[s], candidate.grade)) continue
-      if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) continue
-
-      const tagName = interestFieldNameById.get(candidate.industryTagId) ?? "관심"
-      const majorNote = candidate.isOwnMajor ? "" : ` (${candidate.department} 개설 — 타 전공 수강 가능 여부는 별도 확인이 필요해요)`
-      const reason = `${tagName} 분야 연관도가 높고 전공선택 학점으로 인정됩니다.${majorNote}`
-
-      semesterItems[s].push({
-        courseCode: candidate.code,
-        courseId: candidate.courseId,
-        name: candidate.name,
-        department: candidate.department,
-        credits: candidate.credits,
-        type: "관심분야",
-        reason,
-        isOwnMajor: candidate.isOwnMajor,
-        matchedIndustryTagId: candidate.industryTagId,
-      })
-      semesterCredits[s] += candidate.credits
-      totalElectiveCreditsPlaced += candidate.credits
-      usedCandidateCodes.add(candidate.code)
+      tryPlace(s, candidate)
     }
   }
 
