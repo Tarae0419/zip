@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Compass, Hash, Layers, Search, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Firefly } from "@/components/firefly"
 
 const STEPS = [
   { title: "학교 이메일로 가입", description: "학번 + @jbnu.ac.kr 이메일 인증만으로 3분이면 끝나요." },
@@ -61,7 +62,8 @@ export default function WelcomePage() {
         </header>
 
         <main>
-          <section className="mx-auto max-w-3xl px-4 py-16 text-center md:py-24 md:px-6">
+          <section className="relative overflow-hidden mx-auto max-w-3xl px-4 py-16 text-center md:py-24 md:px-6">
+            <Firefly />
             <span className="animate-fade-in-up inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
               AI 기반 수강 도우미
             </span>
