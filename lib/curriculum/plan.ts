@@ -189,8 +189,14 @@ export function fillElectives(
   return { usedCandidateCodes, totalElectiveCreditsPlaced }
 }
 
-export function toSemesterLabels(count: number): string[] {
-  return Array.from({ length: count }, (_, i) => `${i + 1}학기`)
+/** 현재 학년·학기를 시작점으로 "N학년 M학기" 라벨을 순서대로 생성한다 (예: 2학년 2학기 → 3학년 1학기 → 3학년 2학기). */
+export function toSemesterLabels(count: number, startGrade: number, startSemester: 1 | 2): string[] {
+  return Array.from({ length: count }, (_, i) => {
+    const semesterIndex = startSemester - 1 + i // 0-based 학기 진행 카운트
+    const grade = startGrade + Math.floor(semesterIndex / 2)
+    const semester = (semesterIndex % 2) + 1
+    return `${grade}학년 ${semester}학기`
+  })
 }
 
 export function buildSemesters(labels: string[], semesterItems: PlanItem[][]): PlanSemester[] {

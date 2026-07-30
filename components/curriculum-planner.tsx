@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useMemo, useState, useTransition } from "react"
+import Link from "next/link"
+import { useState, useTransition } from "react"
 import {
   AlertCircle,
   BrainCircuit,
@@ -47,11 +48,11 @@ export function CurriculumPlanner({
   myDepartment: string | null
 }) {
   const [isPending, startTransition] = useTransition()
-  const [department, setDepartment] = useState(
-    myDepartment && curriculumDepartments.includes(myDepartment) ? myDepartment : curriculumDepartments[0] ?? "",
-  )
+  // 학과는 더 이상 직접 고르게 하지 않는다 — 회원가입 때 저장해둔 본인 학과를 그대로 쓴다.
+  const department = myDepartment ?? ""
   const [doubleMajorDepartment, setDoubleMajorDepartment] = useState("")
   const [grade, setGrade] = useState(2)
+  const [currentSemester, setCurrentSemester] = useState<1 | 2>(1)
   const [earnedCredits, setEarnedCredits] = useState(45)
   const [completedElectiveCredits, setCompletedElectiveCredits] = useState(0)
   const [remainingSemesters, setRemainingSemesters] = useState(5)
@@ -84,6 +85,7 @@ export function CurriculumPlanner({
         department,
         doubleMajorDepartment: doubleMajorDepartment || null,
         grade,
+        currentSemester,
         earnedCredits,
         completedElectiveCredits,
         completedRequiredCourseCodes: completedCodes,
@@ -102,7 +104,7 @@ export function CurriculumPlanner({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!department) {
-      setError("학과를 선택해주세요.")
+      setError("학과 정보가 없어요. /fields에서 먼저 학과를 설정해주세요.")
       return
     }
     setExcludedCodes([])
@@ -134,17 +136,20 @@ export function CurriculumPlanner({
           <p className="mt-4 rounded-xl border border-dashed border-border bg-muted/40 p-4 text-sm text-muted-foreground">
             아직 커리큘럼 데이터가 준비된 학과가 없어요.
           </p>
+        ) : !myDepartment ? (
+          <p className="mt-4 rounded-xl border border-dashed border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+            학과 정보가 없어요.{" "}
+            <Link href="/fields" className="font-medium text-primary underline underline-offset-2">
+              여기서 먼저 학과를 설정해주세요.
+            </Link>
+          </p>
         ) : (
           <div className="mt-4 space-y-4">
-            <Field label="학과">
-              <select value={department} onChange={(e) => { setDepartment(e.target.value); setCompletedCodes([]) }} className="input">
-                {curriculumDepartments.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            {/* 학과는 회원가입 때 저장한 본인 학과를 그대로 쓴다 — 다른 학과를 골라 계산할 이유가 없다. */}
+            <div>
+              <span className="mb-1.5 block text-sm font-medium text-foreground">학과</span>
+              <p className="rounded-lg border border-input bg-muted/40 px-3 py-2 text-sm font-semibold text-foreground">{department}</p>
+            </div>
 
             <Field label="복수전공/부전공 (선택)">
               <select value={doubleMajorDepartment} onChange={(e) => setDoubleMajorDepartment(e.target.value)} className="input">
@@ -157,15 +162,24 @@ export function CurriculumPlanner({
               </select>
             </Field>
 
-            <Field label="현재 학년">
-              <select value={grade} onChange={(e) => setGrade(Number(e.target.value))} className="input">
-                {[1, 2, 3, 4].map((g) => (
-                  <option key={g} value={g}>
-                    {g}학년
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="현재 학년">
+                <select value={grade} onChange={(e) => setGrade(Number(e.target.value))} className="input">
+                  {[1, 2, 3, 4].map((g) => (
+                    <option key={g} value={g}>
+                      {g}학년
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="현재 학기">
+                <select value={currentSemester} onChange={(e) => setCurrentSemester(Number(e.target.value) as 1 | 2)} className="input">
+                  <option value={1}>1학기</option>
+                  <option value={2}>2학기</option>
+                </select>
+              </Field>
+            </div>
 
             <Field label="기이수 학점">
               <input type="number" min={0} value={earnedCredits} onChange={(e) => setEarnedCredits(Number(e.target.value))} className="input" />
@@ -239,7 +253,7 @@ export function CurriculumPlanner({
 
         <button
           type="submit"
-          disabled={isPending || noDepartments}
+          disabled={isPending || noDepartments || !myDepartment}
           className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-70"
         >
           {isPending ? (

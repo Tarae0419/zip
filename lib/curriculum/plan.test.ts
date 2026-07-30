@@ -179,8 +179,8 @@ describe("fillMajorElectives", () => {
 
 describe("toSemesterLabels / buildSemesters", () => {
   it("labels semesters sequentially and sums credits per semester", () => {
-    const labels = toSemesterLabels(2)
-    expect(labels).toEqual(["1학기", "2학기"])
+    const labels = toSemesterLabels(2, 2, 1)
+    expect(labels).toEqual(["2학년 1학기", "2학년 2학기"])
 
     const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [
       [
@@ -191,5 +191,9 @@ describe("toSemesterLabels / buildSemesters", () => {
     const semesters = buildSemesters(labels, semesterItems)
     expect(semesters[0].totalCredits).toBe(3)
     expect(semesters[1].totalCredits).toBe(0)
+  })
+
+  it("rolls over to the next grade after 2학기", () => {
+    expect(toSemesterLabels(4, 2, 2)).toEqual(["2학년 2학기", "3학년 1학기", "3학년 2학기", "4학년 1학기"])
   })
 })

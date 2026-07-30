@@ -25,16 +25,18 @@ const KNOWN_CAMPUSES = ["전주", "익산", "남원", "고창", "새만금"]
 
 // 1교시 09:00 시작, 매 교시 60분 간격(수업 50분 + 쉬는 10분)이라고 가정한 추정 교시표.
 // 학교 공식 종-시각표가 데이터에 없어 도입한 값 — "추정" 문구와 함께 노출해야 한다.
+// 교시의 끝을 "수업이 끝나는 시각"(정시-10분)이 아니라 다음 교시 시작 시각(정시)까지로 잡는다 —
+// 실제 수업은 50분이지만, 그렇게 하면 시간표 칸이 정시에서 10분 못 미쳐 끝나 그 사이 빈틈으로
+// 뒤의 격자선이 드러나 보이는 문제가 있었다. 정시로 꽉 채우는 걸 시간표 가독성상 우선했다.
 const PERIOD_START_MINUTES = 9 * 60
 const PERIOD_LENGTH_MINUTES = 60
-const CLASS_MINUTES_PER_PERIOD = 50
 
 function periodStart(period: number): number {
   return PERIOD_START_MINUTES + (period - 1) * PERIOD_LENGTH_MINUTES
 }
 
 function periodEnd(period: number): number {
-  return periodStart(period) + CLASS_MINUTES_PER_PERIOD
+  return periodStart(period) + PERIOD_LENGTH_MINUTES
 }
 
 /** "2026-1" → "2026학년도 1학기". 형식이 다르면(방학 학기 등) 원문을 그대로 돌려준다. */

@@ -24,6 +24,7 @@ export type CurriculumPlanInput = {
   department: string
   doubleMajorDepartment?: string | null
   grade: number
+  currentSemester: 1 | 2 // 지금이 1학기인지 2학기인지 — 학기 라벨(N학년 M학기)의 시작점으로 쓴다
   earnedCredits: number
   completedElectiveCredits: number // 전공선택으로 이미 인정된 학점 — 전공선택 요건 잔여 계산에 직접 쓴다
   completedRequiredCourseCodes: string[]

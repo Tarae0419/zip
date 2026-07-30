@@ -4,10 +4,14 @@ import { AppHeader } from "@/components/app-header"
 import { HeroSearch } from "@/components/hero-search"
 import { CourseCard } from "@/components/course-card"
 import { popularTags } from "@/lib/mock-data"
-import { getCourseStats, getPopularCourses } from "@/lib/db/queries"
+import { getAnonId } from "@/lib/auth/anon-user"
+import { getCourseStats, getPopularCourses, getUserDepartment } from "@/lib/db/queries"
 
 export default async function HomePage() {
-  const [popularCourses, stats] = await Promise.all([getPopularCourses(6), getCourseStats()])
+  const anonId = await getAnonId()
+  const myDepartment = await getUserDepartment(anonId)
+  // 학과 정보가 있으면 "본인 학과 인기 과목"으로, 없으면(아직 /fields에서 설정 안 한 경우) 전체 기준으로 보여준다.
+  const [popularCourses, stats] = await Promise.all([getPopularCourses(6, myDepartment ?? undefined), getCourseStats()])
 
   return (
     <div className="min-h-svh">
@@ -92,16 +96,18 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 이번 학기 인기 과목 */}
+        {/* 인기 과목 — 학과 정보가 있으면 본인 학과로 좁혀서 보여준다 */}
         <section className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <div className="flex items-center gap-2">
             <TrendingUp className="size-5 text-primary" aria-hidden="true" />
             <h2 className="font-display text-xl font-bold text-foreground md:text-2xl">
-              이번 학기 인기 과목
+              {myDepartment ? `${myDepartment} 인기 과목` : "인기 과목"}
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            최근 한 달 동안 수강평이 빠르게 늘고 있는 과목을 모았어요.
+            {myDepartment
+              ? "최근 한 달 동안 우리 학과에서 수강평이 빠르게 늘고 있는 과목을 모았어요."
+              : "최근 한 달 동안 수강평이 빠르게 늘고 있는 과목을 모았어요."}
           </p>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

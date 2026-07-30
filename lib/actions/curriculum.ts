@@ -86,7 +86,13 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
   // PRD 8.4 추천로직 7 — 전공선택 요건 잔여 학점부터 본인 학과 전공선택 과목으로 채운다(전공필수와 별개 단계).
   // "기이수 학점"에서 전공필수분을 빼고 추론하던 이전 방식은 기본값(체크된 이수 전공필수 없음)에서
   // 항상 0이 되는 버그가 있었다 — 전공선택으로 이미 인정된 학점은 사용자가 직접 입력하도록 바꿨다.
-  const electiveMinCreditsRemaining = Math.max(0, curriculum.electiveMinCredits - input.completedElectiveCredits)
+  // 다만 이 값만으로 채우면 "기이수 학점"(전체 남은 학점, totalRemainingCreditsNeeded)을 아무리 낮춰도
+  // 전공선택 추천량이 안 줄어드는 문제가 있었다 — 두 입력이 서로 안 맞을 때는 전체 잔여 학점을 넘지 않게 캡을 건다.
+  const remainingAfterRequired = Math.max(0, totalRemainingCreditsNeeded - requiredCreditsPlaced)
+  const electiveMinCreditsRemaining = Math.min(
+    Math.max(0, curriculum.electiveMinCredits - input.completedElectiveCredits),
+    remainingAfterRequired,
+  )
 
   const majorElectiveCandidates =
     electiveMinCreditsRemaining > 0
@@ -153,6 +159,6 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
   notes.push("본 추천은 참고용이며, 최종 확인은 학과 사무실을 통해주세요.")
   notes.push("선수과목 순서는 공식 교육과정표가 아니라 예시로 채운 데이터를 기준으로 배치했어요.")
 
-  const semesters = buildSemesters(toSemesterLabels(remainingSemesters), semesterItems)
+  const semesters = buildSemesters(toSemesterLabels(remainingSemesters, input.grade, input.currentSemester), semesterItems)
   return { status: "ok", semesters, notes }
 }

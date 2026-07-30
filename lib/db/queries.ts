@@ -86,10 +86,13 @@ const POPULAR_MIN_AVERAGE_RATING = 3.5
  * "인기 과목" 카드의 리뷰 수가 실제보다 적게(또는 새 리뷰가 안 늘어난 것처럼) 보일 수 있다.
  * 아직 최근 리뷰가 쌓인 과목이 limit개보다 적으면, 예전처럼 수강인원(enrolledCount) 순으로 남은 자리를 채운다
  * — 리뷰 데이터가 부족한 초기 상태에서도 섹션이 비어 보이지 않게 하기 위함.
+ * department를 주면 그 학과(courses.department, 개설 학과 기준) 과목으로만 제한한다 — 로그인 사용자의
+ * 홈 화면을 "본인 학과 인기 과목"으로 보여주기 위함. 넘기지 않으면 전체 과목 대상.
  */
-export async function getPopularCourses(limit = 6): Promise<Course[]> {
+export async function getPopularCourses(limit = 6, department?: string): Promise<Course[]> {
   const identityExpr = sql<string>`coalesce(${courses.code}, ${courses.name})`
   const recentCutoff = new Date(Date.now() - POPULAR_RECENT_DAYS * 24 * 60 * 60 * 1000)
+  const departmentCondition = department ? eq(courses.department, department) : undefined
 
   const statRows = await db
     .select({
@@ -100,7 +103,7 @@ export async function getPopularCourses(limit = 6): Promise<Course[]> {
     })
     .from(courses)
     .innerJoin(reviews, eq(reviews.courseId, courses.id))
-    .where(eq(courses.isPublic, true))
+    .where(departmentCondition ? and(eq(courses.isPublic, true), departmentCondition) : eq(courses.isPublic, true))
     .groupBy(identityExpr)
 
   const stats = statRows
@@ -126,7 +129,7 @@ export async function getPopularCourses(limit = 6): Promise<Course[]> {
     const fallbackRows = await db
       .select({ id: courses.id, identity: identityExpr })
       .from(courses)
-      .where(eq(courses.isPublic, true))
+      .where(departmentCondition ? and(eq(courses.isPublic, true), departmentCondition) : eq(courses.isPublic, true))
       .orderBy(sql`${courses.enrolledCount} desc nulls last`)
       .limit(limit * 5) // 같은 과목의 여러 학기 row가 섞여 있을 수 있어 넉넉히 가져와 중복 제거한다.
 
@@ -145,7 +148,11 @@ export async function getPopularCourses(limit = 6): Promise<Course[]> {
   const canonicalRows = await db
     .selectDistinctOn([identityExpr], { row: courses, identity: identityExpr })
     .from(courses)
-    .where(and(eq(courses.isPublic, true), sql`${identityExpr} in ${rankedIdentities}`))
+    .where(
+      departmentCondition
+        ? and(eq(courses.isPublic, true), departmentCondition, sql`${identityExpr} in ${rankedIdentities}`)
+        : and(eq(courses.isPublic, true), sql`${identityExpr} in ${rankedIdentities}`),
+    )
     .orderBy(identityExpr, desc(courses.semester))
 
   const rowByIdentity = new Map(canonicalRows.map((r) => [r.identity, r.row]))
