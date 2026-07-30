@@ -101,7 +101,7 @@ export default async function HomePage() {
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            수강신청 인원이 많은 과목을 모았어요.
+            최근 한 달 동안 수강평이 빠르게 늘고 있는 과목을 모았어요.
           </p>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

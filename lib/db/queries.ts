@@ -75,20 +75,93 @@ export async function getCourseStats(): Promise<{ courseCount: number; departmen
   }
 }
 
+const POPULAR_RECENT_DAYS = 30
+const POPULAR_MIN_AVERAGE_RATING = 3.5
+
 /**
- * 홈 "인기 과목". 아직 리뷰 데이터가 없어 평점 기반 정렬은 무의미하므로,
- * 실제 수강편람에 있는 신호인 수강인원(enrolledCount) 순으로 정렬한다.
+ * 홈 "인기 과목" — 최근 POPULAR_RECENT_DAYS일 동안 리뷰가 늘어난 순(리뷰 "증가량")으로 뽑되,
+ * 평점이 너무 낮은 과목이 리뷰 수만으로 상위에 뜨지 않도록 평균 평점 하한(POPULAR_MIN_AVERAGE_RATING)을 같이 건다.
+ * 과목은 학수번호(code, 없으면 이름)가 같으면 학기가 달라도 같은 과목이므로(getSiblingCourseIds와 동일한 규칙),
+ * 리뷰 집계도 그 기준으로 학기를 걸쳐 합산한다 — 안 그러면 학기마다 다른 courses row에 리뷰가 나뉘어 붙어
+ * "인기 과목" 카드의 리뷰 수가 실제보다 적게(또는 새 리뷰가 안 늘어난 것처럼) 보일 수 있다.
+ * 아직 최근 리뷰가 쌓인 과목이 limit개보다 적으면, 예전처럼 수강인원(enrolledCount) 순으로 남은 자리를 채운다
+ * — 리뷰 데이터가 부족한 초기 상태에서도 섹션이 비어 보이지 않게 하기 위함.
  */
 export async function getPopularCourses(limit = 6): Promise<Course[]> {
-  const rows = await db
-    .select()
-    .from(courses)
-    // enrolledCount가 null인 row(수강인원 미집계)가 desc 정렬에서 기본적으로 먼저 나오는 걸 방지 — nulls last로 명시.
-    .where(eq(courses.isPublic, true))
-    .orderBy(sql`${courses.enrolledCount} desc nulls last`)
-    .limit(limit)
+  const identityExpr = sql<string>`coalesce(${courses.code}, ${courses.name})`
+  const recentCutoff = new Date(Date.now() - POPULAR_RECENT_DAYS * 24 * 60 * 60 * 1000)
 
-  return attachReviewStats(rows)
+  const statRows = await db
+    .select({
+      identity: identityExpr,
+      totalReviews: sql<string>`count(*) filter (where ${reviews.isFiltered} = false)`,
+      recentReviews: sql<string>`count(*) filter (where ${reviews.isFiltered} = false and ${reviews.createdAt} >= ${recentCutoff})`,
+      avgRating: sql<string>`avg(${reviews.rating}) filter (where ${reviews.isFiltered} = false)`,
+    })
+    .from(courses)
+    .innerJoin(reviews, eq(reviews.courseId, courses.id))
+    .where(eq(courses.isPublic, true))
+    .groupBy(identityExpr)
+
+  const stats = statRows
+    .map((r) => ({
+      identity: r.identity,
+      totalReviews: Number(r.totalReviews),
+      recentReviews: Number(r.recentReviews),
+      avgRating: Number(r.avgRating),
+    }))
+    .filter((s) => s.recentReviews > 0)
+    // 평점 하한을 넘는 과목을 먼저, 그 안에서는 최근 리뷰 증가량 → 평균 평점 순.
+    .sort((a, b) => {
+      const aOk = a.avgRating >= POPULAR_MIN_AVERAGE_RATING ? 1 : 0
+      const bOk = b.avgRating >= POPULAR_MIN_AVERAGE_RATING ? 1 : 0
+      if (aOk !== bOk) return bOk - aOk
+      return b.recentReviews - a.recentReviews || b.avgRating - a.avgRating
+    })
+
+  const rankedIdentities = stats.slice(0, limit).map((s) => s.identity)
+
+  // 리뷰 기반 순위가 limit에 못 미치면, 리뷰가 아직 없거나 최근에 없는 과목을 수강인원 순으로 채운다.
+  if (rankedIdentities.length < limit) {
+    const fallbackRows = await db
+      .select({ id: courses.id, identity: identityExpr })
+      .from(courses)
+      .where(eq(courses.isPublic, true))
+      .orderBy(sql`${courses.enrolledCount} desc nulls last`)
+      .limit(limit * 5) // 같은 과목의 여러 학기 row가 섞여 있을 수 있어 넉넉히 가져와 중복 제거한다.
+
+    const already = new Set(rankedIdentities)
+    for (const row of fallbackRows) {
+      if (rankedIdentities.length >= limit) break
+      if (already.has(row.identity)) continue
+      already.add(row.identity)
+      rankedIdentities.push(row.identity)
+    }
+  }
+
+  if (rankedIdentities.length === 0) return []
+
+  // 식별자별 "대표" row(가장 최근 학기)를 하나씩 가져온다 — getCanonicalCourseId와 동일한 규칙(최신 학기 우선).
+  const canonicalRows = await db
+    .selectDistinctOn([identityExpr], { row: courses, identity: identityExpr })
+    .from(courses)
+    .where(and(eq(courses.isPublic, true), sql`${identityExpr} in ${rankedIdentities}`))
+    .orderBy(identityExpr, desc(courses.semester))
+
+  const rowByIdentity = new Map(canonicalRows.map((r) => [r.identity, r.row]))
+  const statByIdentity = new Map(stats.map((s) => [s.identity, s]))
+
+  const orderedRows = rankedIdentities.map((identity) => rowByIdentity.get(identity)).filter((r): r is CourseRow => Boolean(r))
+
+  return orderedRows.map((row) => {
+    const identity = row.code ?? row.name
+    const stat = statByIdentity.get(identity)
+    return toCourseView(row, {
+      rating: stat ? stat.avgRating : 0,
+      reviewCount: stat ? stat.totalReviews : 0,
+      hashtags: [],
+    })
+  })
 }
 
 /**
