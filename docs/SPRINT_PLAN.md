@@ -26,7 +26,7 @@
 | 0 | 기반 인프라 (DB/배포/에이전트) | 10장 | ✅ 완료 |
 | 1 | 익명 사용자 식별 & 리뷰 작성 | F1 쓰기 경로 | ✅ 완료 |
 | 2 | AI 해시태그 추천 & 리뷰 요약 | F1 AI 경로 | ✅ 완료 |
-| 3 | 분야 통합 검색 마무리 | F2 | 🟡 3.5 보류 (교양과목 파일 필요), 나머지 완료 |
+| 3 | 분야 통합 검색 마무리 | F2 | ✅ 완료 |
 | 4 | 산업/진로 분야 검색 | F3 | ✅ 완료 |
 | 5 | 커리큘럼 데이터 확보 | F4 기반 | ✅ 완료 (더미 데이터 기반) |
 | 6 | AI 커리큘럼 추천 엔진 | F4 | ✅ 완료 (커리큘럼 데이터 있는 2개 학과 한정, "과목 추가"·계절학기는 스코프 아웃) |
@@ -134,9 +134,11 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 - [x] 3.4 담당자 검수 플로우 — AI 1차 분류 결과를 사람이 확인/수정할 수 있는 최소한의 관리 화면 또는 스크립트
   - DoD: 잘못 태깅된 항목을 수정하는 절차가 문서화되어 있다.
   - 절차: (1) `pnpm db:classify-fields`로 분류만 실행하고 `lib/db/scripts/field-classification-result.json`에 저장(DB 미반영). (2) 사람이 그 JSON을 열어 `tags` 배열을 직접 수정/삭제한다. (3) `pnpm db:apply-field-classification`으로 DB에 반영(`onConflictDoNothing`이라 재실행해도 안전). 이미 반영된 항목을 고칠 땐 `course_field_tags`에서 `courseId`+`fieldTagId` 조합을 지우고 다시 적용하거나 직접 insert한다. 이번 라운드는 무작위 표본(수학·음악·캡스톤 계열 등)만 육안 검수했고, 전수 검수는 하지 않았다.
-- [ ] 3.5 교양 과목 데이터 확보 — 현재 DB에는 학부전공 과목만 있고 교양 과목이 없다 (CLAUDE.md "Data notes" 참고). 별도 교양 개설과목 파일을 확보해 `courses`에 추가 적재
+- [x] 3.5 교양 과목 데이터 확보 — 현재 DB에는 학부전공 과목만 있고 교양 과목이 없다 (CLAUDE.md "Data notes" 참고). 별도 교양 개설과목 파일을 확보해 `courses`에 추가 적재
   - DoD: `requirement_type = '교양'` 행이 DB에 존재하고 검색/필터에서 정상 노출된다.
-  - **블로킹**: 이 파일은 사용자가 직접 업로드해줘야 확보 가능 — Sprint 0의 학부전공 개설교과목 목록 엑셀처럼, 학교 교양과목 개설 목록 파일이 있어야 진행할 수 있다. 없으면 이 항목은 보류.
+  - 구현(2026-07-30): 사용자가 `course/2026_1·2학기_교양.xlsx`(학부전공 파일과 동일 컬럼 구조)를 제공, 기존 학부전공 파일 2개도 `course/` 폴더로 옮겨 한 곳에 모았다. `import-courses.ts`의 `SOURCES`에 두 파일을 추가해 1,842건(고유 과목 361개) 적재. F2/F3가 새 교양 과목도 검색·연관도에서 잡도록 분류(`classify-course-fields`→`apply-field-classification`)·임베딩(`embed-courses`→`score-industry-relevance`→`apply-industry-relevance`) 파이프라인을 전체 재실행했다 — 두 스크립트 다 증분이 아니라 매번 전체를 다시 계산하는 구조라, 카탈로그가 또 바뀌면 같은 방식으로 재실행하면 된다.
+  - 이 과정에서 `apply-industry-relevance.ts`가 형제 row(`getSiblingCourseIds`) 중복으로 "ON CONFLICT DO UPDATE cannot affect row a second time" 에러를 내는 버그를 발견 — 배치 삽입 전 `(courseId, industryTagId)` 기준 중복 제거(높은 점수 우선)를 추가해 고쳤다.
+  - 검증: `/search?q=디지털리터러시` → "4차산업혁명과디지털리터러시"(교양) 검색 결과 노출 확인.
 
 **메모(다음 세션에서 브라우저로 직접 확인할 것)**: `/search` 페이지에서 실제로 필터·정렬을 조작하며 "분야 일치" 섹션이 화면에 잘 나오는지는 curl로만 확인했다.
 
