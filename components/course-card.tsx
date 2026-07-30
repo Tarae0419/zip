@@ -1,9 +1,10 @@
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
-import type { Course } from "@/lib/mock-data"
+import { ArrowRight, Clock } from "lucide-react"
+import type { Course } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { HashtagBadge, RatingStars, requirementAccentColor, RequirementBadge } from "@/components/course-badges"
 import { CartToggleButton } from "@/components/cart-toggle-button"
+import { formatMinutes, parseTimeSlots } from "@/lib/timetable/schedule"
 
 export function CourseCard({
   course,
@@ -12,6 +13,9 @@ export function CourseCard({
   course: Course
   ownMajorLabel?: "내 전공 과목" | "타 전공 과목"
 }) {
+  // course.timeSlots는 "과목 추가"(시간표) 카드 목록에서만 채워진다 — 다른 화면에서는 undefined라 아무것도 안 뜬다.
+  const sessions = course.timeSlots ? parseTimeSlots(course.id, course.name, course.timeSlots) : []
+
   return (
     <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 pt-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
       {/* 카드 전체를 클릭 영역으로 유지하되(stretched-link), 장바구니 버튼은 z-10으로 위에 떠서 독립적으로 클릭된다 */}
@@ -52,6 +56,17 @@ export function CourseCard({
           </span>
         )}
       </div>
+
+      {sessions.length > 0 && (
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+          {sessions.map((session, i) => (
+            <span key={i} className="tabular-nums">
+              {session.day} {formatMinutes(session.startMinutes)}~{formatMinutes(session.endMinutes)}
+            </span>
+          ))}
+        </p>
+      )}
 
       <div className="mt-3">
         <RatingStars rating={course.rating} reviewCount={course.reviewCount} />

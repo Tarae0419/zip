@@ -26,6 +26,9 @@ export type Course = {
   // "2026-1" | "2026-2" 형태 — 같은 과목명이 학기마다 다른 courses row(= 다른 스케줄)로 존재하므로,
   // 검색 결과에서 어느 학기 개설분인지 구분하고 학기별로 필터링하는 데 쓴다.
   semester: string
+  // "화 6-A,화 6-B,..." 원문(lib/timetable/schedule.ts의 parseTimeSlots로 파싱) — 시간표에 담을 과목을
+  // 고르는 화면(getCoursesForSemester)에서만 채워진다. 다른 목록 조회는 undefined로 둔다.
+  timeSlots?: string | null
 }
 
 export type Review = {

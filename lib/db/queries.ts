@@ -240,7 +240,11 @@ export const getCoursesForSemester = unstable_cache(
         .limit(limit)
     }
 
-    return attachReviewStats(rows)
+    // 이 목록만 "과목 추가" 카드에서 수업 시간을 미리 보여줘야 해서 timeSlots를 같이 붙인다
+    // (toCourseView는 다른 화면과 공유하므로 여기서만 별도로 채운다).
+    const timeSlotsById = new Map(rows.map((r) => [r.id, r.timeSlots]))
+    const views = await attachReviewStats(rows)
+    return views.map((c) => ({ ...c, timeSlots: timeSlotsById.get(c.id) ?? null }))
   },
   ["courses-for-semester"],
   { revalidate: 60 },
