@@ -298,6 +298,9 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
   - `requestSignup`이 `name`을 받아 검증(빈 값·50자 초과 거부)하고 `email_verifications`에 저장, `verifySignupCode`가 인증 완료 시 `users.name`으로 그대로 복사.
   - `components/signup-form.tsx`: 학번과 한 줄에 "이름" 입력을 추가하고, 학과 선택은 별도 전체 너비 행으로 이동.
   - `components/app-header.tsx`를 async 서버 컴포넌트로 바꿔 `getAnonId`+`getUserName`(신규, `lib/db/queries.ts`)을 조회, `SiteHeader`에 `userName` prop으로 전달 — 로그아웃 버튼 왼쪽에 "OOO님" 인사말로 노출. 과거(이름 없이 가입한) 계정은 `name`이 null이라 인사말 없이 로그아웃 버튼만 그대로 보임.
+- [x] 8.10 비로그인 방문자용 랜딩 페이지 추가
+  - `app/welcome/page.tsx` — DB 조회 없는 순수 정적 마케팅 페이지(F1~F4 요약 카드 + 로그인/회원가입 CTA), `/welcome`로 정적 프리렌더.
+  - `proxy.ts`: `/welcome`을 `PUBLIC_PATHS`에 추가하고, 비로그인 사용자가 보호된 경로(`/` 등)에 접근했을 때의 리다이렉트 대상을 기존 `/login`에서 `/welcome`로 변경 — `/login`·`/signup`은 그대로 직접 접근 가능(북마크·즐겨찾기 호환).
 
 **담당 에이전트**: `nextjs-frontend`(화면), `neon-db`(스키마/시딩), `ai-integration`(임베딩·분류 재실행), `vercel-deploy`(배포)
 
