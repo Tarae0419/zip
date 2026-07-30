@@ -233,7 +233,7 @@
       transform: translate(0, 0);
     }
     50% {
-      transform: translate(120px, -70px);
+      transform: translate(110px, -36px);
     }
   }
 
@@ -243,7 +243,7 @@
       transform: translateY(0) rotate(0deg);
     }
     50% {
-      transform: translateY(-8px) rotate(3deg);
+      transform: translateY(-6px) rotate(3deg);
     }
   }
 
