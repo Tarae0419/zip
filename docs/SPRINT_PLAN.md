@@ -325,6 +325,8 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
   - **배포 후 사용자 신고 1**: "반딧불이 전혀 움직이지 않는다" — 원인은 이 세션 작업용 PC의 Windows "애니메이션 효과"가 꺼져 있어(`SystemParametersInfo(SPI_GETCLIENTAREAANIMATION)`로 직접 확인) 브라우저가 `prefers-reduced-motion: reduce`로 인식했고, 위 수정이 의도대로 반딧불이를 정지시킨 것이었다(버그 아님). 다만 반딧불이는 콘텐츠 흐름과 무관한 순수 배경 장식이라 이 설정을 따를 필요가 낮다고 보고, `firefly-fly`/`firefly-bob`/`firefly-wing`은 reduced-motion 예외 목록에서 제외해 항상 움직이도록 최종 조정했다(`animate-fade-in-up`/`animate-grow-bar`는 그대로 존중).
   - **배포 후 사용자 신고 2**: "위치가 화면 왼쪽 위" — 히어로 텍스트는 `max-w-3xl`로 가운데 정렬돼 있는데 반딧불이는 전체 폭 `<section>` 기준으로 절대 위치해 있어, 넓은 화면에서 텍스트와 멀리 떨어진 왼쪽 구석에 있는 것처럼 보였다. 가운데 정렬된 콘텐츠 컨테이너 안으로 옮겨 헤드라인 근처로 조정.
   - **배포 후 사용자 신고 3**: "없어졌다" — 신고 2를 고치며 기준 위치를 `top-0`/`md:top-[-6%]`로 잡았는데, 이 컨테이너의 윗변이 섹션의 `overflow-hidden` 경계와 거의 같은 위치라 위로 움직이는 애니메이션(fly -70px + bob -8px)이 경계 밖으로 나가 잘려서 안 보였다. 기준 위치를 여유 있는 양수 값(`top-16`/`md:top-14`)으로 옮기고, 위로 움직이는 폭도 줄여(fly -36px, bob -6px) 항상 보이는 범위 안에 있도록 최종 수정.
+  - **추가 요청**: "반대편에 한 마리 더" — `Firefly`에 `side("left"|"right")`/`delayMs` prop을 추가해 오른쪽에서 왼쪽 위로 나는 개체(`firefly-fly-alt` 키프레임, X축 반대 방향)를 홈·랜딩 둘 다에 배치. 그라디언트 `id`는 `useId()`로 매번 새로 만들어 한 페이지에 두 마리가 있어도 겹치지 않게 했다(고정 문자열 id였다면 중복 id로 그라디언트 참조가 꼬였을 것).
+  - `/welcome`은 히어로 `<section>`에 자체 `relative`/`overflow-hidden`이 없어서(페이지 전체 wrapper에만 있었음) 그대로 넣으면 안전 위치 계산이 안 맞았다 — section 자체에 `relative overflow-hidden`을 추가해 홈과 동일한 좌표계로 맞췄다.
 
 **담당 에이전트**: `nextjs-frontend`(화면), `neon-db`(스키마/시딩), `ai-integration`(임베딩·분류 재실행), `vercel-deploy`(배포)
 
