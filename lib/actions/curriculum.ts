@@ -12,7 +12,14 @@ import {
   getIndustryFields,
   getOwnMajorElectiveCourses,
 } from "@/lib/db/queries"
-import { buildSemesters, fillElectives, fillMajorElectives, placeRequiredCourses, toSemesterLabels } from "@/lib/curriculum/plan"
+import {
+  buildSemesters,
+  computeSemesterGrades,
+  fillElectives,
+  fillMajorElectives,
+  placeRequiredCourses,
+  toSemesterLabels,
+} from "@/lib/curriculum/plan"
 import type { CurriculumPlanInput, CurriculumPlanResult, PlanItem } from "@/lib/curriculum/types"
 import { writeElectiveReasons } from "@/lib/ai/curriculum-reasons"
 
@@ -37,6 +44,9 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
 
   const notes: string[] = []
   const remainingSemesters = Math.max(1, Math.min(input.remainingSemesters, 12))
+  // 계획에 들어가는 각 학기가 실제로 몇 학년인지 — 2학년에게 4학년 과목을 추천하지 않도록
+  // placeRequiredCourses/fillMajorElectives/fillElectives가 이 배열로 학년 제약을 건다.
+  const semesterGrades = computeSemesterGrades(remainingSemesters, input.grade, input.currentSemester)
   const excludeSet = new Set([...input.completedRequiredCourseCodes, ...input.excludedCourseCodes])
 
   const ownRequiredAll = await getCoursesByCodes(curriculum.requiredCourseCodes as string[])
@@ -64,6 +74,7 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
       { courses: doubleRequired, type: "복수전공필수" },
     ],
     remainingSemesters,
+    semesterGrades,
   )
 
   const totalRemainingCreditsNeeded = Math.max(0, curriculum.totalCreditsRequired - input.earnedCredits)
@@ -105,6 +116,7 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
     input.department,
     nameById,
     electiveMinCreditsRemaining,
+    semesterGrades,
   )
 
   if (electiveMinCreditsRemaining > 0 && majorElectiveCandidates.length === 0) {
@@ -128,7 +140,7 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
         )
       : []
 
-  fillElectives(semesterItems, semesterCredits, candidates, nameById, electiveBudget)
+  fillElectives(semesterItems, semesterCredits, candidates, nameById, electiveBudget, semesterGrades)
 
   if (electiveBudget > 0 && candidates.length === 0 && input.interestFieldIds.length > 0) {
     notes.push("선택하신 관심분야와 연관도가 높은 과목을 충분히 찾지 못했어요. 교양·타 전공 과목을 직접 살펴보시는 걸 권장해요.")

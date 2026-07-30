@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { buildSemesters, fillElectives, fillMajorElectives, placeRequiredCourses, toSemesterLabels } from "./plan"
+import { buildSemesters, computeSemesterGrades, fillElectives, fillMajorElectives, placeRequiredCourses, toSemesterLabels } from "./plan"
 import type { RequiredCourseInfo, ElectiveCandidate, OwnMajorElectiveCandidate } from "@/lib/db/queries"
+
+// 학년 제약이 핵심이 아닌 테스트에서는 넉넉한(항상 이수 가능한) 학기별 학년 배열을 쓴다.
+function permissiveGrades(count: number): number[] {
+  return Array(count).fill(4)
+}
 
 function course(overrides: Partial<RequiredCourseInfo> & Pick<RequiredCourseInfo, "code" | "name">): RequiredCourseInfo {
   return {
@@ -8,6 +13,7 @@ function course(overrides: Partial<RequiredCourseInfo> & Pick<RequiredCourseInfo
     credits: 3,
     department: "테스트학과",
     prerequisiteCodes: [],
+    grade: null,
     ...overrides,
   }
 }
@@ -20,6 +26,7 @@ function candidate(overrides: Partial<ElectiveCandidate> & Pick<ElectiveCandidat
     relevanceScore: 0.5,
     industryTagId: "tag-1",
     isOwnMajor: true,
+    grade: null,
     ...overrides,
   }
 }
@@ -32,6 +39,7 @@ function majorCandidate(
     credits: 3,
     relevanceScore: 0,
     matchedIndustryTagId: null,
+    grade: null,
     ...overrides,
   }
 }
@@ -42,6 +50,7 @@ describe("placeRequiredCourses", () => {
     const { semesterItems, semesterCredits, requiredCreditsPlaced } = placeRequiredCourses(
       [{ courses, type: "전공필수" }],
       3,
+      permissiveGrades(3),
     )
     expect(semesterItems[0].map((i) => i.courseCode)).toEqual(["A", "B"])
     expect(semesterCredits[0]).toBe(6)
@@ -53,7 +62,7 @@ describe("placeRequiredCourses", () => {
       course({ code: "ALGO", name: "알고리즘", prerequisiteCodes: ["DS"] }),
       course({ code: "DS", name: "자료구조" }),
     ]
-    const { semesterItems } = placeRequiredCourses([{ courses, type: "전공필수" }], 4)
+    const { semesterItems } = placeRequiredCourses([{ courses, type: "전공필수" }], 4, permissiveGrades(4))
 
     const dsSemester = semesterItems.findIndex((items) => items.some((i) => i.courseCode === "DS"))
     const algoSemester = semesterItems.findIndex((items) => items.some((i) => i.courseCode === "ALGO"))
@@ -64,7 +73,7 @@ describe("placeRequiredCourses", () => {
   it("does not apply an ordering constraint when the prerequisite is already completed (not in the incomplete set)", () => {
     // DS(자료구조)가 이수 완료 처리되어 courses 배열에 아예 없는 상황 — ALGO만 남는다.
     const courses = [course({ code: "ALGO", name: "알고리즘", prerequisiteCodes: ["DS"] })]
-    const { semesterItems } = placeRequiredCourses([{ courses, type: "전공필수" }], 3)
+    const { semesterItems } = placeRequiredCourses([{ courses, type: "전공필수" }], 3, permissiveGrades(3))
     expect(semesterItems[0].map((i) => i.courseCode)).toEqual(["ALGO"])
   })
 
@@ -74,9 +83,18 @@ describe("placeRequiredCourses", () => {
       course({ code: "B", name: "B", credits: 9 }),
       course({ code: "C", name: "C", credits: 9 }),
     ]
-    const { semesterItems, semesterCredits } = placeRequiredCourses([{ courses, type: "전공필수" }], 2)
+    const { semesterItems, semesterCredits } = placeRequiredCourses([{ courses, type: "전공필수" }], 2, permissiveGrades(2))
     expect(semesterCredits[0]).toBeLessThanOrEqual(18)
     expect(semesterItems[1].length).toBeGreaterThan(0)
+  })
+
+  it("does not place a required course tagged for a later grade before the student reaches it", () => {
+    const courses = [course({ code: "SENIOR", name: "고학년필수", grade: 4 })]
+    // 2학년 2학기부터 4학기 진행 → [2, 3, 3, 4]학년
+    const grades = computeSemesterGrades(4, 2, 2)
+    const { semesterItems } = placeRequiredCourses([{ courses, type: "전공필수" }], 4, grades)
+    expect(semesterItems[0]).toHaveLength(0)
+    expect(semesterItems[3].map((i) => i.courseCode)).toContain("SENIOR")
   })
 
   it("tags a second group as 복수전공필수", () => {
@@ -88,6 +106,7 @@ describe("placeRequiredCourses", () => {
         { courses: double, type: "복수전공필수" },
       ],
       2,
+      permissiveGrades(2),
     )
     const flat = semesterItems.flat()
     expect(flat.find((i) => i.courseCode === "A")?.type).toBe("전공필수")
@@ -103,7 +122,7 @@ describe("fillElectives", () => {
       candidate({ code: "E1", name: "선택1" }),
       candidate({ code: "E2", name: "선택2" }),
     ]
-    fillElectives(semesterItems, semesterCredits, candidates, new Map(), 100)
+    fillElectives(semesterItems, semesterCredits, candidates, new Map(), 100, permissiveGrades(2))
     expect(semesterItems[0].map((i) => i.courseCode)).toContain("E1")
     expect(semesterItems[0][0].type).toBe("관심분야")
   })
@@ -112,7 +131,7 @@ describe("fillElectives", () => {
     const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[], [], []]
     const semesterCredits = [0, 0, 0]
     const candidates = Array.from({ length: 10 }, (_, i) => candidate({ code: `E${i}`, name: `선택${i}`, credits: 3 }))
-    const { totalElectiveCreditsPlaced } = fillElectives(semesterItems, semesterCredits, candidates, new Map(), 7)
+    const { totalElectiveCreditsPlaced } = fillElectives(semesterItems, semesterCredits, candidates, new Map(), 7, permissiveGrades(3))
     expect(totalElectiveCreditsPlaced).toBeLessThanOrEqual(9) // 7학점 예산, 3학점 단위라 최대 1과목 초과 허용
     expect(totalElectiveCreditsPlaced).toBeGreaterThan(0)
   })
@@ -122,7 +141,7 @@ describe("fillElectives", () => {
     const semesterCredits = [0]
     const candidates = [candidate({ code: "E1", name: "선택1", isOwnMajor: false, department: "타학과" })]
     const nameById = new Map([["tag-1", "반도체"]])
-    fillElectives(semesterItems, semesterCredits, candidates, nameById, 20)
+    fillElectives(semesterItems, semesterCredits, candidates, nameById, 20, permissiveGrades(1))
     expect(semesterItems[0][0].reason).toContain("반도체")
     expect(semesterItems[0][0].reason).toContain("타 전공")
   })
@@ -131,7 +150,7 @@ describe("fillElectives", () => {
     const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[]]
     const semesterCredits = [0]
     const candidates = [candidate({ code: "E1", name: "선택1" }), candidate({ code: "E1", name: "선택1" })]
-    fillElectives(semesterItems, semesterCredits, candidates, new Map(), 20)
+    fillElectives(semesterItems, semesterCredits, candidates, new Map(), 20, permissiveGrades(1))
     expect(semesterItems[0].filter((i) => i.courseCode === "E1")).toHaveLength(1)
   })
 })
@@ -141,7 +160,7 @@ describe("fillMajorElectives", () => {
     const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[]]
     const semesterCredits = [0]
     const candidates = [majorCandidate({ code: "M1", name: "전공선택1" }), majorCandidate({ code: "M2", name: "전공선택2" })]
-    fillMajorElectives(semesterItems, semesterCredits, candidates, "테스트학과", new Map(), 3)
+    fillMajorElectives(semesterItems, semesterCredits, candidates, "테스트학과", new Map(), 3, permissiveGrades(1))
     expect(semesterItems[0]).toHaveLength(1)
     expect(semesterItems[0][0].type).toBe("전공선택")
     expect(semesterItems[0][0].isOwnMajor).toBe(true)
@@ -159,6 +178,7 @@ describe("fillMajorElectives", () => {
       "테스트학과",
       nameById,
       20,
+      permissiveGrades(1),
     )
     expect(semesterItems[0][0].reason).toContain("반도체")
 
@@ -171,9 +191,21 @@ describe("fillMajorElectives", () => {
       "테스트학과",
       nameById,
       20,
+      permissiveGrades(1),
     )
     expect(semesterItems2[0][0].reason).not.toContain("반도체")
     expect(semesterItems2[0][0].reason).toContain("전공선택 학점 요건")
+  })
+
+  it("does not place a 4학년 course into a semester before the student reaches 4학년", () => {
+    const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [[], [], [], []]
+    const semesterCredits = [0, 0, 0, 0]
+    // 2학년 2학기부터 4학기 진행 → [2, 3, 3, 4]학년
+    const grades = computeSemesterGrades(4, 2, 2)
+    const candidates = [majorCandidate({ code: "SENIOR", name: "고학년과목", grade: 4 })]
+    fillMajorElectives(semesterItems, semesterCredits, candidates, "테스트학과", new Map(), 20, grades)
+    expect(semesterItems[0].find((i) => i.courseCode === "SENIOR")).toBeUndefined()
+    expect(semesterItems[3].find((i) => i.courseCode === "SENIOR")).toBeDefined()
   })
 })
 

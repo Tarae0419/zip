@@ -53,6 +53,36 @@ const INDUSTRY_TAGS: IndustryTagSeed[] = [
     icon: "Leaf",
     keywords: ["신재생에너지", "태양광", "이차전지", "탄소중립", "환경공학", "지속가능성", "에너지저장"],
   },
+  {
+    name: "모빌리티·로보틱스",
+    description: "자율주행, 전기차, 로봇공학 등 미래 이동수단·자동화 기술",
+    icon: "Car",
+    keywords: ["자율주행", "전기차", "로봇공학", "제어공학", "자동차공학", "드론", "센서"],
+  },
+  {
+    name: "스마트시티·건설",
+    description: "건축, 도시공학, 스마트 인프라 설계와 시공",
+    icon: "Building2",
+    keywords: ["건축설계", "도시공학", "스마트시티", "건설관리", "구조공학", "인프라", "토목공학"],
+  },
+  {
+    name: "교육·에듀테크",
+    description: "교육공학, 학습 콘텐츠·플랫폼 설계",
+    icon: "GraduationCap",
+    keywords: ["교육공학", "이러닝", "학습설계", "교육심리", "에듀테크", "교육과정", "교수법"],
+  },
+  {
+    name: "농식품·스마트팜",
+    description: "농업생명과학, 스마트팜, 식품 가공·안전 기술",
+    icon: "Wheat",
+    keywords: ["스마트팜", "농업생명공학", "식품공학", "축산", "원예", "식품안전", "농업경영"],
+  },
+  {
+    name: "물류·유통",
+    description: "공급망관리, 스마트물류, 유통·서비스 운영",
+    icon: "Truck",
+    keywords: ["물류관리", "공급망관리", "유통", "스마트물류", "운송", "재고관리", "서비스운영"],
+  },
 ]
 
 async function embed(text: string): Promise<number[]> {

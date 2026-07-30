@@ -3,12 +3,17 @@
 import { useState } from "react"
 import {
   BrainCircuit,
+  Building2,
+  Car,
   ChevronDown,
   Clapperboard,
   Cpu,
+  GraduationCap,
   HeartPulse,
   Leaf,
   LineChart,
+  Truck,
+  Wheat,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -23,6 +28,11 @@ const iconMap: Record<string, LucideIcon> = {
   LineChart,
   Clapperboard,
   Leaf,
+  Car,
+  Building2,
+  GraduationCap,
+  Wheat,
+  Truck,
 }
 
 export type FieldWithCourses = IndustryFieldSummary & { courses: Course[] }

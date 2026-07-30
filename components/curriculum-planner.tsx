@@ -6,15 +6,20 @@ import { useState, useTransition } from "react"
 import {
   AlertCircle,
   BrainCircuit,
+  Building2,
+  Car,
   ChevronDown,
   Clapperboard,
   Cpu,
+  GraduationCap,
   HeartPulse,
   Info,
   Leaf,
   LineChart,
   Loader2,
   Sparkles,
+  Truck,
+  Wheat,
   X,
   type LucideIcon,
 } from "lucide-react"
@@ -22,7 +27,19 @@ import { cn } from "@/lib/utils"
 import { generateCurriculumPlan } from "@/lib/actions/curriculum"
 import type { CurriculumPlanResult, PlanItem, PlanItemType } from "@/lib/curriculum/types"
 
-const iconMap: Record<string, LucideIcon> = { Cpu, BrainCircuit, HeartPulse, LineChart, Clapperboard, Leaf }
+const iconMap: Record<string, LucideIcon> = {
+  Cpu,
+  BrainCircuit,
+  HeartPulse,
+  LineChart,
+  Clapperboard,
+  Leaf,
+  Car,
+  Building2,
+  GraduationCap,
+  Wheat,
+  Truck,
+}
 
 const typeStyles: Record<PlanItemType, string> = {
   전공필수: "bg-primary/10 text-primary",

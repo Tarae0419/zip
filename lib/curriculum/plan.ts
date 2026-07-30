@@ -6,6 +6,19 @@ import type { PlanItem, PlanItemType, PlanSemester } from "./types"
 const TARGET_CREDITS_PER_SEMESTER = 16
 const MAX_CREDITS_PER_SEMESTER = 18
 
+/** 현재 학년·학기를 시작점으로, 계획에 들어가는 각 학기가 몇 학년에 해당하는지 순서대로 계산한다. */
+export function computeSemesterGrades(count: number, startGrade: number, startSemester: 1 | 2): number[] {
+  return Array.from({ length: count }, (_, i) => startGrade + Math.floor((startSemester - 1 + i) / 2))
+}
+
+/** 과목의 최소 권장 학년(course_department_tracks 기준)을 만족하는 가장 이른 학기 인덱스. 학년 정보가 없으면 제약 없음(0). */
+function earliestGradeEligibleIndex(semesterGrades: number[], grade: number | null): number {
+  if (grade === null) return 0
+  const idx = semesterGrades.findIndex((g) => g >= grade)
+  // 남은 학기 안에 그 학년에 도달하지 못하면(예: 4학기만 남았는데 4학년 과목) 그래도 마지막 학기에는 배치 가능하게 한다.
+  return idx === -1 ? semesterGrades.length - 1 : idx
+}
+
 type RequiredGroup = { courses: RequiredCourseInfo[]; type: Extract<PlanItemType, "전공필수" | "복수전공필수"> }
 
 function toPlanItem(course: RequiredCourseInfo, type: PlanItemType, reason: string, isOwnMajor: boolean): PlanItem {
@@ -36,6 +49,7 @@ function buildRequiredReason(course: RequiredCourseInfo, type: PlanItemType, ove
 export function placeRequiredCourses(
   groups: RequiredGroup[],
   remainingSemesters: number,
+  semesterGrades: number[],
 ): { semesterItems: PlanItem[][]; semesterCredits: number[]; requiredCreditsPlaced: number } {
   const semesterItems: PlanItem[][] = Array.from({ length: remainingSemesters }, () => [])
   const semesterCredits: number[] = Array(remainingSemesters).fill(0)
@@ -64,7 +78,10 @@ export function placeRequiredCourses(
     const prereqSemesters = course.prerequisiteCodes
       .map((p) => placedSemesterByCode.get(p))
       .filter((s): s is number => s !== undefined)
-    const earliestAllowed = prereqSemesters.length > 0 ? Math.max(...prereqSemesters) + 1 : 0
+    const earliestAllowed = Math.max(
+      prereqSemesters.length > 0 ? Math.max(...prereqSemesters) + 1 : 0,
+      earliestGradeEligibleIndex(semesterGrades, course.grade),
+    )
 
     let target = -1
     for (let s = Math.min(earliestAllowed, remainingSemesters - 1); s < remainingSemesters; s++) {
@@ -97,20 +114,17 @@ export function fillMajorElectives(
   department: string,
   interestFieldNameById: Map<string, string>,
   creditBudget: number,
+  semesterGrades: number[],
 ): { usedCourseCodes: Set<string>; totalCreditsPlaced: number } {
   const usedCourseCodes = new Set<string>()
   let totalCreditsPlaced = 0
-  let candidateIndex = 0
 
   for (let s = 0; s < semesterItems.length; s++) {
-    while (
-      candidateIndex < candidates.length &&
-      semesterCredits[s] < TARGET_CREDITS_PER_SEMESTER &&
-      totalCreditsPlaced < creditBudget
-    ) {
-      const candidate = candidates[candidateIndex]
-      candidateIndex++
+    for (const candidate of candidates) {
+      if (semesterCredits[s] >= TARGET_CREDITS_PER_SEMESTER || totalCreditsPlaced >= creditBudget) break
       if (usedCourseCodes.has(candidate.code)) continue
+      // 학생 학년이 아직 이 과목의 권장 학년에 못 미치면 이번 학기엔 건너뛰고, 나중 학기에 다시 후보로 본다.
+      if (candidate.grade !== null && candidate.grade > semesterGrades[s]) continue
       if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) continue
 
       const tagName = candidate.matchedIndustryTagId ? interestFieldNameById.get(candidate.matchedIndustryTagId) : null
@@ -149,20 +163,16 @@ export function fillElectives(
   candidates: ElectiveCandidate[],
   interestFieldNameById: Map<string, string>,
   creditBudget: number,
+  semesterGrades: number[],
 ): { usedCandidateCodes: Set<string>; totalElectiveCreditsPlaced: number } {
   const usedCandidateCodes = new Set<string>()
   let totalElectiveCreditsPlaced = 0
-  let candidateIndex = 0
 
   for (let s = 0; s < semesterItems.length; s++) {
-    while (
-      candidateIndex < candidates.length &&
-      semesterCredits[s] < TARGET_CREDITS_PER_SEMESTER &&
-      totalElectiveCreditsPlaced < creditBudget
-    ) {
-      const candidate = candidates[candidateIndex]
-      candidateIndex++
+    for (const candidate of candidates) {
+      if (semesterCredits[s] >= TARGET_CREDITS_PER_SEMESTER || totalElectiveCreditsPlaced >= creditBudget) break
       if (usedCandidateCodes.has(candidate.code)) continue
+      if (candidate.grade !== null && candidate.grade > semesterGrades[s]) continue
       if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) continue
 
       const tagName = interestFieldNameById.get(candidate.industryTagId) ?? "관심"
@@ -191,9 +201,9 @@ export function fillElectives(
 
 /** 현재 학년·학기를 시작점으로 "N학년 M학기" 라벨을 순서대로 생성한다 (예: 2학년 2학기 → 3학년 1학기 → 3학년 2학기). */
 export function toSemesterLabels(count: number, startGrade: number, startSemester: 1 | 2): string[] {
-  return Array.from({ length: count }, (_, i) => {
-    const semesterIndex = startSemester - 1 + i // 0-based 학기 진행 카운트
-    const grade = startGrade + Math.floor(semesterIndex / 2)
+  const grades = computeSemesterGrades(count, startGrade, startSemester)
+  return grades.map((grade, i) => {
+    const semesterIndex = startSemester - 1 + i
     const semester = (semesterIndex % 2) + 1
     return `${grade}학년 ${semester}학기`
   })

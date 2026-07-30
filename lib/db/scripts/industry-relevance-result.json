@@ -316,20 +316,6 @@
   },
   {
     "tagName": "AI·데이터사이언스",
-    "courseId": "a2af62a7-2a20-42d0-b7b0-4babbe351af2",
-    "courseName": "인공지능",
-    "department": "컴퓨터인공지능학부",
-    "score": 0.48922423597779907
-  },
-  {
-    "tagName": "AI·데이터사이언스",
-    "courseId": "0777fa78-0a07-4531-823c-a420f3bf636f",
-    "courseName": "인공지능",
-    "department": "IT융합기전공학(재)",
-    "score": 0.48922423597779907
-  },
-  {
-    "tagName": "AI·데이터사이언스",
     "courseId": "9d3f39ff-7a5a-422c-a724-d6c35b7d4f05",
     "courseName": "인공지능",
     "department": "엔지니어링사이언스",
@@ -340,6 +326,20 @@
     "courseId": "c20fc599-85d0-4a6f-a0e4-1fe4a1e339a6",
     "courseName": "인공지능",
     "department": "기계설계공학",
+    "score": 0.48922423597779907
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "a2af62a7-2a20-42d0-b7b0-4babbe351af2",
+    "courseName": "인공지능",
+    "department": "컴퓨터인공지능학부",
+    "score": 0.48922423597779907
+  },
+  {
+    "tagName": "AI·데이터사이언스",
+    "courseId": "0777fa78-0a07-4531-823c-a420f3bf636f",
+    "courseName": "인공지능",
+    "department": "IT융합기전공학(재)",
     "score": 0.48922423597779907
   },
   {
@@ -386,16 +386,16 @@
   },
   {
     "tagName": "AI·데이터사이언스",
-    "courseId": "ff90aca2-8c0c-4772-a649-3a80be3da282",
+    "courseId": "e69d513c-aafa-4b4b-978b-5546f131ae65",
     "courseName": "데이터마이닝",
-    "department": "산업정보시스템공학과",
+    "department": "컴퓨터인공지능학부",
     "score": 0.4653890674436676
   },
   {
     "tagName": "AI·데이터사이언스",
-    "courseId": "e69d513c-aafa-4b4b-978b-5546f131ae65",
+    "courseId": "ff90aca2-8c0c-4772-a649-3a80be3da282",
     "courseName": "데이터마이닝",
-    "department": "컴퓨터인공지능학부",
+    "department": "산업정보시스템공학과",
     "score": 0.4653890674436676
   },
   {
@@ -589,6 +589,13 @@
   },
   {
     "tagName": "바이오·헬스케어",
+    "courseId": "d2192c2b-ce0e-4488-be4b-a54e3dd4ecfc",
+    "courseName": "디지털논리공학",
+    "department": "IT응용시스템공학",
+    "score": 0.42226533588548887
+  },
+  {
+    "tagName": "바이오·헬스케어",
     "courseId": "ed42b835-31d3-4c4c-95b4-efb3e6fbeb39",
     "courseName": "디지털논리공학",
     "department": "전자공학부",
@@ -596,10 +603,10 @@
   },
   {
     "tagName": "바이오·헬스케어",
-    "courseId": "d2192c2b-ce0e-4488-be4b-a54e3dd4ecfc",
-    "courseName": "디지털논리공학",
-    "department": "IT응용시스템공학",
-    "score": 0.42226533588548887
+    "courseId": "066a3323-089f-469c-8134-91154362cbd2",
+    "courseName": "디지털셰익스피어",
+    "department": "영어영문학과",
+    "score": 0.4207375025605542
   },
   {
     "tagName": "바이오·헬스케어",
@@ -621,6 +628,27 @@
     "courseName": "헬스케어로봇활용및실습",
     "department": "헬스케어기기공학",
     "score": 0.4178606230262183
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "cac948b3-455b-4d5a-9103-ffd014d5aa62",
+    "courseName": "디지털공학",
+    "department": "소프트웨어공학과(재)",
+    "score": 0.4069102512011369
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "07979549-4e92-48b4-a177-3513cb935ded",
+    "courseName": "디지털공학",
+    "department": "IT융합기전공학(재)",
+    "score": 0.40689827566249237
+  },
+  {
+    "tagName": "바이오·헬스케어",
+    "courseId": "25b6806f-f10f-4ee2-9d01-ca60a77b961c",
+    "courseName": "폐기물공학",
+    "department": "환경공학",
+    "score": 0.4008789771916743
   },
   {
     "tagName": "금융·핀테크",
@@ -701,6 +729,13 @@
   },
   {
     "tagName": "금융·핀테크",
+    "courseId": "e843ebe7-648c-4364-b710-5c125c064f2e",
+    "courseName": "IT융합",
+    "department": "전자공학부",
+    "score": 0.40363092364764597
+  },
+  {
+    "tagName": "금융·핀테크",
     "courseId": "9255b0dc-7af7-44e6-9fb1-4a8d8c3aa59b",
     "courseName": "국제금융론",
     "department": "국제무역학과",
@@ -711,426 +746,1112 @@
     "courseId": "7f11222f-47f9-4b9c-bb91-0a39c18a018b",
     "courseName": "멀티미디어콘텐츠제작",
     "department": "소프트웨어공학과(재)",
-    "score": 0.6826167704959778
+    "score": 0.6827099084254835
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "6eff781d-30d0-4787-a809-feb79d171d48",
     "courseName": "콘텐츠기획제작",
     "department": "산업디자인학과",
-    "score": 0.6488976857607636
+    "score": 0.6489327005989984
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "e83b019c-0554-4a7d-b236-5cfa6bbe275a",
     "courseName": "방송미디어제작기획",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.5925212989552358
+    "score": 0.5923885874980112
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "bf76c5df-6701-421c-bacc-70b3051820bb",
     "courseName": "영화영상콘텐츠기획",
     "department": "프랑스·아프리카학과",
-    "score": 0.5756355175728489
+    "score": 0.5754374039063503
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "68a5e0d4-6a10-4bdb-b750-9d2774c70327",
     "courseName": "가상/실감콘텐츠제작기획",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.5220052318753127
+    "score": 0.5219524298667287
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "63b7987d-7505-4f68-a2cb-aeea600bc3f5",
     "courseName": "뉴미디어아트제작실습",
     "department": "예술융합창작",
-    "score": 0.47016217721672615
+    "score": 0.47004967602845327
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "dc8b6450-134d-4998-8548-7a7e655b93d7",
     "courseName": "미디어직업론",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.46219886981953273
+    "score": 0.4620809655230982
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "d6ce15e2-88a8-4cbf-9674-4ca9da3b5eb4",
     "courseName": "멀티미디어시스템",
     "department": "IT응용시스템공학",
-    "score": 0.46109034791728143
+    "score": 0.4608766193144056
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "3b4f10cd-7ead-4e18-8f1a-52b81d6454cc",
     "courseName": "학교미디어센터경영",
     "department": "문헌정보학과",
-    "score": 0.44929757548171645
+    "score": 0.4491970107867582
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "71692a02-6ed0-4f25-a9d8-8c9a3d42c8f1",
     "courseName": "스페인어권미디어와스토리텔링",
     "department": "스페인.중남미학과",
-    "score": 0.44649931656275377
+    "score": 0.44635720866054185
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "0d230aed-4d47-4b66-9768-0e9d2ddc48e0",
     "courseName": "문화콘텐츠관리기술",
     "department": "문헌정보학과",
-    "score": 0.44640314076251997
+    "score": 0.44602974585105715
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "454f276e-131e-4ba5-9492-92d30a695ee6",
     "courseName": "미디어커뮤니케이션이론",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.4419990716751505
+    "score": 0.4420224112427277
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "3d2e0760-ce88-4d18-b92f-2f6f086df658",
     "courseName": "멀티미디어와조경 1",
     "department": "생태조경디자인학과",
-    "score": 0.4355081364785385
+    "score": 0.43542834611750547
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "3e58fe4e-1c75-4657-ab03-061cb4ba3992",
     "courseName": "미디어커뮤니케이션세미나",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.4327836976651356
+    "score": 0.43274349869873396
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "5c13d7b8-97ed-4041-bf5a-31cd70be848b",
     "courseName": "미디어와젠더",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.4307597945343884
+    "score": 0.4307035961809049
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "bc519ac6-a4c0-494f-9472-765334dd1d19",
     "courseName": "멀티미디어와조경 2",
     "department": "생태조경디자인학과",
-    "score": 0.42957458551530026
+    "score": 0.429475029045695
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "b3815fef-5e91-42aa-b325-27c0ed794a72",
     "courseName": "미디어와정치",
     "department": "정치외교학과",
-    "score": 0.42777874463653864
+    "score": 0.4276729120053344
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "41e3d51b-f3d4-434e-a8ce-5f313f8f6245",
     "courseName": "미디어커뮤니케이션조사방법론",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.42593954442388604
+    "score": 0.4259658377423252
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "72751287-fe2d-40b1-9bd8-75e0f6d7c5e4",
     "courseName": "방송모니터론",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.4156412297602936
+    "score": 0.4155753282428787
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "bdddaa29-5a7b-407f-bcee-dd2d663c0443",
     "courseName": "디지털영화영상제작기획",
     "department": "미디어커뮤니케이션학과",
-    "score": 0.40804073677956554
+    "score": 0.4078324492459653
   },
   {
     "tagName": "콘텐츠·미디어",
     "courseId": "ed4ed149-4426-4da3-816b-7f036b0abd3b",
     "courseName": "미디어스페인어",
     "department": "스페인.중남미학과",
-    "score": 0.40470370069350103
+    "score": 0.40463518326778614
   },
   {
     "tagName": "에너지·환경",
     "courseId": "3a3f8825-a59f-4fc0-9d46-2c5bb913470e",
     "courseName": "에너지·환경물리학",
     "department": "물리학과",
-    "score": 0.6254293400446398
+    "score": 0.6255187595046842
   },
   {
     "tagName": "에너지·환경",
     "courseId": "c2fdcb3a-bec4-40e5-854f-d42bb07f94af",
     "courseName": "에너지와환경",
     "department": "물리교육",
-    "score": 0.6020453606014021
+    "score": 0.6020761320975279
   },
   {
     "tagName": "에너지·환경",
     "courseId": "1eb3d162-a9a6-4efa-a6c6-0e5c9c7ca237",
     "courseName": "환경에너지개론",
     "department": "환경생명공학",
-    "score": 0.5897650450667595
+    "score": 0.5897867383583865
   },
   {
     "tagName": "에너지·환경",
     "courseId": "f740f0c6-ca60-456d-b500-ae13eb30f58d",
     "courseName": "에너지저장공학개론",
     "department": "에너지신산업",
-    "score": 0.5586020899945922
-  },
-  {
-    "tagName": "에너지·환경",
-    "courseId": "29a0de72-10a5-4fef-a83c-da5bf3c9b48e",
-    "courseName": "에너지환경기술",
-    "department": "에너지화학공학",
-    "score": 0.5444927828392613
+    "score": 0.558592881822428
   },
   {
     "tagName": "에너지·환경",
     "courseId": "61eefc0d-61d6-4c80-b38e-672ee95fa3eb",
     "courseName": "에너지환경기술",
     "department": "에너지신산업",
-    "score": 0.5444927828392613
+    "score": 0.5444576937775533
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "29a0de72-10a5-4fef-a83c-da5bf3c9b48e",
+    "courseName": "에너지환경기술",
+    "department": "에너지화학공학",
+    "score": 0.5444576937775533
   },
   {
     "tagName": "에너지·환경",
     "courseId": "0e375932-029c-4373-877c-c18ed602e05a",
     "courseName": "지속가능에너지",
     "department": "자원.에너지공학",
-    "score": 0.5436457880549664
+    "score": 0.5435756861981811
   },
   {
     "tagName": "에너지·환경",
     "courseId": "f4b8c445-e5ea-4459-8419-65d72644d997",
     "courseName": "에너지공학개론",
     "department": "기계공학과",
-    "score": 0.5390815850447201
+    "score": 0.5390727791432292
   },
   {
     "tagName": "에너지·환경",
     "courseId": "4166fdeb-c4f8-4e66-98e6-b5b247d4196c",
     "courseName": "에너지생산소재공학",
     "department": "에너지신산업",
-    "score": 0.5374907235308242
+    "score": 0.5374966690196374
   },
   {
     "tagName": "에너지·환경",
     "courseId": "c4ab15d8-3bdc-4d3b-bb09-7ad14aa0e0e4",
     "courseName": "에너지저장및변환소재공학",
     "department": "엔지니어링사이언스",
-    "score": 0.5291426178936329
+    "score": 0.5291476804408397
   },
   {
     "tagName": "에너지·환경",
     "courseId": "1dbba0a7-1b1c-42a3-8ec5-f6675a86c182",
     "courseName": "에너지전기화학",
     "department": "화학과",
-    "score": 0.5233936098175987
+    "score": 0.5234172676161584
   },
   {
     "tagName": "에너지·환경",
     "courseId": "7ee91217-e322-4143-bc4c-d5c1f1f10a72",
     "courseName": "기후에너지개론",
     "department": "자원.에너지공학",
-    "score": 0.5207441276089567
+    "score": 0.5208189527131861
   },
   {
     "tagName": "에너지·환경",
     "courseId": "57619d43-579e-41d0-b6bb-3bfbbbe5c2b6",
     "courseName": "에너지변환공학",
     "department": "기계시스템공학부",
-    "score": 0.5037704013432804
+    "score": 0.5037358594428588
   },
   {
     "tagName": "에너지·환경",
     "courseId": "6fad3857-2349-448e-875a-2d6a5d1ca5f3",
     "courseName": "에너지양론설계",
     "department": "자원.에너지공학",
-    "score": 0.5022911379924092
+    "score": 0.5022828903376881
   },
   {
     "tagName": "에너지·환경",
     "courseId": "958c36f5-09a7-4085-9ba6-fd3a5cb6fd4f",
     "courseName": "지구에너지환경및자연재해",
     "department": "지구과학교육",
-    "score": 0.5016128342676283
+    "score": 0.5016173170532781
   },
   {
     "tagName": "에너지·환경",
     "courseId": "4ce95276-480d-4455-9a81-94f935273fde",
     "courseName": "에너지소재재활용공학",
     "department": "생명화학공학",
-    "score": 0.49639596176125433
+    "score": 0.4963766717010456
   },
   {
     "tagName": "에너지·환경",
     "courseId": "1edcc53a-58c8-4a21-94f4-a663b057924a",
     "courseName": "에너지전환공학",
     "department": "자원.에너지공학",
-    "score": 0.4920056243424269
+    "score": 0.4919824414413776
   },
   {
     "tagName": "에너지·환경",
     "courseId": "262b1ab6-a74d-4ce0-8260-2d5ce3f46945",
     "courseName": "환경생태학개론",
     "department": "환경생명공학",
-    "score": 0.48980925313705725
+    "score": 0.489817853840967
   },
   {
     "tagName": "에너지·환경",
     "courseId": "f3d7741f-346c-468e-845f-9e40a8923bc7",
     "courseName": "전기에너지개론",
     "department": "에너지신산업",
-    "score": 0.48853028808481436
+    "score": 0.48854831927154296
   },
   {
     "tagName": "에너지·환경",
     "courseId": "e406214d-2fee-4abb-b857-d929e472641d",
     "courseName": "환경생명공학",
     "department": "환경생명공학",
-    "score": 0.4826366141671907
+    "score": 0.4826224617754016
   },
   {
     "tagName": "에너지·환경",
     "courseId": "4a8a668b-6936-4912-9811-51a922c86125",
     "courseName": "환경생태학",
     "department": "환경공학",
-    "score": 0.4825113036824681
+    "score": 0.4824994312436579
   },
   {
     "tagName": "에너지·환경",
     "courseId": "60e7ec3e-de2e-4deb-b94a-556554091957",
     "courseName": "해양환경과학개론",
     "department": "지구환경과학과",
-    "score": 0.4817262621354974
+    "score": 0.481779650590046
   },
   {
     "tagName": "에너지·환경",
     "courseId": "f4ef3998-d8a9-48f9-ae7f-4b411b04e1c5",
     "courseName": "환경생명공학개론",
     "department": "환경생명공학",
-    "score": 0.48154900479400453
+    "score": 0.48157071791708106
   },
   {
     "tagName": "에너지·환경",
     "courseId": "b49450cb-0532-4b9b-a791-d41fce2dda5a",
     "courseName": "환경생명소재학",
     "department": "환경생명공학",
-    "score": 0.47830994351344247
+    "score": 0.478333681446395
   },
   {
     "tagName": "에너지·환경",
     "courseId": "38186522-5004-4720-a901-4195cd15628f",
     "courseName": "환경생화학 2",
     "department": "환경생명공학",
-    "score": 0.47460481471961224
+    "score": 0.4746215436877864
   },
   {
     "tagName": "에너지·환경",
     "courseId": "2186d1a4-740b-4758-be5c-fe619a07e11d",
     "courseName": "환경생태유전학",
     "department": "환경생명공학",
-    "score": 0.4741903786969177
+    "score": 0.47415301199333926
   },
   {
     "tagName": "에너지·환경",
     "courseId": "437565e9-b640-4b81-a955-6c7133af9e79",
     "courseName": "환경유기화학개론",
     "department": "환경생명공학",
-    "score": 0.4730431605567953
+    "score": 0.47309632349549346
   },
   {
     "tagName": "에너지·환경",
     "courseId": "8a2c78fc-499b-4179-a3cb-ff6c357768db",
     "courseName": "에너지저장변환소재",
     "department": "전자재료공학",
-    "score": 0.4708353017764615
+    "score": 0.4708862834541142
   },
   {
     "tagName": "에너지·환경",
     "courseId": "6bb8035b-d87a-435a-8dca-3ab7c4d80758",
     "courseName": "농업환경화학",
     "department": "생물환경화학과",
-    "score": 0.4707090586784648
+    "score": 0.4707408649333873
   },
   {
     "tagName": "에너지·환경",
     "courseId": "908b9279-5941-44f4-b2f1-2b272e107636",
     "courseName": "환경토양화학및광물학",
     "department": "환경생명공학",
-    "score": 0.4703448595959545
+    "score": 0.47037246252804443
   },
   {
     "tagName": "에너지·환경",
     "courseId": "2b586356-806b-4afc-b64d-f4a232beeca4",
     "courseName": "환경화학",
     "department": "환경공학",
-    "score": 0.4684863148617111
+    "score": 0.46850341571617826
   },
   {
     "tagName": "에너지·환경",
     "courseId": "1479b696-01b8-4f48-a619-0163cd40e626",
     "courseName": "환경화학",
     "department": "화학교육",
-    "score": 0.4684863148617111
+    "score": 0.46850341571617826
   },
   {
     "tagName": "에너지·환경",
     "courseId": "0518aa6a-c7a3-48b3-bfe4-e2d788489348",
     "courseName": "지역환경공학",
     "department": "지역건설공학과",
-    "score": 0.466513472239274
+    "score": 0.46649571944373047
   },
   {
     "tagName": "에너지·환경",
     "courseId": "25fd1c50-2785-4402-8c7b-5b3bfa2c36c0",
     "courseName": "신재생에너지공학개론",
     "department": "에너지신산업",
-    "score": 0.4642743863013803
+    "score": 0.4642914663025589
   },
   {
     "tagName": "에너지·환경",
     "courseId": "1b448d09-bfca-4f3a-a68f-9e71ac8e2c89",
     "courseName": "에너지신산업이슈연구",
     "department": "에너지신산업",
-    "score": 0.4629985823205791
+    "score": 0.462969901547299
   },
   {
     "tagName": "에너지·환경",
     "courseId": "2b971228-690f-43c5-8513-f0bdc751e5f3",
     "courseName": "에너지융합개론",
     "department": "자원.에너지공학",
-    "score": 0.46228978980452573
+    "score": 0.46225485515111886
   },
   {
     "tagName": "에너지·환경",
     "courseId": "0e856b00-9b7a-4f3d-a4ea-89e12a877424",
     "courseName": "에너지융합개론",
     "department": "반도체과학기술학과",
-    "score": 0.46228978980452573
-  },
-  {
-    "tagName": "에너지·환경",
-    "courseId": "754cc5d0-087a-4a21-8b46-d25b823c1d1a",
-    "courseName": "에너지융합개론",
-    "department": "금속시스템공학",
-    "score": 0.46228978980452573
+    "score": 0.46225485515111886
   },
   {
     "tagName": "에너지·환경",
     "courseId": "5dd30785-41cb-418d-a6f0-89e30193132f",
     "courseName": "에너지융합개론",
     "department": "환경공학",
-    "score": 0.46228978980452573
+    "score": 0.46225485515111886
+  },
+  {
+    "tagName": "에너지·환경",
+    "courseId": "754cc5d0-087a-4a21-8b46-d25b823c1d1a",
+    "courseName": "에너지융합개론",
+    "department": "금속시스템공학",
+    "score": 0.46225485515111886
   },
   {
     "tagName": "에너지·환경",
     "courseId": "f7423c03-4bc2-4bab-9db7-8a5dfea5760a",
     "courseName": "AI기반에너지안전공학",
     "department": "에너지신산업",
-    "score": 0.46126702474510517
+    "score": 0.4611789117882992
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "14b1aee2-4424-475e-a940-505c72964ea8",
+    "courseName": "모빌리티개론",
+    "department": "반도체융합",
+    "score": 0.4888879536122641
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "5616cd17-ad19-44e6-8f68-c5cfe76f34a9",
+    "courseName": "모빌리티지능화개론",
+    "department": "기계공학과",
+    "score": 0.4784508761280508
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "423efad7-117a-4ac5-a375-313445045503",
+    "courseName": "모빌리티용반도체공학개론",
+    "department": "반도체융합",
+    "score": 0.4575283919034563
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "cdd0ee7e-3a84-49d4-9ded-46fa43092580",
+    "courseName": "모빌리티용스마트센서",
+    "department": "반도체융합",
+    "score": 0.43578842641540305
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "a7654826-885a-443b-97d4-c5a5ba49d2f4",
+    "courseName": "모빌리티용반도체공정실무",
+    "department": "반도체융합",
+    "score": 0.41943220861368946
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "7409a246-7ada-445e-9c25-475cde630f44",
+    "courseName": "특수목적모빌리티개론(JST)",
+    "department": "미래수송기기",
+    "score": 0.4152054701653798
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "b5e83c3e-533c-48b4-be0c-356c26b7e4c5",
+    "courseName": "미래형모빌리티",
+    "department": "IT융합기전공학",
+    "score": 0.40648518418314583
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "7c0ebc4d-85b5-4b41-a673-f8da592646bd",
+    "courseName": "모빌리티용시스템반도체설계",
+    "department": "반도체융합",
+    "score": 0.4044934880482296
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "157a6266-aa96-4e2e-be1e-0bcf7ea2e732",
+    "courseName": "로봇공학",
+    "department": "기계시스템공학부",
+    "score": 0.40401577885720175
+  },
+  {
+    "tagName": "모빌리티·로보틱스",
+    "courseId": "96ef894e-be23-4f8d-b598-4a80a2d734d8",
+    "courseName": "로봇공학",
+    "department": "전자공학부",
+    "score": 0.40401577885720175
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "52d918e1-d4db-443b-98b1-e4918d37bc88",
+    "courseName": "스마트마이닝설계",
+    "department": "자원.에너지공학",
+    "score": 0.5106606393363308
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "79007ba0-e303-4900-865b-d9e915b43295",
+    "courseName": "도시건축론",
+    "department": "도시공학과",
+    "score": 0.49114298928793576
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "da06406d-79d0-4194-b747-4ee3eadddb5f",
+    "courseName": "공간관리및스마트도시정책론",
+    "department": "도시공학과",
+    "score": 0.48850559520018455
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "808c4e18-1bf6-4a64-953f-1d319859e26f",
+    "courseName": "스마트팜창의설계",
+    "department": "스마트팜학과",
+    "score": 0.48200887734571196
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "b4f6bbe8-7af9-42bd-8a72-baf18b65cb3b",
+    "courseName": "스마트팜경제학",
+    "department": "스마트팜학과",
+    "score": 0.4595111541455479
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "672f48e5-7f35-4539-8b8f-5acc4e87f20f",
+    "courseName": "스마트팜에너지시스템설계",
+    "department": "스마트팜학과",
+    "score": 0.4573168388211115
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "72cb385a-cf1a-4a76-b1a6-eb8a4f0c48f8",
+    "courseName": "건축시공학 1",
+    "department": "건축공학과",
+    "score": 0.4541004128937054
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "df452dc0-0923-4a48-bdcb-9720693fc5f8",
+    "courseName": "도시계획론",
+    "department": "도시공학과",
+    "score": 0.4505263566343565
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "c96ec32d-e5fd-41f9-99e6-f0b119e9b3c9",
+    "courseName": "스마트팜응용역학",
+    "department": "스마트팜학과",
+    "score": 0.45006157839521066
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "c83efd6f-41be-42d6-9c39-09c8fdb07228",
+    "courseName": "도시개발론",
+    "department": "도시공학과",
+    "score": 0.4472840918653004
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "41722084-752b-497e-b458-32ceb96a9081",
+    "courseName": "스마트팜데이터과학",
+    "department": "스마트팜학과",
+    "score": 0.44609179190596293
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "d9065e31-3323-482f-ae1b-fa2524e6c48b",
+    "courseName": "스마트팜응용수학",
+    "department": "스마트팜학과",
+    "score": 0.4421236582266521
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "bc7a44d8-b513-4d24-a75b-9c038919e999",
+    "courseName": "스마트팜학개론",
+    "department": "농생명과학과",
+    "score": 0.4416533743859907
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "ecf3e75b-b034-4d26-b873-b8a1500e82bc",
+    "courseName": "스마트팜공학(JST)",
+    "department": "농생명·바이오",
+    "score": 0.4383443180022124
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "91e70606-ee57-4888-9744-b672a20c2e89",
+    "courseName": "건축구조",
+    "department": "한옥학과",
+    "score": 0.4330510061535855
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "5977f4e7-de45-4cda-a033-49980b440dc7",
+    "courseName": "시설작물학",
+    "department": "스마트팜학과",
+    "score": 0.4291496804746783
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "af17ad98-2b82-42bc-905a-98e3f52cc16e",
+    "courseName": "건축구조학",
+    "department": "건축공학과",
+    "score": 0.4262803645168354
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "a1d98d0f-c2c5-4435-8d33-5beb50ee42de",
+    "courseName": "스마트지구물리탐사",
+    "department": "IAB융합",
+    "score": 0.42298955642035696
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "b2f056a2-fdcb-4b7d-ac89-ca8f67652916",
+    "courseName": "스마트농업세미나",
+    "department": "스마트팜학과",
+    "score": 0.422179872855844
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "0c731200-656a-4277-8ff5-66e2d6fcd657",
+    "courseName": "도시종합설계",
+    "department": "도시공학과",
+    "score": 0.4210460460567689
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "8be26b75-1a11-4fe6-a683-07f6d72679c4",
+    "courseName": "건축설계스튜디오 1",
+    "department": "건축공학과",
+    "score": 0.41710809798488624
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "a982b595-9b72-4f0d-a300-28fedf730756",
+    "courseName": "건축계획",
+    "department": "한옥학과",
+    "score": 0.41653054259285516
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "a8c6d4e6-3717-4761-a846-454211cbc72c",
+    "courseName": "건축계획",
+    "department": "건축공학과",
+    "score": 0.41653054259285516
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "e96a9c38-29d4-4691-8e33-8194817a0378",
+    "courseName": "건축학개론",
+    "department": "한옥학과",
+    "score": 0.4159201441642115
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "8a992f04-dec1-49be-b868-84418055d726",
+    "courseName": "건축학개론",
+    "department": "한옥건축학과",
+    "score": 0.4159201441642115
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "40f27dd9-51c6-42b9-8bff-350a963072f6",
+    "courseName": "스마트팜계측및제어",
+    "department": "스마트팜학과",
+    "score": 0.4123859700207295
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "275226fe-8537-42ab-806c-c4cf613906b0",
+    "courseName": "건축설계스튜디오 3",
+    "department": "건축공학과",
+    "score": 0.4123120243581855
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "a1cb35c7-0286-48fe-a77d-48894fffcfb1",
+    "courseName": "스마트농업환경관리학(JST)",
+    "department": "농생명·바이오",
+    "score": 0.410031310696489
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "84242d68-bd4e-4e55-9c04-b47ffb320fed",
+    "courseName": "토목시공학",
+    "department": "토목공학",
+    "score": 0.40448798109884543
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "4475a3f9-edd8-4c76-b1c7-b577636470c9",
+    "courseName": "프랑스미술과건축",
+    "department": "프랑스·아프리카학과",
+    "score": 0.4036378150509816
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "652e6129-bf24-486b-9eb8-f009da18740c",
+    "courseName": "건축설계스튜디오 2",
+    "department": "건축공학과",
+    "score": 0.4027765900138641
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "7ba5b0f4-4471-4716-8474-c40c566e8188",
+    "courseName": "건축종합설계 1",
+    "department": "건축공학과",
+    "score": 0.40158514838838033
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "b051b909-078e-4ff2-864a-06cc4ebb03af",
+    "courseName": "스마트센서소재실험",
+    "department": "정보소재공학",
+    "score": 0.40148031496822234
+  },
+  {
+    "tagName": "스마트시티·건설",
+    "courseId": "5a9a0724-bc22-45e4-8bca-bc9229639412",
+    "courseName": "스마트팜창업설계(JST)",
+    "department": "농생명·바이오",
+    "score": 0.40052725579995696
+  },
+  {
+    "tagName": "교육·에듀테크",
+    "courseId": "7cbde2f0-38b2-45d5-900c-2b32f26ed111",
+    "courseName": "교육심리학",
+    "department": "교육학과",
+    "score": 0.447943336833281
+  },
+  {
+    "tagName": "교육·에듀테크",
+    "courseId": "4e9c1e9f-3323-40ee-916b-29c81f335982",
+    "courseName": "교육개혁론",
+    "department": "교육학과",
+    "score": 0.4325336360570572
+  },
+  {
+    "tagName": "교육·에듀테크",
+    "courseId": "6086004d-dc4b-47b7-a9b7-8d99658b67ef",
+    "courseName": "교육철학",
+    "department": "교육학과",
+    "score": 0.43201716080672403
+  },
+  {
+    "tagName": "교육·에듀테크",
+    "courseId": "eb8d5b12-f220-4112-ad46-2a0d3e996b63",
+    "courseName": "교육학교육론",
+    "department": "교육학과",
+    "score": 0.4184599869693927
+  },
+  {
+    "tagName": "교육·에듀테크",
+    "courseId": "d7b6176b-271f-47ca-bf0b-005f897510f8",
+    "courseName": "교육과정연구",
+    "department": "교육학과",
+    "score": 0.41441486765099755
+  },
+  {
+    "tagName": "교육·에듀테크",
+    "courseId": "6575c308-0703-498b-9d3b-d3fec593900e",
+    "courseName": "교육학논리및논술",
+    "department": "교육학과",
+    "score": 0.41168645488131395
+  },
+  {
+    "tagName": "교육·에듀테크",
+    "courseId": "4e69a822-315b-49b7-a338-a4dba283b3c2",
+    "courseName": "창의적공학설계탐구",
+    "department": "기계시스템공학부",
+    "score": 0.40307535622788504
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "5921927c-ce76-4fe5-8de9-f3aa8bb3c77a",
+    "courseName": "농업생명공학",
+    "department": "환경생명공학",
+    "score": 0.5328737989954214
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "b2f056a2-fdcb-4b7d-ac89-ca8f67652916",
+    "courseName": "스마트농업세미나",
+    "department": "스마트팜학과",
+    "score": 0.5217984551030539
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "1b7cf06c-7b63-4705-a741-0cc763805674",
+    "courseName": "농업생명과학의이해",
+    "department": "농업생명과학계열",
+    "score": 0.5136732106812151
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "33060e6b-7a0c-4c92-b80f-112c1f299631",
+    "courseName": "유식품가공학및실험",
+    "department": "동물자원과학과",
+    "score": 0.5095385900220455
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "01aa46fd-e2cc-4747-9940-3d5cc12ceb7e",
+    "courseName": "발효식품학",
+    "department": "에코농산업벤처시스템학과",
+    "score": 0.5075767366683315
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "31bf6171-d756-4d2a-91aa-b447ecc43d11",
+    "courseName": "농업기상학",
+    "department": "스마트팜학과",
+    "score": 0.5028825935699454
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "befc5acd-39f2-48ea-8e50-364bbf8cdb67",
+    "courseName": "농업미생물학및실험",
+    "department": "식물의학과",
+    "score": 0.4979573051034796
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "2d294cc6-67bc-4283-8136-96ddbd185582",
+    "courseName": "농식품소매경영론",
+    "department": "식품유통학",
+    "score": 0.4912818353375359
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "f8de0356-df5d-406f-aac6-8555b509dcfb",
+    "courseName": "농식품경영학",
+    "department": "농생명과학과",
+    "score": 0.4853519221291387
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "37429b72-5ae5-4086-af9b-6964bcf6eeaa",
+    "courseName": "농업논리및논술론",
+    "department": "농업경제학",
+    "score": 0.47913401562887126
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "3428222c-df04-4418-b8b2-8b6b336bb69c",
+    "courseName": "농식품연관산업론",
+    "department": "식품유통학",
+    "score": 0.4775336277466322
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "a1cb35c7-0286-48fe-a77d-48894fffcfb1",
+    "courseName": "스마트농업환경관리학(JST)",
+    "department": "농생명·바이오",
+    "score": 0.47570834472745327
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "2f2af48d-8ff0-43d1-9621-9ced7a685a0f",
+    "courseName": "농식품마케팅론",
+    "department": "에코농산업벤처시스템학과",
+    "score": 0.4697818817385446
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "68153ed7-e9c9-4210-85ad-41d4081b43b9",
+    "courseName": "농식품마케팅론",
+    "department": "농생명과학과",
+    "score": 0.46956505306952345
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "d9065e31-3323-482f-ae1b-fa2524e6c48b",
+    "courseName": "스마트팜응용수학",
+    "department": "스마트팜학과",
+    "score": 0.466334227999189
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "31c51f9d-7001-4ce4-aeea-a8fe31802fd0",
+    "courseName": "농업시설공학",
+    "department": "지역건설공학과",
+    "score": 0.46415394482200223
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "41722084-752b-497e-b458-32ceb96a9081",
+    "courseName": "스마트팜데이터과학",
+    "department": "스마트팜학과",
+    "score": 0.46411551113516647
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "cced6f9d-db9b-4129-af7a-292413b7e8c8",
+    "courseName": "식물공장생산학",
+    "department": "원예학과",
+    "score": 0.4631000286478725
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "063584a7-4508-4d4b-964c-207b96f5e2f8",
+    "courseName": "식품가공학",
+    "department": "농생명과학과",
+    "score": 0.4623352557484266
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "7e45f3d9-b421-42cc-9c5c-9c5bb49fb879",
+    "courseName": "산업미생물학",
+    "department": "생명자원소재공학",
+    "score": 0.4609244225628043
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "f869dc8a-3b11-4e6f-87ba-b4204382b331",
+    "courseName": "농식품산업정책론",
+    "department": "농생명과학과",
+    "score": 0.4599861250488173
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "712935d1-b3f5-42d9-a02c-92d3bf59adc1",
+    "courseName": "농업기계학",
+    "department": "농생명과학과",
+    "score": 0.45953487496550394
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "21f6ca0b-1eb7-4f7e-964a-5bcf50776b58",
+    "courseName": "식물조직배양학및실험",
+    "department": "원예학과",
+    "score": 0.4556949926320215
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "0d04b8e3-f3df-47a9-9273-48a71fba1eb4",
+    "courseName": "식물생리학및실험",
+    "department": "생물교육",
+    "score": 0.45526285007529954
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "c76f571f-756a-41ec-b6cc-3b676269538c",
+    "courseName": "농식품마케팅및캡스톤",
+    "department": "농업경제학",
+    "score": 0.45524779608046506
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "f8bced11-4549-4111-baf7-5447f25192be",
+    "courseName": "농업발전경제학",
+    "department": "농업경제학",
+    "score": 0.45479430652658803
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "9f54a678-e449-4cb8-8478-37ff6c917c2f",
+    "courseName": "농업생산경제학",
+    "department": "농업경제학",
+    "score": 0.45458915235565645
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "bbd27ad0-470d-4a0e-965b-7e758421eb75",
+    "courseName": "농식품6차산업론",
+    "department": "에코농산업벤처시스템학과",
+    "score": 0.45357936455817194
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "3e24820b-2a86-4cc8-a281-67df161bf1ea",
+    "courseName": "실용식품분자생물학",
+    "department": "식품공학과",
+    "score": 0.45248132327536306
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "3694d045-3d96-4bb6-acce-1e0b3ece1ec1",
+    "courseName": "농업유전학",
+    "department": "원예학과",
+    "score": 0.4513828774981825
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "c6aa558f-904c-44b9-b253-cc80772f1abe",
+    "courseName": "식품첨가물학",
+    "department": "식품공학과",
+    "score": 0.45077540089670154
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "a8dd38f7-86e0-4d74-8a1d-b01c465bc439",
+    "courseName": "스마트팜열환경공학",
+    "department": "스마트팜학과",
+    "score": 0.44973122075295247
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "0b56a905-6823-4bd1-b9ad-5ce1cc586212",
+    "courseName": "농업시스템공학",
+    "department": "지역건설공학과",
+    "score": 0.4473526566301387
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "191ba3c8-d6e1-418f-9d02-2483caf68dbc",
+    "courseName": "식품미생물학",
+    "department": "농생명과학과",
+    "score": 0.447038032633145
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "1852f5c1-f826-41a7-aa90-7caab24b9bf7",
+    "courseName": "식품미생물학",
+    "department": "식품영양학과",
+    "score": 0.447038032633145
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "2de2734a-9d53-4142-a49f-d11238198a32",
+    "courseName": "식품가공학 2",
+    "department": "식품공학과",
+    "score": 0.44696482161525575
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "6e990c46-973b-4291-9372-0832d575ae89",
+    "courseName": "식품가공및저장학",
+    "department": "식품영양학과",
+    "score": 0.44600949877501184
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "8240a826-9202-40b6-9828-066e92b595f2",
+    "courseName": "근육식품가공학",
+    "department": "동물자원과학과",
+    "score": 0.44574860103634384
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "a71bd91d-d987-4814-adc8-af19e32a88c0",
+    "courseName": "농식품재료학",
+    "department": "에코농산업벤처시스템학과",
+    "score": 0.44207363351061346
+  },
+  {
+    "tagName": "농식품·스마트팜",
+    "courseId": "88e1525b-650c-4f1c-9fc9-e0edc2cc4378",
+    "courseName": "농식품정책론",
+    "department": "농업경제학",
+    "score": 0.44129511741460314
+  },
+  {
+    "tagName": "물류·유통",
+    "courseId": "5a0c22da-43fd-4260-ac3d-58426e4578ff",
+    "courseName": "농산업서비스마케팅",
+    "department": "식품유통학",
+    "score": 0.421521459091319
+  },
+  {
+    "tagName": "물류·유통",
+    "courseId": "2249b476-8aa9-4234-8be4-38f1ba8cc2ae",
+    "courseName": "유통관리",
+    "department": "경영학과",
+    "score": 0.419908442537711
+  },
+  {
+    "tagName": "물류·유통",
+    "courseId": "fe013115-3913-4968-b044-316dad6479e2",
+    "courseName": "재무관리",
+    "department": "경영학과",
+    "score": 0.41845554863476986
+  },
+  {
+    "tagName": "물류·유통",
+    "courseId": "a0bfaba4-f520-4577-acf5-ce79690485bc",
+    "courseName": "국제물류론",
+    "department": "국제무역학과",
+    "score": 0.4147767909102693
+  },
+  {
+    "tagName": "물류·유통",
+    "courseId": "fa280fb8-c7d8-4041-a157-e91e4578a797",
+    "courseName": "서비스운영관리",
+    "department": "경영학과",
+    "score": 0.41467930727500324
+  },
+  {
+    "tagName": "물류·유통",
+    "courseId": "a114f9c4-48de-48a6-b8cf-a646aa6f3ea6",
+    "courseName": "교통운영",
+    "department": "도시공학과",
+    "score": 0.40960998235004875
+  },
+  {
+    "tagName": "물류·유통",
+    "courseId": "00d8e7db-afab-4f66-a152-d6b384e8fce8",
+    "courseName": "생산운영관리",
+    "department": "경영학과",
+    "score": 0.4086956281637162
   }
 ]

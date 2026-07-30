@@ -466,6 +466,28 @@ export type RequiredCourseInfo = {
   credits: number
   department: string
   prerequisiteCodes: string[]
+  grade: number | null
+}
+
+/**
+ * course_department_tracks(과목이 개설되는 학과/학년 트랙, 여러 개일 수 있음)에서 과목당 가장 낮은
+ * 학년을 뽑는다 — "이 과목을 들을 수 있는 가장 이른 시점"으로 보수적으로 잡아, 2학년에게 4학년
+ * 과목을 추천하는 걸 막는 데 쓴다. 트랙 정보가 아예 없는 과목은 null(학년 제약 없음으로 취급).
+ */
+async function getMinGradeByCourseIds(courseIds: string[]): Promise<Map<string, number>> {
+  if (courseIds.length === 0) return new Map()
+  const rows = await db
+    .select({ courseId: courseDepartmentTracks.courseId, grade: courseDepartmentTracks.grade })
+    .from(courseDepartmentTracks)
+    .where(inArray(courseDepartmentTracks.courseId, courseIds))
+
+  const minGradeByCourseId = new Map<string, number>()
+  for (const r of rows) {
+    if (r.grade === null) continue
+    const existing = minGradeByCourseId.get(r.courseId)
+    if (existing === undefined || r.grade < existing) minGradeByCourseId.set(r.courseId, r.grade)
+  }
+  return minGradeByCourseId
 }
 
 /** 학수번호 목록에 대해 (가장 최근 학기의) 대표 과목 정보를 반환한다. */
@@ -490,13 +512,16 @@ export async function getCoursesByCodes(codes: string[]): Promise<RequiredCourse
     const existing = byCode.get(r.code)
     if (!existing || r.semester > existing.semester) byCode.set(r.code, r)
   }
-  return [...byCode.values()].map((r) => ({
+  const values = [...byCode.values()]
+  const minGradeByCourseId = await getMinGradeByCourseIds(values.map((r) => r.id))
+  return values.map((r) => ({
     courseId: r.id,
     code: r.code as string,
     name: r.name,
     credits: r.credits,
     department: r.department,
     prerequisiteCodes: (r.prerequisiteCodes as string[]) ?? [],
+    grade: minGradeByCourseId.get(r.id) ?? null,
   }))
 }
 
@@ -507,6 +532,7 @@ export type OwnMajorElectiveCandidate = {
   credits: number
   relevanceScore: number // 관심분야와 매칭이 없으면 0 — 그래도 전공선택 요건을 채워야 하니 후보에는 포함한다
   matchedIndustryTagId: string | null
+  grade: number | null
 }
 
 /**
@@ -576,6 +602,8 @@ export async function getOwnMajorElectiveCourses(
     }
   }
 
+  const minGradeByCourseId = await getMinGradeByCourseIds(filtered.map((r) => r.id))
+
   const candidates: OwnMajorElectiveCandidate[] = filtered.map((r) => {
     const rel = relevanceByCourseId.get(r.id)
     return {
@@ -585,6 +613,7 @@ export async function getOwnMajorElectiveCourses(
       credits: r.credits,
       relevanceScore: rel?.score ?? 0,
       matchedIndustryTagId: rel?.tagId ?? null,
+      grade: minGradeByCourseId.get(r.id) ?? null,
     }
   })
 
@@ -601,6 +630,7 @@ export type ElectiveCandidate = {
   relevanceScore: number
   industryTagId: string
   isOwnMajor: boolean
+  grade: number | null
 }
 
 /**
@@ -649,8 +679,12 @@ export async function getElectiveCandidates(
       relevanceScore: r.relevanceScore,
       industryTagId: r.industryTagId,
       isOwnMajor: r.department === department,
+      grade: null, // 아래에서 일괄 채움
     })
   }
+
+  const minGradeByCourseId = await getMinGradeByCourseIds([...bestByCode.values()].map((c) => c.courseId))
+  for (const c of bestByCode.values()) c.grade = minGradeByCourseId.get(c.courseId) ?? null
 
   const sorted = [...bestByCode.values()].sort((a, b) => {
     if (a.isOwnMajor !== b.isOwnMajor) return a.isOwnMajor ? -1 : 1
