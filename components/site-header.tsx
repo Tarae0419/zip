@@ -37,7 +37,7 @@ export function SiteHeader({ userName }: { userName: string | null }) {
 
   async function handleLogout() {
     await logout()
-    router.push("/login")
+    router.push("/welcome")
     router.refresh()
   }
 

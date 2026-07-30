@@ -313,6 +313,7 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 - [x] 8.10 비로그인 방문자용 랜딩 페이지 추가
   - `app/welcome/page.tsx` — DB 조회 없는 순수 정적 마케팅 페이지(F1~F4 요약 카드 + 로그인/회원가입 CTA), `/welcome`로 정적 프리렌더.
   - `proxy.ts`: `/welcome`을 `PUBLIC_PATHS`에 추가하고, 비로그인 사용자가 보호된 경로(`/` 등)에 접근했을 때의 리다이렉트 대상을 기존 `/login`에서 `/welcome`로 변경 — `/login`·`/signup`은 그대로 직접 접근 가능(북마크·즐겨찾기 호환).
+  - (2026-07-30 추가) `components/site-header.tsx`의 로그아웃도 `/login` 대신 `/welcome`으로 이동하도록 변경 — 로그아웃 직후에도 로그인/회원가입 둘 다로 갈 수 있는 랜딩이 먼저 뜨도록 일관성 맞춤.
 
 **담당 에이전트**: `nextjs-frontend`(화면), `neon-db`(스키마/시딩), `ai-integration`(임베딩·분류 재실행), `vercel-deploy`(배포)
 
