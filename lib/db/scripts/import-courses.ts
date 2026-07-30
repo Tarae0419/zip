@@ -12,9 +12,12 @@ import { courseDepartmentTracks, courses, type requirementTypeEnum } from "../sc
 const sql = neon(process.env.DATABASE_URL!)
 const db = drizzle(sql)
 
+// 원본 엑셀은 repo 루트가 아니라 course/ 폴더에 둔다(2026-07-30 재정리 — 교양 파일 추가되며 폴더로 모음).
 const SOURCES: { file: string; semester: string }[] = [
-  { file: "2026_1학기_학부전공_개설교과목_목록.xlsx", semester: "2026-1" },
-  { file: "2026_2학기_학부전공_개설교과목_목록.xlsx", semester: "2026-2" },
+  { file: "course/2026_1학기_학부전공_개설교과목_목록.xlsx", semester: "2026-1" },
+  { file: "course/2026_2학기_학부전공_개설교과목_목록.xlsx", semester: "2026-2" },
+  { file: "course/2026_1학기_교양.xlsx", semester: "2026-1" },
+  { file: "course/2026_2학기_교양.xlsx", semester: "2026-2" },
 ]
 
 type RequirementType = (typeof requirementTypeEnum.enumValues)[number]

@@ -36,11 +36,24 @@ async function main() {
     }
   }
 
-  console.log(`삽입 예정: ${rowsToInsert.length}건 (연관도 결과 ${results.length}개, 미확인 태그 스킵 ${skippedUnknownTags}건)`)
+  // 서로 다른 결과 항목이 형제 row(getSiblingCourseIds)를 통해 같은 (courseId, industryTagId) 조합으로
+  // 겹칠 수 있다 — 한 배치 안에 같은 target이 두 번 들어가면 Postgres가 "ON CONFLICT DO UPDATE
+  // cannot affect row a second time" 에러를 낸다. 배치로 나누기 전에 미리 중복 제거(높은 점수 우선)한다.
+  const dedupedByKey = new Map<string, (typeof rowsToInsert)[number]>()
+  for (const row of rowsToInsert) {
+    const key = `${row.courseId}|${row.industryTagId}`
+    const existing = dedupedByKey.get(key)
+    if (!existing || row.relevanceScore > existing.relevanceScore) dedupedByKey.set(key, row)
+  }
+  const deduped = [...dedupedByKey.values()]
+
+  console.log(
+    `삽입 예정: ${deduped.length}건 (연관도 결과 ${results.length}개, 형제 row 중복 제거 ${rowsToInsert.length - deduped.length}건, 미확인 태그 스킵 ${skippedUnknownTags}건)`,
+  )
 
   const BATCH_SIZE = 500
-  for (let i = 0; i < rowsToInsert.length; i += BATCH_SIZE) {
-    const batch = rowsToInsert.slice(i, i + BATCH_SIZE)
+  for (let i = 0; i < deduped.length; i += BATCH_SIZE) {
+    const batch = deduped.slice(i, i + BATCH_SIZE)
     await db
       .insert(courseIndustryTags)
       .values(batch)
@@ -48,7 +61,7 @@ async function main() {
         target: [courseIndustryTags.courseId, courseIndustryTags.industryTagId],
         set: { relevanceScore: sql`excluded.relevance_score` },
       })
-    console.log(`  ${Math.min(i + BATCH_SIZE, rowsToInsert.length)}/${rowsToInsert.length}`)
+    console.log(`  ${Math.min(i + BATCH_SIZE, deduped.length)}/${deduped.length}`)
   }
 
   const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(courseIndustryTags)
