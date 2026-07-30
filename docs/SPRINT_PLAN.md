@@ -5,7 +5,7 @@
 | 기준 문서 | `docs/PRD.md` (v1.1), `CLAUDE.md` |
 | 작성일 | 2026-07-29 |
 | 최종 수정일 | 2026-07-30 |
-| 상태 | Sprint 0~6, 8 완료 · Sprint 7 7.1만 보류(Neon×Vercel 연동, 사용자의 대시보드 조작 필요) |
+| 상태 | Sprint 0~6, 8 완료 · Sprint 7 7.1만 보류(Neon×Vercel 연동, 사용자의 대시보드 조작 필요) · Sprint 9 계획 수립, 미착수 |
 
 ---
 
@@ -32,6 +32,7 @@
 | 6 | AI 커리큘럼 추천 엔진 | F4 | ✅ 완료 (커리큘럼 데이터 있는 2개 학과 한정, "과목 추가"·계절학기는 스코프 아웃) |
 | 7 | 배포/운영 정비 & QA | 전체 | 🟡 7.1만 보류 (Neon×Vercel 대시보드 연동, 사용자 액션 필요), 나머지 완료 |
 | 8 | PRD 범위 밖 추가 기능 (회원 시스템, F5, F1/F3/F4 고도화) | PRD에 없음 | ✅ 완료 |
+| 9 | 관리자 페이지 (운영 도구) | 13장 (2026-07-30 신규) | ⚪ 계획 수립 완료, 구현 미착수 |
 
 PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 실제 구현 단위(쓰기 경로/AI 경로/데이터 확보를 분리)로 더 잘게 쪼갰다.
 
@@ -255,7 +256,7 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
   - **이미 완료된 상태로 확인됨**: 이 저장소가 `main` 브랜치를 Vercel의 프로덕션 브랜치로 인식해서, Sprint 4 연결 이후 `main`에 푸시할 때마다 자동으로 프로덕션 배포가 실행되고 있었다(별도 `--prod` 지시 없이). 현재 프로덕션(`https://zip-tarae0419s-projects.vercel.app` 등 별칭)은 Sprint 6까지 반영된 상태로 Ready 확인.
   - **운영상 주의점**: 현재 `main` 푸시 = 즉시 프로덕션 배포라 프리뷰/스테이징 단계가 없다. 7.1(Neon 프리뷰 브랜치 연동)과 별개로, 기능 브랜치 + PR 기반 워크플로로 바꾸는 걸 고려할 만하다 — 지금 결정하지 않고 기록만 남긴다.
 - [x] 7.5 최소 테스트 체계 도입 — 현재 테스트 스위트 없음(CLAUDE.md 참고). 핵심 쿼리(`lib/db/queries.ts`)와 학점 계산 로직(6.2) 최소 단위 테스트 추가
-  - Vitest 도입(`vitest.config.ts`, `pnpm test`). `lib/curriculum/plan.test.ts` — 순수 로직 단위테스트 10개(선수과목 순서 배치, 학기당 학점 상한, 관심분야 예산 소진, 본인전공 아닐 때만 문구 추가 등). `lib/db/queries.integration.test.ts` — 실 Neon DB 대상 읽기 전용 통합 스모크 테스트 5개(`DATABASE_URL` 없으면 자동 스킵). 총 15개 전부 통과.
+  - Vitest 도입(`vitest.config.ts`, `pnpm test`). `lib/curriculum/plan.test.ts` — 순수 로직 단위테스트(선수과목 순서 배치, 학기당 학점 상한, 관심분야 예산 소진, 본인전공 아닐 때만 문구 추가, Sprint 8.3에서 학년 적합도 케이스 추가 등). `lib/db/queries.integration.test.ts` — 실 Neon DB 대상 읽기 전용 통합 스모크 테스트(`DATABASE_URL` 없으면 자동 스킵). 2026-07-30 기준 총 24개 중 23개 통과 — `getDistinctDepartments returns the real (large) department list` 1건은 `unstable_cache`가 Next.js 요청 컨텍스트 밖(Vitest)에서 호출될 때 나는 환경적 실패로, 실제 쿼리 로직 문제는 아니다(브라우저/배포 환경에서는 정상 동작, 알려진 예외로 남겨둠).
   - **부수 발견**: QA 중 `next build`가 "middleware 컨벤션은 deprecated, proxy 사용" 경고를 냄(Next.js 16). `middleware.ts` → `proxy.ts`로 마이그레이션(`export function middleware` → `export function proxy`, `lib/auth/anon-user.ts`의 import 경로 수정). 빌드 경고 해소, 쿠키 발급 동작은 그대로 확인.
 
 ---
@@ -311,16 +312,42 @@ PRD 11장 로드맵(Phase1=F1+F2, Phase2=F3, Phase3=F4)을 그대로 따르되, 
 **목표**: `docs/PRD.md` 13장에 정리한 관리자(운영) 기능 요구사항을 실제로 구현한다. PRD 13장이 이 스프린트의
 요구사항 원본이며, 착수 전 정리 단계에서만 작성됐다 — 구현은 아직 시작하지 않았다.
 
-**작업 항목** (PRD 13.x와 번호 대응)
+**선행조건**: Sprint 8.1(회원 시스템) — `users.role`을 얹을 실계정 테이블과 로그인 체계가 이미 있어야 한다.
 
-- [ ] 9.1 관리자 인증/권한 (PRD 13.2) — `users.role` 컬럼 추가, `/admin` 전용 라우트 가드
-- [ ] 9.2 리뷰 모더레이션 (PRD 13.3) — 전체 리뷰 검색/조회, 수동 숨김·복원·강제 삭제
-- [ ] 9.3 AI 생성 콘텐츠 검수 (PRD 13.4) — AI 요약 수정/재생성, 학문분야·산업분야 태그 검수 큐(현재
-      `classify-course-fields.ts`/`score-industry-relevance.ts`의 파일 기반 검수를 화면으로 대체)
-- [ ] 9.4 커리큘럼(F4) 데이터 관리 (PRD 13.5) — 학과별 `curricula` row·선수과목 CRUD, 더미/확정 데이터 구분 표시
-- [ ] 9.5 과목 카탈로그 운영 (PRD 13.6) — 과목 노출 여부(`isPublic`) 토글, 재수입 이력 조회
-- [ ] 9.6 사용자 관리 (PRD 13.7) — 계정 검색(마스킹), 정지/삭제, 관리자 권한 부여
-- [ ] 9.7 운영 대시보드 (PRD 13.8)
+**작업 항목** (PRD 13.x와 번호 대응, P0부터 순서대로 진행 권장)
+
+- [ ] 9.1 관리자 인증/권한 (PRD 13.2, P0)
+  - `users`에 `role`("user" | "admin") 컬럼 추가, 최초 관리자 계정은 회원가입 경로가 아니라 DB에 직접 시딩.
+  - `/admin` 이하 라우트에 `proxy.ts`의 로그인 가드와 별개로 관리자 권한 가드를 추가.
+  - DoD: 일반 계정으로 `/admin` URL을 직접 입력해도 접근이 막히고, `role=admin` 계정만 통과한다.
+- [ ] 9.2 리뷰 모더레이션 (PRD 13.3, P0)
+  - 전체 리뷰를 과목명/작성자/기간/`isFiltered` 상태로 검색·조회, 수동 숨김(`isFiltered=true`)/복원, 관리자
+    강제 삭제. 숨김 처리 시 `maybeRegenerateSummary`(`lib/actions/reviews.ts`) 재생성 대상에서 제외되도록 연동.
+  - DoD: 관리자가 특정 리뷰를 숨기면 과목 상세 페이지 집계·목록에서 즉시 빠지고, 복원하면 다시 나타난다.
+- [ ] 9.3 AI 생성 콘텐츠 검수 (PRD 13.4, P1)
+  - 과목별 AI 요약 열람/수정/강제 재생성. 학문분야(`course_field_tags`)·산업분야(`course_industry_tags`) AI
+    추천 후보를 승인/거부/수동 추가하는 검수 큐로, 현재 `classify-course-fields.ts`→JSON→
+    `apply-field-classification.ts`, `score-industry-relevance.ts`→JSON→`apply-industry-relevance.ts` 파일
+    기반 2단계 파이프라인을 대체. `field_tags`/`industry_tags` 자체(대분류·소분류·동의어/카테고리·설명) CRUD.
+  - DoD: 코드 배포·파일 편집 없이 화면에서 과목 하나의 분야 태그를 추가/제거할 수 있다.
+- [ ] 9.4 커리큘럼(F4) 데이터 관리 (PRD 13.5, P1)
+  - 학과·입학년도별 `curricula` row(전공필수 목록, 전공선택 최소학점, 교양 요건, 총 이수학점) CRUD, 과목
+    `prerequisiteCodes` 지정 UI, "더미/확정" 데이터 상태 구분 필드.
+  - DoD: 관리자가 신규 학과의 curricula를 화면에서 입력하면 코드 변경 없이 그 학과가 F4(`/curriculum`)
+    지원 대상 드롭다운에 나타난다(현재 전자공학부·컴퓨터인공지능학부 2개로 고정된 상태 해제).
+- [ ] 9.5 과목 카탈로그 운영 (PRD 13.6, P2)
+  - 과목 노출 여부(`courses.isPublic`) 토글, 최근 카탈로그 재수입(`import-courses.ts`) 실행 시각·결과 조회.
+    재수입 실행 자체는 계속 오프라인 스크립트로 남긴다(공식 원본 데이터라 수기 편집 대상 아님).
+  - DoD: `isPublic`을 끈 과목이 검색 결과·분야탐색에서 즉시 사라진다.
+- [ ] 9.6 사용자 관리 (PRD 13.7, P2)
+  - 학번(마스킹)·이메일·가입일 기준 계정 검색, 어뷰징 계정 정지/삭제, 9.1의 관리자 권한 부여/회수.
+  - DoD: 비밀번호 해시 등 민감정보 노출 없이 계정을 검색·정지할 수 있다.
+- [ ] 9.7 운영 대시보드 (PRD 13.8, P2)
+  - 리뷰 수, 신규 가입자 수, AI 요약 보유 과목 수/전체 과목 수, 최근 7일 숨김 리뷰 수, F2/F3 분류 파이프라인
+    마지막 실행 시각·검수 대기 건수를 한 화면에 표시.
+
+**메모**: 9.1~9.2(P0)가 끝나야 나머지 항목의 "관리자 전용 화면" 전제가 성립한다. 9.3(P1)은 다음 학기 카탈로그
+교체 시점 전에 갖추는 게 목표(매 학기 재분류가 필요하므로), 9.4(P1)는 F4 지원 학과를 넓히는 것과 직결.
 
 **담당 에이전트**: `nextjs-frontend`(화면), `neon-db`(`role` 컬럼·스키마 변경)
 
