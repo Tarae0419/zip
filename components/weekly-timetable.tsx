@@ -84,7 +84,10 @@ export function WeeklyTimetable({
                       type="button"
                       onClick={() => onSessionClick?.(session.courseId)}
                       className={cn(
-                        "absolute inset-x-1 overflow-hidden rounded-md border border-border border-l-[3px] bg-card px-1.5 py-1 text-left leading-tight text-foreground shadow-sm transition",
+                        // inset-x-1(양옆 여백)을 주면 그 여백 틈으로 뒤 정각 격자선이 계속 보였다 —
+                        // 여백을 없애 블록이 칸 폭을 꽉 채우게 하고, 둥근 모서리도 최소화해서 모서리
+                        // 컷아웃으로 선이 살짝 비치는 것까지 없앤다.
+                        "absolute inset-x-0 overflow-hidden rounded-[2px] border border-border border-l-[3px] bg-card px-1.5 py-1 text-left leading-tight text-foreground shadow-sm transition",
                         accent,
                         onSessionClick && "cursor-pointer hover:brightness-95",
                         isActive && "ring-2 ring-primary ring-offset-1",
