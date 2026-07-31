@@ -11,9 +11,9 @@ export const metadata = {
 export default async function CartPage({
   searchParams,
 }: {
-  searchParams: Promise<{ semester?: string; q?: string; department?: string; grade?: string }>
+  searchParams: Promise<{ semester?: string; q?: string; department?: string; grade?: string; category?: string }>
 }) {
-  const { semester, q, department, grade } = await searchParams
+  const { semester, q, department, grade, category } = await searchParams
 
   // 서로 의존관계가 없는 두 조회를 동시에 보낸다 — Neon HTTP 드라이버는 커넥션을 재사용하지
   // 않아 쿼리 하나당 왕복이 100~250ms씩 붙는데, 예전엔 학기 목록을 먼저 기다린 뒤에야
@@ -30,6 +30,7 @@ export default async function CartPage({
   const query = (q ?? "").trim()
   const selectedDepartment = department && department !== "전체" ? department : undefined
   const selectedGrade = grade && grade !== "전체" ? Number(grade) : undefined
+  const selectedCategory = category === "전공" || category === "교양" ? category : undefined
 
   const browsableCourses = activeSemester
     ? await getCoursesForSemester({
@@ -37,6 +38,7 @@ export default async function CartPage({
         query: query || undefined,
         department: selectedDepartment,
         grade: selectedGrade,
+        category: selectedCategory,
         limit: 30,
       })
     : []
@@ -58,6 +60,7 @@ export default async function CartPage({
             departments={departments}
             department={selectedDepartment ?? "전체"}
             grade={selectedGrade ? String(selectedGrade) : "전체"}
+            category={selectedCategory ?? "전체"}
             query={query}
             browsableCourses={browsableCourses}
             viewerDepartment={myDepartment}

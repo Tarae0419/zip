@@ -6,17 +6,20 @@ import { Loader2, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const GRADE_OPTIONS = ["전체", "1", "2", "3", "4"]
+const CATEGORY_OPTIONS = ["전체", "전공", "교양"]
 
 export function SemesterCourseFilterBar({
   query,
   department,
   departments,
   grade,
+  category,
 }: {
   query: string
   department: string
   departments: string[]
   grade: string
+  category: string
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -45,6 +48,21 @@ export function SemesterCourseFilterBar({
       onSubmit={handleSubmit}
       className={cn("flex flex-wrap items-center gap-3 transition-opacity", isPending && "opacity-60")}
     >
+      <label className="flex items-center gap-1.5 text-sm">
+        <span className="text-muted-foreground">구분</span>
+        <select
+          value={category}
+          onChange={(e) => updateParam("category", e.target.value)}
+          className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm font-medium text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+        >
+          {CATEGORY_OPTIONS.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </label>
+
       <label className="flex items-center gap-1.5 text-sm">
         <span className="text-muted-foreground">학과</span>
         <select

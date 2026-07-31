@@ -13,6 +13,7 @@ export function AddCourseModal({
   department,
   departments,
   grade,
+  category,
   browsableCourses,
   viewerDepartment,
   onClose,
@@ -22,6 +23,7 @@ export function AddCourseModal({
   department: string
   departments: string[]
   grade: string
+  category: string
   browsableCourses: Course[]
   viewerDepartment: string | null
   onClose: () => void
@@ -59,7 +61,7 @@ export function AddCourseModal({
         </div>
 
         <div className="border-b border-border px-5 py-3">
-          <SemesterCourseFilterBar query={query} department={department} departments={departments} grade={grade} />
+          <SemesterCourseFilterBar query={query} department={department} departments={departments} grade={grade} category={category} />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">

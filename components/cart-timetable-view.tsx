@@ -19,6 +19,7 @@ export function CartTimetableView({
   departments,
   department,
   grade,
+  category,
   query,
   browsableCourses,
   viewerDepartment,
@@ -28,6 +29,7 @@ export function CartTimetableView({
   departments: string[]
   department: string
   grade: string
+  category: string
   query: string
   browsableCourses: Course[]
   viewerDepartment: string | null
@@ -48,6 +50,7 @@ export function CartTimetableView({
     params.delete("q")
     params.delete("department")
     params.delete("grade")
+    params.delete("category")
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false })
     })
@@ -257,6 +260,7 @@ export function CartTimetableView({
           department={department}
           departments={departments}
           grade={grade}
+          category={category}
           browsableCourses={browsableCourses}
           viewerDepartment={viewerDepartment}
           onClose={() => setAddModalOpen(false)}

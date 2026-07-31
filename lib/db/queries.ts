@@ -284,23 +284,34 @@ export const getDistinctSemesters = unstable_cache(
  * unstable_cache로 (semester, query, department, grade) 조합별 60초 캐싱 — 같은 필터 조합을
  * 여러 사용자가 반복 조회해도 Neon 왕복이 매번 발생하지 않게 한다.
  */
+// "구분"(전공/교양) 필터용 — courses.department는 그 과목을 개설한 학과일 뿐이라(교양 과목도
+// 실제로는 철학과·경제학부 등 특정 학과가 개설), 학과 드롭다운만으로는 교양 과목을 따로 찾을 수
+// 없었다(2026-08-01 사용자 신고로 F5 "과목 추가"에 이 구분을 추가). 일반선택/교직/군사학은 둘 중
+// 어느 쪽도 아니라 "전체"에서만 보인다 — 전공/교양 어느 쪽을 골라도 나오지 않는다.
+const MAJOR_REQUIREMENT_TYPES = ["전공필수", "전공선택", "기초필수", "계열공통"] as const
+const GENERAL_EDUCATION_REQUIREMENT_TYPES = ["교양"] as const
+
 export const getCoursesForSemester = unstable_cache(
   async ({
     semester,
     query,
     department,
     grade,
+    category,
     limit = 30,
   }: {
     semester: string
     query?: string
     department?: string
     grade?: number
+    category?: "전공" | "교양"
     limit?: number
   }): Promise<Course[]> => {
     const conditions = [eq(courses.isPublic, true), eq(courses.semester, semester)]
     if (query) conditions.push(ilike(courses.name, `%${query}%`))
     if (department) conditions.push(eq(courses.department, department))
+    if (category === "전공") conditions.push(inArray(courses.requirementType, MAJOR_REQUIREMENT_TYPES))
+    if (category === "교양") conditions.push(inArray(courses.requirementType, GENERAL_EDUCATION_REQUIREMENT_TYPES))
 
     let rows: CourseRow[]
     if (grade) {
