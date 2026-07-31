@@ -70,9 +70,9 @@ export function CurriculumPlanner({
   const [doubleMajorDepartment, setDoubleMajorDepartment] = useState("")
   const [grade, setGrade] = useState(2)
   const [currentSemester, setCurrentSemester] = useState<1 | 2>(1)
-  const [earnedCredits, setEarnedCredits] = useState(45)
-  const [completedElectiveCredits, setCompletedElectiveCredits] = useState(0)
-  const [remainingSemesters, setRemainingSemesters] = useState(5)
+  const [earnedCredits, setEarnedCredits] = useState("45")
+  const [completedElectiveCredits, setCompletedElectiveCredits] = useState("0")
+  const [remainingSemesters, setRemainingSemesters] = useState("5")
   const [completedCodes, setCompletedCodes] = useState<string[]>([])
   const [interestOrder, setInterestOrder] = useState<string[]>([])
   const [excludedCodes, setExcludedCodes] = useState<string[]>([])
@@ -86,6 +86,10 @@ export function CurriculumPlanner({
   // 복수전공/부전공은 커리큘럼 추천 계산이 없어도(getCurriculumForDepartment가 null이면 서버 액션이
   // 단일 전공 기준으로만 계산하고 안내 문구를 넣어준다) 선택 자체는 실제 학과 전체를 대상으로 허용한다.
   const otherDepartments = allDepartments.filter((d) => d !== department)
+
+  function onlyDigits(value: string) {
+    return value.replace(/[^0-9]/g, "")
+  }
 
   function toggleCompleted(code: string) {
     setCompletedCodes((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]))
@@ -103,11 +107,11 @@ export function CurriculumPlanner({
         doubleMajorDepartment: doubleMajorDepartment || null,
         grade,
         currentSemester,
-        earnedCredits,
-        completedElectiveCredits,
+        earnedCredits: Number(earnedCredits) || 0,
+        completedElectiveCredits: Number(completedElectiveCredits) || 0,
         completedRequiredCourseCodes: completedCodes,
         interestFieldIds: interestOrder,
-        remainingSemesters,
+        remainingSemesters: Number(remainingSemesters) || 1,
         excludedCourseCodes: nextExcluded,
       })
       setResult(planResult)
@@ -199,15 +203,23 @@ export function CurriculumPlanner({
             </div>
 
             <Field label="기이수 학점">
-              <input type="number" min={0} value={earnedCredits} onChange={(e) => setEarnedCredits(Number(e.target.value))} className="input" />
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={earnedCredits}
+                onChange={(e) => setEarnedCredits(onlyDigits(e.target.value))}
+                className="input"
+              />
             </Field>
 
             <Field label="그중 전공선택으로 이미 인정된 학점">
               <input
-                type="number"
-                min={0}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={completedElectiveCredits}
-                onChange={(e) => setCompletedElectiveCredits(Number(e.target.value))}
+                onChange={(e) => setCompletedElectiveCredits(onlyDigits(e.target.value))}
                 className="input"
               />
             </Field>
@@ -227,7 +239,14 @@ export function CurriculumPlanner({
             )}
 
             <Field label="졸업까지 남은 학기 수">
-              <input type="number" min={1} max={12} value={remainingSemesters} onChange={(e) => setRemainingSemesters(Number(e.target.value))} className="input" />
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={remainingSemesters}
+                onChange={(e) => setRemainingSemesters(onlyDigits(e.target.value))}
+                className="input"
+              />
             </Field>
 
             <div>

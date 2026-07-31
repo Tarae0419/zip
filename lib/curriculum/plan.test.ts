@@ -26,6 +26,7 @@ function candidate(overrides: Partial<ElectiveCandidate> & Pick<ElectiveCandidat
     relevanceScore: 0.5,
     industryTagId: "tag-1",
     isOwnMajor: true,
+    requirementType: "전공선택",
     grade: null,
     ...overrides,
   }

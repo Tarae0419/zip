@@ -1,10 +1,14 @@
-// F4 결정론적 학점 계산·배치 로직 (PRD 8.4 추천로직 6~9). AI 위임 대상이 아니다 —
-// 여기서 만든 계획에 관심분야 매칭 과목의 "추천 사유" 문장만 lib/ai/curriculum-reasons.ts가 다듬는다.
+// F4 결정론적 학점 계산·배치 로직 (PRD 8.4 추천로직 6~9).
+// 2026-07-31부터: 전공필수 배치를 포함한 전체 커리큘럼 설계는 1차로 AI(lib/ai/curriculum-planner.ts)가 맡고,
+// 이 파일의 함수들은 (a) lib/curriculum/reconcile-ai-plan.ts가 AI 결과의 졸업요건 완결성·선수과목 순서·
+// 학점상한 위반을 검증·보정할 때 재사용하는 결정론적 안전망, (b) AI 호출 자체가 실패했을 때의 전체 폴백
+// 경로로 쓰인다. 순위/배치 로직 자체는 바뀌지 않았다 — docs/SPRINT_PLAN.md 오픈 이슈 로그 2026-07-31 참고.
 import type { ElectiveCandidate, OwnMajorElectiveCandidate, RequiredCourseInfo } from "@/lib/db/queries"
 import type { PlanItem, PlanItemType, PlanSemester } from "./types"
 
-const TARGET_CREDITS_PER_SEMESTER = 16
-const MAX_CREDITS_PER_SEMESTER = 18
+// lib/curriculum/reconcile-ai-plan.ts도 같은 상수/판정 기준을 써야 해서 export한다(로직은 그대로).
+export const TARGET_CREDITS_PER_SEMESTER = 16
+export const MAX_CREDITS_PER_SEMESTER = 18
 // 한 학년 위 과목까지는 미리 들을 수 있게 허용한다 — 완전히 못 박으면 3학년 2학기에 딱 한 학기
 // 차이인 4학년 1학기 과목조차 못 들어가는 등 너무 빡빡했다.
 const GRADE_LOOKAHEAD = 1
@@ -15,19 +19,19 @@ export function computeSemesterGrades(count: number, startGrade: number, startSe
 }
 
 /** 학생 학년(+GRADE_LOOKAHEAD 선이수 허용)으로 과목의 권장 학년을 감당할 수 있는지. 학년 정보가 없으면 항상 가능. */
-function isGradeEligible(studentGrade: number, courseGrade: number | null): boolean {
+export function isGradeEligible(studentGrade: number, courseGrade: number | null): boolean {
   return courseGrade === null || courseGrade <= studentGrade + GRADE_LOOKAHEAD
 }
 
 /** 과목의 최소 권장 학년(course_department_tracks 기준)을 만족하는 가장 이른 학기 인덱스. 학년 정보가 없으면 제약 없음(0). */
-function earliestGradeEligibleIndex(semesterGrades: number[], grade: number | null): number {
+export function earliestGradeEligibleIndex(semesterGrades: number[], grade: number | null): number {
   if (grade === null) return 0
   const idx = semesterGrades.findIndex((g) => isGradeEligible(g, grade))
   // 남은 학기 안에 그 학년(-1)에 도달하지 못하면(예: 4학기만 남았는데 4학년 과목) 그래도 마지막 학기에는 배치 가능하게 한다.
   return idx === -1 ? semesterGrades.length - 1 : idx
 }
 
-type RequiredGroup = { courses: RequiredCourseInfo[]; type: Extract<PlanItemType, "전공필수" | "복수전공필수"> }
+export type RequiredGroup = { courses: RequiredCourseInfo[]; type: Extract<PlanItemType, "전공필수" | "복수전공필수"> }
 
 function toPlanItem(course: RequiredCourseInfo, type: PlanItemType, reason: string, isOwnMajor: boolean): PlanItem {
   return {
@@ -133,8 +137,8 @@ export function fillMajorElectives(
 
     const tagName = candidate.matchedIndustryTagId ? interestFieldNameById.get(candidate.matchedIndustryTagId) : null
     const reason = tagName
-      ? `전공선택 학점 요건을 채우는 과목이면서, ${tagName} 분야와도 연관도가 높습니다.`
-      : "전공선택 학점 요건을 채우기 위한 과목입니다."
+      ? `전공선택 학점 요건을 채우면서, 과목명 기준으로 ${tagName} 분야와 연관도가 높게 나타난 과목이에요.`
+      : "전공선택 학점 요건을 채우기 위한 과목이에요."
 
     semesterItems[s].push({
       courseCode: candidate.code,
@@ -193,8 +197,20 @@ export function fillElectives(
     if (semesterCredits[s] + candidate.credits > MAX_CREDITS_PER_SEMESTER) return false
 
     const tagName = interestFieldNameById.get(candidate.industryTagId) ?? "관심"
-    const majorNote = candidate.isOwnMajor ? "" : ` (${candidate.department} 개설 — 타 전공 수강 가능 여부는 별도 확인이 필요해요)`
-    const reason = `${tagName} 분야 연관도가 높고 전공선택 학점으로 인정됩니다.${majorNote}`
+    // "전공선택 학점으로 인정됩니다"는 이수구분이 실제로 전공선택이고 본인 학과일 때만 참이다 — 예전엔
+    // 이 함수가 채우는 모든 관심분야 후보(교양·타 전공 포함)에 무조건 이 문구를 붙여서, 교양·타 전공
+    // 과목도 전공선택 학점으로 인정되는 것처럼 잘못 안내하고 있었다(2026-08-01 사용자 신고로 발견).
+    const creditNote =
+      candidate.requirementType === "전공선택" && candidate.isOwnMajor
+        ? " 전공선택 학점으로 인정돼요."
+        : candidate.requirementType === "교양"
+          ? " 교양 학점으로 활용할 수 있어요."
+          : ""
+    const typeLabel = candidate.requirementType ? ` ${candidate.requirementType}` : ""
+    const majorNote = candidate.isOwnMajor
+      ? ""
+      : ` (${candidate.department} 개설${typeLabel} 과목 — 타 전공 수강 가능 여부는 별도 확인이 필요해요)`
+    const reason = `${tagName} 분야 연관도가 높아요.${creditNote}${majorNote}`
 
     semesterItems[s].push({
       courseCode: candidate.code,

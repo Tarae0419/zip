@@ -636,6 +636,9 @@ export type ElectiveCandidate = {
   relevanceScore: number
   industryTagId: string
   isOwnMajor: boolean
+  // 실제 이수구분(전공선택/교양/전공필수 등) — "전공선택 학점으로 인정된다"는 건 이수구분이
+  // 진짜 전공선택이고(+본인 학과일 때만) 참이라, 추천 사유에서 credit 인정 여부를 정확히 말하려면 필요하다.
+  requirementType: string
   grade: number | null
 }
 
@@ -663,6 +666,7 @@ export async function getElectiveCandidates(
       name: courses.name,
       department: courses.department,
       credits: courses.credits,
+      requirementType: courses.requirementType,
       relevanceScore: courseIndustryTags.relevanceScore,
       industryTagId: courseIndustryTags.industryTagId,
     })
@@ -682,6 +686,7 @@ export async function getElectiveCandidates(
       name: r.name,
       department: r.department,
       credits: r.credits,
+      requirementType: r.requirementType,
       relevanceScore: r.relevanceScore,
       industryTagId: r.industryTagId,
       isOwnMajor: r.department === department,
@@ -698,6 +703,79 @@ export async function getElectiveCandidates(
   })
 
   // 과목명 기준 중복 제거 — 위 정렬 순서(본인 전공 우선, 그다음 연관도순) 그대로 첫 등장만 남긴다.
+  const seenNames = new Set<string>()
+  const deduped: ElectiveCandidate[] = []
+  for (const c of sorted) {
+    if (seenNames.has(c.name)) continue
+    seenNames.add(c.name)
+    deduped.push(c)
+  }
+
+  return deduped.slice(0, limit)
+}
+
+/**
+ * PRD 8.4 Edge Case — "관심 분야 관련 과목이 본인 학과·수강 가능 범위 내에 부족하면 계절학기·교양
+ * 과목까지 탐색 범위를 확장함". getElectiveCandidates는 본인 전공을 항상 최우선으로 정렬한 뒤
+ * limit개만 자르기 때문에, 본인 전공 안에 연관도 높은 과목이 많으면 실제로는 아주 관련 높은 교양
+ * 과목이 있어도 그 상한에 걸려 후보 풀에 아예 들어오지 못하는 문제가 있었다(2026-07-31 발견) — 교양은
+ * 학과 제약이 없는 별도 풀로 취급해, 본인 전공 후보 수와 무관하게 항상 연관도순으로 별도 조회한다.
+ * isOwnMajor를 항상 true로 채워서 반환한다 — 교양은 어느 학과 학생이든 수강 가능하므로 "타 전공 수강
+ * 가능 여부 확인" 안내가 필요 없다(ElectiveCandidate.isOwnMajor는 원래 "그 안내가 필요 없다"는 의미로 쓰인다).
+ */
+export async function getGeneralEducationElectiveCandidates(
+  interestFieldIds: string[],
+  excludeCodes: string[],
+  excludeNames: string[],
+  limit = 20,
+): Promise<ElectiveCandidate[]> {
+  if (interestFieldIds.length === 0) return []
+
+  const rows = await db
+    .select({
+      courseId: courses.id,
+      code: courses.code,
+      name: courses.name,
+      department: courses.department,
+      credits: courses.credits,
+      relevanceScore: courseIndustryTags.relevanceScore,
+      industryTagId: courseIndustryTags.industryTagId,
+    })
+    .from(courseIndustryTags)
+    .innerJoin(courses, eq(courses.id, courseIndustryTags.courseId))
+    .where(
+      and(
+        inArray(courseIndustryTags.industryTagId, interestFieldIds),
+        eq(courses.isPublic, true),
+        eq(courses.requirementType, "교양"),
+      ),
+    )
+    .orderBy(desc(courseIndustryTags.relevanceScore))
+
+  const excludeCodeSet = new Set(excludeCodes)
+  const excludeNameSet = new Set(excludeNames)
+  const bestByCode = new Map<string, ElectiveCandidate>()
+  for (const r of rows) {
+    if (!r.code || excludeCodeSet.has(r.code) || excludeNameSet.has(r.name) || bestByCode.has(r.code)) continue
+    bestByCode.set(r.code, {
+      courseId: r.courseId,
+      code: r.code,
+      name: r.name,
+      department: r.department,
+      credits: r.credits,
+      requirementType: "교양", // 위 where절이 이미 교양으로 고정
+      relevanceScore: r.relevanceScore,
+      industryTagId: r.industryTagId,
+      isOwnMajor: true,
+      grade: null,
+    })
+  }
+
+  const minGradeByCourseId = await getMinGradeByCourseIds([...bestByCode.values()].map((c) => c.courseId))
+  for (const c of bestByCode.values()) c.grade = minGradeByCourseId.get(c.courseId) ?? null
+
+  const sorted = [...bestByCode.values()].sort((a, b) => b.relevanceScore - a.relevanceScore)
+
   const seenNames = new Set<string>()
   const deduped: ElectiveCandidate[] = []
   for (const c of sorted) {
