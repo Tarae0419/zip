@@ -5,7 +5,8 @@ export type Weekday = "월" | "화" | "수" | "목" | "금"
 
 export const WEEKDAYS: Weekday[] = ["월", "화", "수", "목", "금"]
 
-// 장바구니에 담긴 과목 스냅샷. localStorage(sugang-cart-v1)에 그대로 직렬화된다.
+// 장바구니에 담긴 과목 스냅샷. cart_items 테이블(계정별)에서 courses와 조인해 채워진다
+// (2026-08-01 이전엔 localStorage(sugang-cart-v1)에 저장돼 계정 구분 없이 브라우저 단위였다).
 export type CartCourse = {
   id: string
   name: string

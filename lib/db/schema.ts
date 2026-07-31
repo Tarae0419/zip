@@ -230,6 +230,25 @@ export const curricula = pgTable(
   (table) => [uniqueIndex("curricula_department_year_idx").on(table.department, table.admissionYear)],
 )
 
+/**
+ * F5 "내 시간표"(장바구니) — 원래는 localStorage(sugang-cart-v1)에만 저장되는 브라우저 로컬
+ * 데이터였다. 계정(anonId)과 무관하게 브라우저 하나를 공유하면 서로 다른 계정으로 로그인해도
+ * 같은 장바구니가 보이는 문제가 있어(2026-08-01 사용자 신고), 계정별로 실제 분리되도록 DB로
+ * 옮겼다. 과목 자체의 학기 정보는 courses.semester에 이미 있어 따로 들고 있지 않는다.
+ */
+export const cartItems = pgTable(
+  "cart_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    anonId: varchar("anon_id", { length: 64 }).notNull(),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("cart_items_anon_course_idx").on(table.anonId, table.courseId)],
+)
+
 export const coursesRelations = relations(courses, ({ many, one }) => ({
   fieldTags: many(courseFieldTags),
   industryTags: many(courseIndustryTags),
