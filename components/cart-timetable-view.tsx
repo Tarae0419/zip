@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
+import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { CalendarDays, Loader2, MapPin, Plus, ShoppingCart, Trash2, X } from "lucide-react"
+import { CalendarDays, Info, Loader2, MapPin, Plus, ShoppingCart, Trash2, X } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { useCart } from "@/components/cart-provider"
 import { AddCourseModal } from "@/components/add-course-modal"
@@ -372,7 +373,15 @@ function CourseManagePopup({
           </ul>
         )}
 
-        <div className="mt-5 flex gap-2">
+        <Link
+          href={`/courses/${course.id}`}
+          className="mt-5 flex items-center justify-center gap-1.5 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/15"
+        >
+          <Info className="size-4" aria-hidden="true" />
+          자세히 보기
+        </Link>
+
+        <div className="mt-2 flex gap-2">
           <button
             type="button"
             onClick={onRemove}
