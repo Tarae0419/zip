@@ -37,6 +37,8 @@ export function SemesterCourseFilterBar({
       if (!value || value === "전체") params.delete(key)
       else params.set(key, value)
     }
+    // 필터가 바뀌면 결과 자체가 달라지니 페이지는 항상 1페이지로 되돌린다.
+    params.delete("page")
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false })
     })

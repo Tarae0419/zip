@@ -1,6 +1,12 @@
 import { AppHeader } from "@/components/app-header"
 import { CartTimetableView } from "@/components/cart-timetable-view"
-import { getCoursesForSemester, getDistinctDepartments, getDistinctSemesters, getUserDepartment } from "@/lib/db/queries"
+import {
+  COURSES_FOR_SEMESTER_PAGE_SIZE,
+  getCoursesForSemester,
+  getDistinctDepartments,
+  getDistinctSemesters,
+  getUserDepartment,
+} from "@/lib/db/queries"
 import { getAnonId } from "@/lib/auth/anon-user"
 
 export const metadata = {
@@ -11,9 +17,9 @@ export const metadata = {
 export default async function CartPage({
   searchParams,
 }: {
-  searchParams: Promise<{ semester?: string; q?: string; department?: string; grade?: string; category?: string }>
+  searchParams: Promise<{ semester?: string; q?: string; department?: string; grade?: string; category?: string; page?: string }>
 }) {
-  const { semester, q, department, grade, category } = await searchParams
+  const { semester, q, department, grade, category, page } = await searchParams
 
   // 서로 의존관계가 없는 두 조회를 동시에 보낸다 — Neon HTTP 드라이버는 커넥션을 재사용하지
   // 않아 쿼리 하나당 왕복이 100~250ms씩 붙는데, 예전엔 학기 목록을 먼저 기다린 뒤에야
@@ -31,17 +37,19 @@ export default async function CartPage({
   const selectedDepartment = department && department !== "전체" ? department : undefined
   const selectedGrade = grade && grade !== "전체" ? Number(grade) : undefined
   const selectedCategory = category === "전공" || category === "교양" ? category : undefined
+  const currentPage = Math.max(1, Number(page) || 1)
 
-  const browsableCourses = activeSemester
+  const { courses: browsableCourses, totalCount: browsableTotalCount } = activeSemester
     ? await getCoursesForSemester({
         semester: activeSemester,
         query: query || undefined,
         department: selectedDepartment,
         grade: selectedGrade,
         category: selectedCategory,
-        limit: 30,
+        page: currentPage,
       })
-    : []
+    : { courses: [], totalCount: 0 }
+  const browsableTotalPages = Math.max(1, Math.ceil(browsableTotalCount / COURSES_FOR_SEMESTER_PAGE_SIZE))
 
   return (
     <div className="min-h-svh">
@@ -63,6 +71,9 @@ export default async function CartPage({
             category={selectedCategory ?? "전체"}
             query={query}
             browsableCourses={browsableCourses}
+            browsableTotalCount={browsableTotalCount}
+            browsableTotalPages={browsableTotalPages}
+            page={currentPage}
             viewerDepartment={myDepartment}
           />
         </div>

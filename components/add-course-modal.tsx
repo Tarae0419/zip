@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect } from "react"
-import { X } from "lucide-react"
+import { useEffect, useTransition } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { CourseCard } from "@/components/course-card"
 import { SemesterCourseFilterBar } from "@/components/semester-course-filter-bar"
 import { formatSemesterLabel } from "@/lib/timetable/schedule"
+import { cn } from "@/lib/utils"
 
 export function AddCourseModal({
   semester,
@@ -15,6 +17,9 @@ export function AddCourseModal({
   grade,
   category,
   browsableCourses,
+  browsableTotalCount,
+  browsableTotalPages,
+  page,
   viewerDepartment,
   onClose,
 }: {
@@ -25,9 +30,17 @@ export function AddCourseModal({
   grade: string
   category: string
   browsableCourses: Course[]
+  browsableTotalCount: number
+  browsableTotalPages: number
+  page: number
   viewerDepartment: string | null
   onClose: () => void
 }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") onClose()
@@ -35,6 +48,17 @@ export function AddCourseModal({
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [onClose])
+
+  function goToPage(nextPage: number) {
+    const params = new URLSearchParams(searchParams.toString())
+    if (nextPage <= 1) params.delete("page")
+    else params.set("page", String(nextPage))
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    })
+  }
+
+  const hasFilters = Boolean(query) || department !== "전체" || grade !== "전체" || category !== "전체"
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" onClick={onClose} role="presentation">
@@ -64,7 +88,7 @@ export function AddCourseModal({
           <SemesterCourseFilterBar query={query} department={department} departments={departments} grade={grade} category={category} />
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className={cn("min-h-0 flex-1 overflow-y-auto px-5 py-4 transition-opacity", isPending && "opacity-60")}>
           {browsableCourses.length === 0 ? (
             <p className="rounded-xl border border-dashed border-border bg-background p-6 text-center text-sm text-muted-foreground">
               조건에 맞는 과목이 없어요. 다른 과목명이나 학과로 찾아보세요.
@@ -72,8 +96,7 @@ export function AddCourseModal({
           ) : (
             <>
               <p className="text-sm text-muted-foreground">
-                {query || department !== "전체" || grade !== "전체" ? "검색 결과" : "수강인원이 많은 순으로 보여드려요"} ·{" "}
-                {browsableCourses.length}개
+                {hasFilters ? "검색 결과" : "수강인원이 많은 순으로 보여드려요"} · 총 {browsableTotalCount}개
               </p>
               <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {browsableCourses.map((course) => (
@@ -83,6 +106,33 @@ export function AddCourseModal({
             </>
           )}
         </div>
+
+        {browsableTotalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 border-t border-border px-5 py-3">
+            <button
+              type="button"
+              onClick={() => goToPage(page - 1)}
+              disabled={page <= 1}
+              aria-label="이전 페이지"
+              className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+            >
+              <ChevronLeft className="size-4" aria-hidden="true" />
+            </button>
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+              {isPending && <Loader2 className="size-3.5 animate-spin text-muted-foreground" aria-hidden="true" />}
+              {page} / {browsableTotalPages} 페이지
+            </span>
+            <button
+              type="button"
+              onClick={() => goToPage(page + 1)}
+              disabled={page >= browsableTotalPages}
+              aria-label="다음 페이지"
+              className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+            >
+              <ChevronRight className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

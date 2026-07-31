@@ -291,6 +291,12 @@ export const getDistinctSemesters = unstable_cache(
 const MAJOR_REQUIREMENT_TYPES = ["전공필수", "전공선택", "기초필수", "계열공통"] as const
 const GENERAL_EDUCATION_REQUIREMENT_TYPES = ["교양"] as const
 
+export type CoursesForSemesterResult = { courses: Course[]; totalCount: number }
+
+// "과목 추가" 목록 페이지네이션 크기 — 프런트(add-course-modal.tsx)도 전체 페이지 수 계산에
+// 이 값을 그대로 쓴다(getCoursesForSemester 호출 시 pageSize를 명시하지 않으면 이 기본값이 적용됨).
+export const COURSES_FOR_SEMESTER_PAGE_SIZE = 20
+
 export const getCoursesForSemester = unstable_cache(
   async ({
     semester,
@@ -298,45 +304,72 @@ export const getCoursesForSemester = unstable_cache(
     department,
     grade,
     category,
-    limit = 30,
+    page = 1,
+    pageSize = COURSES_FOR_SEMESTER_PAGE_SIZE,
   }: {
     semester: string
     query?: string
     department?: string
     grade?: number
     category?: "전공" | "교양"
-    limit?: number
-  }): Promise<Course[]> => {
+    page?: number
+    pageSize?: number
+  }): Promise<CoursesForSemesterResult> => {
     const conditions = [eq(courses.isPublic, true), eq(courses.semester, semester)]
     if (query) conditions.push(ilike(courses.name, `%${query}%`))
     if (department) conditions.push(eq(courses.department, department))
     if (category === "전공") conditions.push(inArray(courses.requirementType, MAJOR_REQUIREMENT_TYPES))
     if (category === "교양") conditions.push(inArray(courses.requirementType, GENERAL_EDUCATION_REQUIREMENT_TYPES))
 
+    const offset = Math.max(0, (page - 1) * pageSize)
+
     let rows: CourseRow[]
+    let totalCount: number
     if (grade) {
-      const joined = await db
-        .selectDistinct({ course: courses })
-        .from(courses)
-        .innerJoin(courseDepartmentTracks, eq(courseDepartmentTracks.courseId, courses.id))
-        .where(and(...conditions, eq(courseDepartmentTracks.grade, grade)))
-        .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
-        .limit(limit)
+      const gradeConditions = and(...conditions, eq(courseDepartmentTracks.grade, grade))
+      const [joined, [countRow]] = await Promise.all([
+        db
+          .selectDistinct({ course: courses })
+          .from(courses)
+          .innerJoin(courseDepartmentTracks, eq(courseDepartmentTracks.courseId, courses.id))
+          .where(gradeConditions)
+          .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
+          .limit(pageSize)
+          .offset(offset),
+        db
+          .select({ count: sql<string>`count(distinct ${courses.id})` })
+          .from(courses)
+          .innerJoin(courseDepartmentTracks, eq(courseDepartmentTracks.courseId, courses.id))
+          .where(gradeConditions),
+      ])
       rows = joined.map((r) => r.course)
+      totalCount = Number(countRow?.count ?? 0)
     } else {
-      rows = await db
-        .select()
-        .from(courses)
-        .where(and(...conditions))
-        .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
-        .limit(limit)
+      const [pageRows, [countRow]] = await Promise.all([
+        db
+          .select()
+          .from(courses)
+          .where(and(...conditions))
+          .orderBy(sql`${courses.enrolledCount} desc nulls last`, courses.name)
+          .limit(pageSize)
+          .offset(offset),
+        db
+          .select({ count: sql<string>`count(*)` })
+          .from(courses)
+          .where(and(...conditions)),
+      ])
+      rows = pageRows
+      totalCount = Number(countRow?.count ?? 0)
     }
 
     // 이 목록만 "과목 추가" 카드에서 수업 시간을 미리 보여줘야 해서 timeSlots를 같이 붙인다
     // (toCourseView는 다른 화면과 공유하므로 여기서만 별도로 채운다).
     const timeSlotsById = new Map(rows.map((r) => [r.id, r.timeSlots]))
     const views = await attachReviewStats(rows)
-    return views.map((c) => ({ ...c, timeSlots: timeSlotsById.get(c.id) ?? null }))
+    return {
+      courses: views.map((c) => ({ ...c, timeSlots: timeSlotsById.get(c.id) ?? null })),
+      totalCount,
+    }
   },
   ["courses-for-semester"],
   { revalidate: 60 },
