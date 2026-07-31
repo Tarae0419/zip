@@ -24,20 +24,23 @@ export async function SearchResults({
     semester: semester !== "전체" ? semester : undefined,
   }
 
-  // 이름 매칭과 분야 매칭은 서로 독립적으로 조회할 수 있다 — 분야 쪽은 일단 제외 없이 받아온 뒤
-  // 이름 매칭 결과와 겹치는 것만 자바스크립트에서 걸러낸다. 두 조회를 순서대로(await 후 await) 하면
-  // Neon 서버리스 드라이버 특성상 왕복이 두 번 직렬로 쌓여 느려지므로 Promise.all로 동시에 보낸다.
+  // 이름 매칭과 분야 매칭은 서로 독립적으로 조회한다 — 분야 탭은 태그된 과목을 전부 보여주는 게
+  // 목적이라, 이름에도 검색어가 포함된 과목(예: "반도체" 검색 시 "반도체소자" 같은 과목)이라도 걸러내지
+  // 않는다(2026-08-01 변경 전에는 이름 탭과 겹치는 과목을 분야 탭에서 제외했는데, "반도체"처럼 학과가
+  // 과목명에 검색어를 그대로 쓰는 분야는 태그된 과목 대부분이 이름 탭에도 잡혀서 분야 탭이 거의 비어
+  // 보이는 문제가 있었다). 두 조회를 순서대로(await 후 await) 하면 Neon 서버리스 드라이버 특성상
+  // 왕복이 두 번 직렬로 쌓여 느려지므로 Promise.all로 동시에 보낸다.
   const anonId = await getAnonId()
-  const [{ view: nameMatches }, fieldMatchesRaw, availableSemesters, myDepartment] = await Promise.all([
+  const [{ view: nameMatches }, fieldMatches, availableSemesters, myDepartment] = await Promise.all([
     query ? searchCoursesByName(query, filters) : Promise.resolve({ view: [] as Course[], rows: [] }),
     query ? searchCoursesByFieldTag(query, [], filters) : Promise.resolve([] as Course[]),
     getDistinctSemesters(),
     getUserDepartment(anonId),
   ])
 
-  const nameIds = new Set(nameMatches.map((c) => c.id))
-  const fieldMatches = fieldMatchesRaw.filter((c) => !nameIds.has(c.id))
-  const hasResults = nameMatches.length + fieldMatches.length > 0
+  // 헤더의 "총 N개 과목"은 두 탭에 겹쳐 나오는 과목을 중복 집계하지 않도록 고유 개수로 센다.
+  const uniqueResultCount = new Set([...nameMatches, ...fieldMatches].map((c) => c.id)).size
+  const hasResults = uniqueResultCount > 0
 
   // 명시적으로 tab 파라미터가 있으면 그걸 따르고, 없으면 결과가 있는 쪽을 기본으로 보여준다.
   const requestedTab = searchParams.tab === "field" || searchParams.tab === "name" ? searchParams.tab : null
@@ -50,7 +53,7 @@ export async function SearchResults({
         <h1 className="font-display text-2xl font-bold text-foreground">
           &quot;{query}&quot;
           <span className="ml-2 text-base font-normal text-muted-foreground">
-            총 {nameMatches.length + fieldMatches.length}개 과목
+            총 {uniqueResultCount}개 과목
           </span>
         </h1>
       </div>
