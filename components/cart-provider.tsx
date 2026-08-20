@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import type { CartCourse } from "@/lib/timetable/types"
 import { addCartItem, getCartItems, removeCartItem } from "@/lib/actions/cart"
+import { applyPreferredScheduleCandidate } from "@/lib/actions/schedule-preferences"
 
 type CartContextValue = {
   cart: CartCourse[]
@@ -12,6 +13,7 @@ type CartContextValue = {
   addCourse: (course: CartCourse) => void
   removeCourse: (courseId: string) => void
   toggleCourse: (course: CartCourse) => void
+  replaceSemesterCart: (semester: string, courses: CartCourse[]) => Promise<boolean>
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -67,6 +69,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       })
     }
 
+    const replaceSemesterCart = async (semester: string, nextCourses: CartCourse[]) => {
+      const previous = cart
+      setCart((current) => [...current.filter((course) => course.semester !== semester), ...nextCourses])
+      try {
+        const result = await applyPreferredScheduleCandidate(semester, nextCourses.map((course) => course.id))
+        if (!result.ok) setCart(previous)
+        return result.ok
+      } catch {
+        setCart(previous)
+        return false
+      }
+    }
+
     return {
       cart,
       mounted,
@@ -75,6 +90,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addCourse,
       removeCourse,
       toggleCourse,
+      replaceSemesterCart,
     }
   }, [cart, mounted])
 

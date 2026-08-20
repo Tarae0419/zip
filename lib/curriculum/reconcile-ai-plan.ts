@@ -74,6 +74,7 @@ export function reconcileAiPlacements(params: {
       type: candidate.category,
       reason: placement.reason,
       isOwnMajor: candidate.isOwnMajor,
+      prerequisiteCodes: candidate.prerequisiteCodes,
       matchedIndustryTagId: candidate.matchedIndustryTagId ?? undefined,
     }
     semesterItems[idx].push(item)

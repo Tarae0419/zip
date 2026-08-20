@@ -19,6 +19,8 @@ function toCartCourse(row: {
   semester: string
   classroom: string | null
   timeSlots: string | null
+  targetStudents?: string | null
+  prerequisiteCodes?: string[] | null
 }): CartCourse {
   return {
     id: row.id,
@@ -30,6 +32,8 @@ function toCartCourse(row: {
     semester: row.semester,
     classroom: row.classroom,
     timeSlots: row.timeSlots,
+    targetStudents: row.targetStudents ?? null,
+    prerequisiteCodes: row.prerequisiteCodes ?? [],
   }
 }
 
@@ -47,6 +51,8 @@ export async function getCartItems(): Promise<CartCourse[]> {
       semester: courses.semester,
       classroom: courses.classroom,
       timeSlots: courses.timeSlots,
+      targetStudents: courses.targetStudents,
+      prerequisiteCodes: courses.prerequisiteCodes,
     })
     .from(cartItems)
     .innerJoin(courses, eq(courses.id, cartItems.courseId))
@@ -92,6 +98,8 @@ export async function getCartCourseInfo(courseId: string): Promise<CartCourse | 
       semester: courses.semester,
       classroom: courses.classroom,
       timeSlots: courses.timeSlots,
+      targetStudents: courses.targetStudents,
+      prerequisiteCodes: courses.prerequisiteCodes,
     })
     .from(courses)
     .where(eq(courses.id, courseId))

@@ -1,17 +1,19 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, CalendarClock, MapPin, MessageSquareText, Sparkles } from "lucide-react"
+import { ArrowLeft, BarChart3, CalendarClock, MapPin, MessageSquareText, Sparkles } from "lucide-react"
 import { AppHeader } from "@/components/app-header"
 import { AiSummaryCard } from "@/components/ai-summary-card"
 import { ReviewList } from "@/components/review-list"
 import { ReviewComposer } from "@/components/review-composer"
 import { RatingStars, RequirementBadge, resolveDisplayRequirement } from "@/components/course-badges"
 import { CartToggleButton } from "@/components/cart-toggle-button"
-import { getCourseView, getUserDepartment } from "@/lib/db/queries"
+import { getCourseEnrollmentTrend, getCourseView, getUserDepartment } from "@/lib/db/queries"
 import { getCartCourseInfo } from "@/lib/actions/cart"
 import { getAnonId } from "@/lib/auth/anon-user"
 import { buildSessionsForCourse, formatMinutes } from "@/lib/timetable/schedule"
 import type { Course } from "@/lib/types"
+import { summarizeEnrollmentTrend } from "@/lib/enrollment/trend"
+import type { EnrollmentTrendPoint } from "@/lib/enrollment/trend"
 
 // PRD F1 — 요약을 생성하기 위한 최소 리뷰 수
 const MIN_REVIEWS_FOR_SUMMARY = 5
@@ -24,10 +26,11 @@ export default async function CourseDetailPage({
 }) {
   const { id } = await params
   const anonId = await getAnonId()
-  const [result, cartInfo, myDepartment] = await Promise.all([
+  const [result, cartInfo, myDepartment, enrollmentTrend] = await Promise.all([
     getCourseView(id, anonId),
     getCartCourseInfo(id),
     getUserDepartment(anonId),
+    getCourseEnrollmentTrend(id),
   ])
 
   if (!result) {
@@ -101,6 +104,8 @@ export default async function CourseDetailPage({
           </section>
         )}
 
+        <EnrollmentTrendSection points={enrollmentTrend} />
+
         {/* AI 요약 카드 (가장 눈에 띄게 상단 배치) */}
         <div className="mt-6">
           <CourseAiSummarySection course={course} />
@@ -128,6 +133,28 @@ export default async function CourseDetailPage({
         </section>
       </main>
     </div>
+  )
+}
+
+function EnrollmentTrendSection({ points }: { points: EnrollmentTrendPoint[] }) {
+  const max = Math.max(1, ...points.map((point) => point.enrolledCount))
+  return (
+    <section className="mt-6 rounded-2xl border border-border bg-card p-4 md:p-5">
+      <div className="flex items-center gap-2"><BarChart3 className="size-4 text-primary" aria-hidden="true" /><h2 className="font-display text-sm font-bold text-foreground">학기별 수강 인원</h2></div>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{summarizeEnrollmentTrend(points)}</p>
+      {points.length > 0 ? (
+        <div className="mt-4 space-y-3">
+          {points.map((point) => (
+            <div key={point.semester} className="grid grid-cols-[72px_1fr_auto] items-center gap-3 text-sm">
+              <span className="font-medium text-foreground">{point.semester}</span>
+              <div className="h-3 overflow-hidden rounded-full bg-secondary" aria-hidden="true"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(4, Math.round((point.enrolledCount / max) * 100))}%` }} /></div>
+              <span className="text-right text-muted-foreground">{point.enrolledCount}명 · {point.sectionCount}개 분반{point.capacity !== null ? ` / 정원 ${point.capacity}명` : ""}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <p className="mt-4 text-xs text-muted-foreground">동일 학수번호의 분반을 학기별로 합산한 값입니다. 수강편람 원본의 수강 인원·정원 데이터를 사용하며, 데이터가 없는 학기는 표시하지 않습니다.</p>
+    </section>
   )
 }
 

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Link from "next/link"
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import {
   AlertCircle,
   BrainCircuit,
@@ -57,12 +57,14 @@ export function CurriculumPlanner({
   requiredCoursesByDepartment,
   interestFields,
   myDepartment,
+  curriculumMetadataByDepartment,
 }: {
   curriculumDepartments: string[]
   allDepartments: string[]
   requiredCoursesByDepartment: Record<string, RequiredCourseOption[]>
   interestFields: InterestField[]
   myDepartment: string | null
+  curriculumMetadataByDepartment: Record<string, { admissionYear: number; dataStatus: "illustrative" | "confirmed" }>
 }) {
   const [isPending, startTransition] = useTransition()
   // 학과는 더 이상 직접 고르게 하지 않는다 — 회원가입 때 저장해둔 본인 학과를 그대로 쓴다.
@@ -76,13 +78,18 @@ export function CurriculumPlanner({
   const [completedCodes, setCompletedCodes] = useState<string[]>([])
   const [interestOrder, setInterestOrder] = useState<string[]>([])
   const [excludedCodes, setExcludedCodes] = useState<string[]>([])
+  const [careerKeyword, setCareerKeyword] = useState("")
 
   const [result, setResult] = useState<CurriculumPlanResult | null>(null)
   const [activeTab, setActiveTab] = useState(0)
   const [openItem, setOpenItem] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState({ accuracy: 0, usefulness: 0, explainability: 0 })
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
 
   const requiredOptions = requiredCoursesByDepartment[department] ?? []
+  const curriculumMetadata = curriculumMetadataByDepartment[department]
   // 복수전공/부전공은 커리큘럼 추천 계산이 없어도(getCurriculumForDepartment가 null이면 서버 액션이
   // 단일 전공 기준으로만 계산하고 안내 문구를 넣어준다) 선택 자체는 실제 학과 전체를 대상으로 허용한다.
   const otherDepartments = allDepartments.filter((d) => d !== department)
@@ -113,6 +120,7 @@ export function CurriculumPlanner({
         interestFieldIds: interestOrder,
         remainingSemesters: Number(remainingSemesters) || 1,
         excludedCourseCodes: nextExcluded,
+        careerKeyword: careerKeyword.trim(),
       })
       setResult(planResult)
       setActiveTab(0)
@@ -147,6 +155,61 @@ export function CurriculumPlanner({
 
   const noDepartments = curriculumDepartments.length === 0
 
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("curriculum-plan-v2")
+      if (!raw) return
+      const saved = JSON.parse(raw) as { result?: CurriculumPlanResult; careerKeyword?: string }
+      if (saved.result?.status === "ok" && Array.isArray(saved.result.semesters) && Array.isArray(saved.result.capabilityActivities)) {
+        setResult(saved.result)
+        setCareerKeyword(saved.careerKeyword ?? "")
+        setSaveMessage("이 브라우저에 저장된 커리큘럼을 불러왔어요.")
+      }
+    } catch {
+      window.localStorage.removeItem("curriculum-plan-v2")
+    }
+  }, [])
+
+  function updateActivity(index: number, field: "title" | "reason", value: string) {
+    setResult((current) => {
+      if (!current || current.status !== "ok") return current
+      return {
+        ...current,
+        capabilityActivities: current.capabilityActivities.map((activity, activityIndex) =>
+          activityIndex === index ? { ...activity, [field]: value } : activity,
+        ),
+      }
+    })
+  }
+
+  function removeActivity(index: number) {
+    setResult((current) => {
+      if (!current || current.status !== "ok") return current
+      return { ...current, capabilityActivities: current.capabilityActivities.filter((_, activityIndex) => activityIndex !== index) }
+    })
+  }
+
+  function savePlan() {
+    if (!result || result.status !== "ok") return
+    window.localStorage.setItem(
+      "curriculum-plan-v2",
+      JSON.stringify({ version: 1, savedAt: new Date().toISOString(), careerKeyword, result }),
+    )
+    setSaveMessage("수정한 커리큘럼을 이 브라우저에 저장했어요.")
+  }
+
+  function saveFeedback() {
+    if (Object.values(feedback).some((score) => score < 1)) {
+      setFeedbackMessage("세 항목을 모두 평가해주세요.")
+      return
+    }
+    window.localStorage.setItem(
+      "curriculum-feedback-v2",
+      JSON.stringify({ version: 1, createdAt: new Date().toISOString(), ...feedback }),
+    )
+    setFeedbackMessage("평가를 저장했어요. 추천 품질 개선 기준으로 활용할게요.")
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
       {/* 입력 폼 */}
@@ -170,6 +233,21 @@ export function CurriculumPlanner({
             <div>
               <span className="mb-1.5 block text-sm font-medium text-foreground">학과</span>
               <p className="rounded-lg border border-input bg-muted/40 px-3 py-2 text-sm font-semibold text-foreground">{department}</p>
+              {curriculumMetadata ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span>{curriculumMetadata.admissionYear}학년도 교육과정 기준</span>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 font-semibold",
+                      curriculumMetadata.dataStatus === "confirmed"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+                    )}
+                  >
+                    {curriculumMetadata.dataStatus === "confirmed" ? "공식 자료 확인" : "참고용 데이터"}
+                  </span>
+                </div>
+              ) : null}
             </div>
 
             <Field label="복수전공/부전공 (선택)">
@@ -277,6 +355,17 @@ export function CurriculumPlanner({
                 })}
               </div>
             </div>
+
+            <Field label="관심 직무·역량 키워드 (선택)">
+              <input
+                type="search"
+                maxLength={80}
+                value={careerKeyword}
+                onChange={(event) => setCareerKeyword(event.target.value)}
+                placeholder="예: 생성형 AI 서비스 기획, 데이터 분석"
+                className="input"
+              />
+            </Field>
           </div>
         )}
 
@@ -324,6 +413,13 @@ export function CurriculumPlanner({
 
         {result?.status === "ok" && activeSemester && (
           <div>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-3">
+              <p className="text-sm text-muted-foreground">추천 결과와 직접 수정한 활동을 브라우저에 보관할 수 있어요.</p>
+              <button type="button" onClick={savePlan} className="rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90">
+                현재 계획 저장
+              </button>
+              {saveMessage ? <p className="w-full text-xs text-primary" role="status">{saveMessage}</p> : null}
+            </div>
             {result.notes.map((note, i) => (
               <div key={i} className="mt-2 flex items-start gap-2 rounded-xl border border-border bg-accent/50 p-3.5 text-sm text-accent-foreground first:mt-0">
                 <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -381,6 +477,99 @@ export function CurriculumPlanner({
                 </p>
               )}
             </div>
+
+            {result.capabilityActivities.length > 0 ? (
+              <section className="mt-8">
+                <div className="flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <h2 className="font-display text-lg font-bold text-foreground">학년별 역량 활동</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">관심 분야와 키워드를 바탕으로 만든 비교과·프로젝트 제안이에요.</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">공식 교내 프로그램이 아닌 AI 제안일 수 있어요.</span>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {result.capabilityActivities.map((activity, index) => (
+                    <article key={`${activity.grade}-${activity.title}-${index}`} className="rounded-xl border border-border bg-card p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">{activity.grade}학년</span>
+                        <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">{activity.category}</span>
+                        <span className="ml-auto text-xs text-muted-foreground">확신 {activity.confidence}</span>
+                      </div>
+                      <label className="mt-3 block">
+                        <span className="sr-only">활동 제목 수정</span>
+                        <input
+                          value={activity.title}
+                          maxLength={100}
+                          onChange={(event) => updateActivity(index, "title", event.target.value)}
+                          className="w-full rounded-lg border border-transparent bg-transparent px-2 py-1 font-display font-bold text-foreground outline-none transition hover:border-border focus:border-ring focus:ring-2 focus:ring-ring/25"
+                        />
+                      </label>
+                      <label className="mt-2 block">
+                        <span className="sr-only">추천 이유 수정</span>
+                        <textarea
+                          value={activity.reason}
+                          maxLength={400}
+                          rows={3}
+                          onChange={(event) => updateActivity(index, "reason", event.target.value)}
+                          className="w-full resize-y rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm leading-relaxed text-muted-foreground outline-none transition hover:border-border focus:border-ring focus:ring-2 focus:ring-ring/25"
+                        />
+                      </label>
+                      <dl className="mt-3 space-y-2 border-t border-border pt-3 text-xs">
+                        <div>
+                          <dt className="font-semibold text-foreground">기대 역량</dt>
+                          <dd className="mt-0.5 text-muted-foreground">{activity.expectedCapability}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-semibold text-foreground">추천 근거</dt>
+                          <dd className="mt-0.5 text-muted-foreground">{activity.evidenceBasis}</dd>
+                        </div>
+                      </dl>
+                      <div className="mt-3 flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-medium text-primary">{activity.sourceType} · 사용자 수정 가능</p>
+                        <button type="button" onClick={() => removeActivity(index)} className="text-xs font-medium text-destructive hover:underline">활동 삭제</button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <section className="mt-8 rounded-2xl border border-border bg-card p-5">
+              <h2 className="font-display text-lg font-bold text-foreground">추천 만족도</h2>
+              <p className="mt-1 text-sm text-muted-foreground">각 항목을 1점부터 5점까지 평가해주세요.</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                {([
+                  ["accuracy", "정확성"],
+                  ["usefulness", "유용성"],
+                  ["explainability", "설명 가능성"],
+                ] as const).map(([key, label]) => (
+                  <fieldset key={key}>
+                    <legend className="text-sm font-semibold text-foreground">{label}</legend>
+                    <div className="mt-2 flex gap-1">
+                      {[1, 2, 3, 4, 5].map((score) => (
+                        <button
+                          key={score}
+                          type="button"
+                          aria-label={`${label} ${score}점`}
+                          aria-pressed={feedback[key] === score}
+                          onClick={() => setFeedback((current) => ({ ...current, [key]: score }))}
+                          className={cn(
+                            "flex size-8 items-center justify-center rounded-full border text-xs font-bold transition",
+                            feedback[key] === score ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/40",
+                          )}
+                        >
+                          {score}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                ))}
+              </div>
+              <button type="button" onClick={saveFeedback} className="mt-5 rounded-full border border-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/10">
+                평가 저장
+              </button>
+              {feedbackMessage ? <p className="mt-3 text-sm text-muted-foreground" role="status">{feedbackMessage}</p> : null}
+            </section>
           </div>
         )}
       </div>
@@ -421,6 +610,19 @@ function PlanItemRow({
         </button>
       </div>
       {isOpen && <p className="border-t border-border px-4 py-3 text-sm leading-relaxed text-muted-foreground">{item.reason}</p>}
+      {isOpen && item.prerequisiteCodes.length > 0 ? (
+        <div className="border-t border-border px-4 py-3 text-sm">
+          <p className="font-medium text-foreground">선수과목</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {item.prerequisiteCodes.map((code) => (
+              <span key={code} className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                {code}
+              </span>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">이 과목보다 앞선 학기에 이수하도록 자동 검증된 항목입니다.</p>
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -243,7 +243,7 @@ describe("toSemesterLabels / buildSemesters", () => {
 
     const semesterItems: ReturnType<typeof placeRequiredCourses>["semesterItems"] = [
       [
-        { courseCode: "A", courseId: "id-A", name: "A", department: "d", credits: 3, type: "전공필수", reason: "", isOwnMajor: true },
+        { courseCode: "A", courseId: "id-A", name: "A", department: "d", credits: 3, type: "전공필수", reason: "", isOwnMajor: true, prerequisiteCodes: [] },
       ],
       [],
     ]

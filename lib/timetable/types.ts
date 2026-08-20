@@ -17,6 +17,8 @@ export type CartCourse = {
   semester: string
   classroom: string | null
   timeSlots: string | null
+  targetStudents?: string | null
+  prerequisiteCodes?: string[]
 }
 
 // courses.classroom 원문("전주:공과대학 8호관 402 ")을 파싱한 결과.

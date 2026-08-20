@@ -20,13 +20,21 @@ export default async function CurriculumPage() {
     getUserDepartment(anonId),
   ])
 
-  const requiredCoursesByDepartment: Record<string, { code: string; name: string; credits: number }[]> = {}
-  for (const department of curriculumDepartments) {
-    const curriculum = await getCurriculumForDepartment(department)
-    if (!curriculum) continue
-    const required = await getCoursesByCodes(curriculum.requiredCourseCodes as string[])
-    requiredCoursesByDepartment[department] = required.map((c) => ({ code: c.code, name: c.name, credits: c.credits }))
-  }
+  const curriculumEntries = await Promise.all(
+    curriculumDepartments.map(async (department) => {
+      const curriculum = await getCurriculumForDepartment(department)
+      if (!curriculum) return null
+      const required = await getCoursesByCodes(curriculum.requiredCourseCodes as string[])
+      return {
+        department,
+        courses: required.map((c) => ({ code: c.code, name: c.name, credits: c.credits })),
+        metadata: { admissionYear: curriculum.admissionYear, dataStatus: curriculum.dataStatus },
+      }
+    }),
+  )
+  const validEntries = curriculumEntries.filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+  const requiredCoursesByDepartment = Object.fromEntries(validEntries.map((entry) => [entry.department, entry.courses]))
+  const curriculumMetadataByDepartment = Object.fromEntries(validEntries.map((entry) => [entry.department, entry.metadata]))
 
   return (
     <div className="min-h-svh">
@@ -49,6 +57,7 @@ export default async function CurriculumPage() {
             requiredCoursesByDepartment={requiredCoursesByDepartment}
             interestFields={industryFields}
             myDepartment={myDepartment}
+            curriculumMetadataByDepartment={curriculumMetadataByDepartment}
           />
         </div>
       </main>

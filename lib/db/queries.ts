@@ -2,6 +2,7 @@ import { and, desc, eq, ilike, inArray, notInArray, or, sql } from "drizzle-orm"
 import { unstable_cache } from "next/cache"
 
 import type { Course, HashtagStat, Review } from "@/lib/types"
+import type { EnrollmentTrendPoint } from "@/lib/enrollment/trend"
 import { db } from "./client"
 import {
   courseDepartmentTracks,
@@ -245,6 +246,30 @@ export async function getCourseView(id: string, viewerAnonId?: string): Promise<
   }))
 
   return { course, reviews: reviewViews }
+}
+
+/** 동일 학수번호(없으면 과목명)의 모든 분반을 학기별로 합산한다. 결측 인원은 0으로 추정하지 않고 집계에서 제외한다. */
+export async function getCourseEnrollmentTrend(id: string): Promise<EnrollmentTrendPoint[]> {
+  if (!UUID_RE.test(id)) return []
+  const [target] = await db.select({ code: courses.code, name: courses.name }).from(courses).where(eq(courses.id, id)).limit(1)
+  if (!target) return []
+  const identityCondition = target.code ? eq(courses.code, target.code) : eq(courses.name, target.name)
+  const rows = await db
+    .select({ semester: courses.semester, enrolledCount: courses.enrolledCount, capacity: courses.capacity })
+    .from(courses)
+    .where(identityCondition)
+  const grouped = new Map<string, { enrolledCount: number; capacity: number; hasCapacity: boolean; sectionCount: number; hasEnrollment: boolean }>()
+  for (const row of rows) {
+    const current = grouped.get(row.semester) ?? { enrolledCount: 0, capacity: 0, hasCapacity: false, sectionCount: 0, hasEnrollment: false }
+    current.sectionCount++
+    if (row.enrolledCount !== null) { current.enrolledCount += row.enrolledCount; current.hasEnrollment = true }
+    if (row.capacity !== null) { current.capacity += row.capacity; current.hasCapacity = true }
+    grouped.set(row.semester, current)
+  }
+  return [...grouped.entries()]
+    .filter(([, value]) => value.hasEnrollment)
+    .map(([semester, value]) => ({ semester, enrolledCount: value.enrolledCount, capacity: value.hasCapacity ? value.capacity : null, sectionCount: value.sectionCount }))
+    .sort((a, b) => a.semester.localeCompare(b.semester))
 }
 
 export type SearchFilters = {

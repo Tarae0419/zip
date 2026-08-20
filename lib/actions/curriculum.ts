@@ -26,6 +26,7 @@ import type { AiCandidateCourse } from "@/lib/curriculum/ai-plan-types"
 import { reconcileAiPlacements } from "@/lib/curriculum/reconcile-ai-plan"
 import { writeElectiveReasons } from "@/lib/ai/curriculum-reasons"
 import { planCurriculumWithAI } from "@/lib/ai/curriculum-planner"
+import { generateCapabilityActivities } from "@/lib/ai/capability-activities"
 
 export async function generateCurriculumPlan(input: CurriculumPlanInput): Promise<CurriculumPlanResult> {
   const anonId = await getAnonId()
@@ -89,6 +90,13 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
 
   const industryFields = await getIndustryFields()
   const nameById = new Map(industryFields.map((f) => [f.id, f.name]))
+  const interestFieldNames = input.interestFieldIds.map((id) => nameById.get(id)).filter((name): name is string => Boolean(name))
+  const capabilityActivitiesPromise = generateCapabilityActivities({
+    grade: input.grade,
+    department: input.department,
+    careerKeyword: input.careerKeyword?.trim().slice(0, 80),
+    interestFieldNames,
+  })
 
   // 학수번호 기준 제외 목록(이미 이수·제외·배치된 것)과, 과목명 기준 제외 목록(타 학과 동일 과목명 중복 방지)을 함께 넘긴다.
   const excludedCodesForElectives = [...excludeSet, ...ownRequired.map((c) => c.code), ...doubleRequired.map((c) => c.code)]
@@ -165,7 +173,7 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
     remainingSemesters,
     semesterLabels,
     semesterGrades,
-    interestFieldNames: input.interestFieldIds.map((id) => nameById.get(id)).filter((n): n is string => Boolean(n)),
+    interestFieldNames,
     totalRemainingCreditsNeeded,
     electiveMinCreditsRemaining,
     requiredCourseCodes: [...ownRequired.map((c) => c.code), ...doubleRequired.map((c) => c.code)],
@@ -288,7 +296,8 @@ export async function generateCurriculumPlan(input: CurriculumPlanInput): Promis
   notes.push("선수과목 순서는 공식 교육과정표가 아니라 예시로 채운 데이터를 기준으로 배치했어요.")
 
   const semesters = buildSemesters(semesterLabels, semesterItems)
-  return { status: "ok", semesters, notes }
+  const capabilityActivities = await capabilityActivitiesPromise
+  return { status: "ok", semesters, notes, capabilityActivities }
 }
 
 /** AI 커리큘럼 설계 호출과 그 검증·보정 단계가 공유하는 신뢰 후보 풀을 조립한다. courseCode 기준 유일 — 각

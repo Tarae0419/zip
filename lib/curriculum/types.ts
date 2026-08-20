@@ -11,6 +11,7 @@ export type PlanItem = {
   type: PlanItemType
   reason: string
   isOwnMajor: boolean
+  prerequisiteCodes: string[]
   matchedIndustryTagId?: string
 }
 
@@ -31,6 +32,18 @@ export type CurriculumPlanInput = {
   interestFieldIds: string[] // 우선순위 순서 (앞쪽이 더 높은 우선순위)
   remainingSemesters: number
   excludedCourseCodes: string[]
+  careerKeyword?: string
+}
+
+export type CapabilityActivity = {
+  grade: number
+  title: string
+  category: "프로젝트" | "비교과" | "자격증" | "진로탐색"
+  expectedCapability: string
+  reason: string
+  evidenceBasis: string
+  confidence: "높음" | "보통" | "낮음"
+  sourceType: "AI 제안" | "기본 제안"
 }
 
 export type CurriculumPlanResult =
@@ -39,4 +52,5 @@ export type CurriculumPlanResult =
       status: "ok"
       semesters: PlanSemester[]
       notes: string[]
+      capabilityActivities: CapabilityActivity[]
     }

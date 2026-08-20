@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { CalendarDays, Info, Loader2, MapPin, Plus, ShoppingCart, Trash2, X } from "lucide-react"
+import { CalendarDays, Info, Loader2, MapPin, Plus, ShoppingCart, Sparkles, Trash2, X } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { useCart } from "@/components/cart-provider"
 import { AddCourseModal } from "@/components/add-course-modal"
@@ -12,6 +12,10 @@ import { CampusMap } from "@/components/campus-map"
 import { WEEKDAYS } from "@/lib/timetable/types"
 import type { CartCourse, Weekday } from "@/lib/timetable/types"
 import { buildSessionsForCourse, formatMinutes, formatSemesterLabel, getSessionsForDay } from "@/lib/timetable/schedule"
+import { evaluateSchedulePreferences } from "@/lib/timetable/preferences"
+import type { TimePreference } from "@/lib/timetable/preferences"
+import type { ScheduleCandidate } from "@/lib/timetable/preferences"
+import { createPreferredScheduleCandidates } from "@/lib/actions/schedule-preferences"
 import { cn } from "@/lib/utils"
 
 export function CartTimetableView({
@@ -44,12 +48,20 @@ export function CartTimetableView({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { cart, mounted, removeCourse } = useCart()
+  const { cart, mounted, removeCourse, replaceSemesterCart } = useCart()
   const [selectedDay, setSelectedDay] = useState<Weekday>("월")
   const [dayManuallySelected, setDayManuallySelected] = useState(false)
   const [managingCourseId, setManagingCourseId] = useState<string | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [timePreference, setTimePreference] = useState<TimePreference>("any")
+  const [preferredFreeDays, setPreferredFreeDays] = useState<Weekday[]>([])
+  const [allowedStartHour, setAllowedStartHour] = useState("9")
+  const [allowedEndHour, setAllowedEndHour] = useState("19")
+  const [minCredits, setMinCredits] = useState("0")
+  const [maxCredits, setMaxCredits] = useState("24")
+  const [scheduleCandidates, setScheduleCandidates] = useState<ScheduleCandidate[]>([])
+  const [candidateMessage, setCandidateMessage] = useState<string | null>(null)
 
   function handleSemesterChange(nextSemester: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -64,13 +76,59 @@ export function CartTimetableView({
     })
   }
 
-  const scopedCart = cart.filter((c) => c.semester === activeSemester)
-  const otherSemesterItems = cart.filter((c) => c.semester !== activeSemester)
+  const scopedCart = useMemo(() => cart.filter((c) => c.semester === activeSemester), [cart, activeSemester])
+  const otherSemesterItems = useMemo(() => cart.filter((c) => c.semester !== activeSemester), [cart, activeSemester])
   const totalCredits = scopedCart.reduce((sum, c) => sum + c.credits, 0)
   const managingCourse = scopedCart.find((c) => c.id === managingCourseId) ?? null
   // 시간표 그리드에 블록으로 안 뜨는(수업 시간 정보가 없는) 과목은 별도 목록으로 계속 보여준다 —
   // 안 그러면 관리(삭제)할 방법이 아예 없어진다.
   const noScheduleCourses = scopedCart.filter((c) => buildSessionsForCourse(c).length === 0)
+  const preferenceEvaluation = useMemo(
+    () => evaluateSchedulePreferences(scopedCart, {
+      timePreference,
+      preferredFreeDays,
+      allowedStartMinutes: Number(allowedStartHour) * 60,
+      allowedEndMinutes: Number(allowedEndHour) * 60,
+      minCredits: Number(minCredits),
+      maxCredits: Number(maxCredits),
+    }),
+    [scopedCart, timePreference, preferredFreeDays, allowedStartHour, allowedEndHour, minCredits, maxCredits],
+  )
+
+  function togglePreferredFreeDay(day: Weekday) {
+    setPreferredFreeDays((current) =>
+      current.includes(day) ? current.filter((candidate) => candidate !== day) : [...current, day],
+    )
+  }
+
+  function handleGenerateCandidates() {
+    setCandidateMessage(null)
+    startTransition(async () => {
+      try {
+        const candidates = await createPreferredScheduleCandidates(activeSemester, {
+          timePreference,
+          preferredFreeDays,
+          allowedStartMinutes: Number(allowedStartHour) * 60,
+          allowedEndMinutes: Number(allowedEndHour) * 60,
+          minCredits: Number(minCredits),
+          maxCredits: Number(maxCredits),
+        })
+        setScheduleCandidates(candidates)
+        if (candidates.length === 0) setCandidateMessage("현재 과목을 모두 유지하면서 만들 수 있는 충돌 없는 분반 조합이 없어요.")
+      } catch {
+        setCandidateMessage("시간표 후보를 만드는 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.")
+      }
+    })
+  }
+
+  function handleApplyCandidate(candidate: ScheduleCandidate) {
+    setCandidateMessage(null)
+    startTransition(async () => {
+      const ok = await replaceSemesterCart(activeSemester, candidate.courses)
+      setCandidateMessage(ok ? "선택한 후보를 내 시간표에 적용했어요." : "후보를 적용하지 못했어요.")
+      if (ok) setScheduleCandidates([])
+    })
+  }
 
   // Esc로 관리 팝업 닫기
   useEffect(() => {
@@ -165,6 +223,139 @@ export function CartTimetableView({
             <div className="mt-3">
               <WeeklyTimetable cart={scopedCart} activeCourseId={managingCourseId} onSessionClick={setManagingCourseId} />
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg font-bold text-foreground">내 선호도 적합 분석</h2>
+                <p className="mt-1 text-sm text-muted-foreground">현재 담은 시간표가 원하는 시간대와 공강에 얼마나 맞는지 확인해요.</p>
+              </div>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">
+                적합도 {preferenceEvaluation.score}점
+              </span>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium text-foreground">선호 시간대</span>
+                <select
+                  value={timePreference}
+                  onChange={(event) => setTimePreference(event.target.value as TimePreference)}
+                  className="input"
+                >
+                  <option value="any">상관없음</option>
+                  <option value="morning">오전 중심</option>
+                  <option value="afternoon">오후 중심</option>
+                </select>
+              </label>
+              <div>
+                <p className="mb-1.5 text-sm font-medium text-foreground">희망 공강 요일</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {WEEKDAYS.map((day) => {
+                    const selected = preferredFreeDays.includes(day)
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => togglePreferredFreeDay(day)}
+                        className={cn(
+                          "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background text-foreground hover:border-primary/40",
+                        )}
+                      >
+                        {day}요일
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-foreground">수업 시작 가능</span>
+                <select value={allowedStartHour} onChange={(event) => setAllowedStartHour(event.target.value)} className="input">
+                  {[9, 10, 11, 12, 13].map((hour) => <option key={hour} value={hour}>{hour}:00 이후</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-foreground">수업 종료 제한</span>
+                <select value={allowedEndHour} onChange={(event) => setAllowedEndHour(event.target.value)} className="input">
+                  {[15, 16, 17, 18, 19, 20, 21].map((hour) => <option key={hour} value={hour}>{hour}:00 이전</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-foreground">최소 학점</span>
+                <input type="number" min="0" max="30" value={minCredits} onChange={(event) => setMinCredits(event.target.value)} className="input" />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-foreground">최대 학점</span>
+                <input type="number" min="1" max="30" value={maxCredits} onChange={(event) => setMaxCredits(event.target.value)} className="input" />
+              </label>
+            </div>
+
+            <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
+              {preferenceEvaluation.notes.map((note) => (
+                <li key={note} className="flex gap-2">
+                  <span className="text-primary" aria-hidden="true">•</span>
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ul>
+
+            <button
+              type="button"
+              onClick={handleGenerateCandidates}
+              disabled={isPending}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
+            >
+              {isPending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Sparkles className="size-4" aria-hidden="true" />}
+              분반 조합 추천받기
+            </button>
+
+            {candidateMessage ? <p className="mt-3 text-sm text-muted-foreground" role="status">{candidateMessage}</p> : null}
+
+            {scheduleCandidates.length > 0 ? (
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                {scheduleCandidates.map((candidate, index) => (
+                  <article key={candidate.id} className="rounded-xl border border-border bg-background p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-display font-bold text-foreground">후보 {index + 1}</h3>
+                      <span className="text-sm font-bold text-primary">{candidate.score}점</span>
+                    </div>
+                    <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                      {candidate.courses.map((course) => (
+                        <li key={course.id} className="truncate">
+                          {course.name} · {course.professor} {course.code ? `(${course.code})` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-3 text-xs font-medium text-foreground">
+                      예상 이동 {candidate.estimatedWalkMinutes}분
+                    </p>
+                    {candidate.validationIssues.length > 0 ? (
+                      <ul className="mt-2 space-y-1 rounded-lg bg-amber-500/10 p-2 text-xs text-amber-800 dark:text-amber-200">
+                        {candidate.validationIssues.map((issue) => <li key={issue}>{issue}</li>)}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-300">확인된 선수과목·학년 경고 없음</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleApplyCandidate(candidate)}
+                      disabled={isPending || candidate.validationIssues.some((issue) => issue.includes("같은 학기에"))}
+                      className="mt-4 w-full rounded-full border border-primary px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10 disabled:opacity-60"
+                    >
+                      이 후보 적용
+                    </button>
+                  </article>
+                ))}
+              </div>
+            ) : null}
           </section>
 
           {noScheduleCourses.length > 0 && (

@@ -43,6 +43,7 @@ function toPlanItem(course: RequiredCourseInfo, type: PlanItemType, reason: stri
     type,
     reason,
     isOwnMajor,
+    prerequisiteCodes: course.prerequisiteCodes,
   }
 }
 
@@ -149,6 +150,7 @@ export function fillMajorElectives(
       type: "전공선택",
       reason,
       isOwnMajor: true,
+      prerequisiteCodes: [],
       matchedIndustryTagId: candidate.matchedIndustryTagId ?? undefined,
     })
     semesterCredits[s] += candidate.credits
@@ -221,6 +223,7 @@ export function fillElectives(
       type: "관심분야",
       reason,
       isOwnMajor: candidate.isOwnMajor,
+      prerequisiteCodes: [],
       matchedIndustryTagId: candidate.industryTagId,
     })
     semesterCredits[s] += candidate.credits

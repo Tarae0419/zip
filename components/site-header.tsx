@@ -5,7 +5,7 @@ import type React from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Compass, Search, Sparkles, CalendarDays, LogOut } from "lucide-react"
+import { Compass, Search, Sparkles, CalendarDays, LogOut, BriefcaseBusiness, BookOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { logout } from "@/lib/actions/auth"
 
@@ -13,6 +13,8 @@ const navLinks = [
   { href: "/fields", label: "분야로 찾기", icon: Compass },
   { href: "/curriculum", label: "커리큘럼 설계", icon: Sparkles },
   { href: "/cart", label: "내 시간표", icon: CalendarDays },
+  { href: "/portfolio", label: "포트폴리오", icon: BriefcaseBusiness },
+  { href: "/study", label: "수업 허브", icon: BookOpen },
 ]
 
 export function SiteHeader({ userName }: { userName: string | null }) {
