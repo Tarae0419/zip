@@ -1,9 +1,14 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Script from "next/script"
-import { MapPin, Info } from "lucide-react"
+import { Footprints, Info, MapPin, Smartphone } from "lucide-react"
 import type { CampusStop, CartCourse, Weekday } from "@/lib/timetable/types"
+import {
+  MAX_NAVER_WALKING_POINTS,
+  buildNaverWalkingUrl,
+  type NaverWalkingPoint,
+} from "@/lib/timetable/naver-walking"
 import {
   buildCampusStops,
   estimateWalkMinutes,
@@ -14,22 +19,27 @@ import {
 } from "@/lib/timetable/schedule"
 
 const ORDER_LABELS = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"]
+const NAVER_MAP_KEY_ID = process.env.NEXT_PUBLIC_NAVER_MAP_KEY_ID
 const KAKAO_JS_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY
-const ROUTE_LINE_COLOR = "#7c3aed" // 앱 --primary(oklch 보라 계열) 근사 hex — 카카오맵 SDK는 CSS 변수를 못 읽는다.
 
 function orderLabel(order: number): string {
   return ORDER_LABELS[order - 1] ?? `#${order}`
 }
 
-// 카카오맵 JS SDK는 공식 타입 패키지를 따로 설치하지 않아 window.kakao를 any로 다룬다 —
-// 이 파일 안에서만 쓰는 좁은 범위라 별도 타입 정의 패키지를 추가할 정도는 아니라고 판단.
+// 지도 SDK는 공식 타입 패키지를 설치하지 않고 이 컴포넌트 경계에서만 다룬다.
 declare global {
   interface Window {
     kakao?: any
+    naver?: any
+    navermap_authFailure?: () => void
   }
 }
 
 export function CampusMap({ day, cart }: { day: Weekday; cart: CartCourse[] }) {
+  const [naverMapFailed, setNaverMapFailed] = useState(false)
+  const [kakaoMapFailed, setKakaoMapFailed] = useState(false)
+  const handleNaverMapFailure = useCallback(() => setNaverMapFailed(true), [])
+  const handleKakaoMapFailure = useCallback(() => setKakaoMapFailed(true), [])
   const sessions = getSessionsForDay(cart, day)
 
   if (sessions.length === 0) {
@@ -59,7 +69,24 @@ export function CampusMap({ day, cart }: { day: Weekday; cart: CartCourse[] }) {
     .map((stop) => ({ stop, coord: getRealCoordinate(stop.location) }))
     .filter((s): s is { stop: CampusStop; coord: { lat: number; lng: number } } => s.coord !== null)
   const missingCoordBuildings = [...new Set(mapStops.filter((s) => !getRealCoordinate(s.location)).map((s) => s.location.building))]
-  const useRealMap = Boolean(KAKAO_JS_KEY) && geoStops.length > 0
+  const mapProvider =
+    geoStops.length === 0
+      ? "schematic"
+      : NAVER_MAP_KEY_ID && !naverMapFailed
+        ? "naver"
+        : KAKAO_JS_KEY && !kakaoMapFailed
+          ? "kakao"
+          : "schematic"
+  const useRealMap = mapProvider !== "schematic"
+  const fullDayRoutePoints: NaverWalkingPoint[] = geoStops.map(({ stop, coord }) => ({
+    ...coord,
+    name: `${stop.location.campus} ${stop.location.building}`,
+  }))
+  const canOpenFullDayRoute =
+    stops.length === mapStops.length &&
+    mapStops.length === geoStops.length &&
+    fullDayRoutePoints.length >= 2 &&
+    fullDayRoutePoints.length <= MAX_NAVER_WALKING_POINTS
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 md:p-5">
@@ -67,8 +94,8 @@ export function CampusMap({ day, cart }: { day: Weekday; cart: CartCourse[] }) {
         <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
         <p>
           {useRealMap
-            ? "실제 지도 기반이에요. 이동 시간은 건물 간 직선거리로 추정한 값이라 실제 도보 경로와는 다를 수 있어요."
-            : "실제 캠퍼스 배치와 다를 수 있는 예시(스케매틱) 지도예요. 이동 시간은 건물 좌표 거리 기반 추정치이며 실제 도보 경로를 측정한 값이 아니에요."}
+            ? `${mapProvider === "naver" ? "네이버" : "카카오"} 지도에는 건물 위치만 표시해요. 시간은 직선거리 추정치이며, 실제 경로는 네이버 지도의 도보 길찾기에서 확인해요.`
+            : "실제 캠퍼스 배치와 다를 수 있는 예시 지도예요. 시간은 건물 좌표 거리 기반 추정치이며, 실제 경로는 네이버 지도의 도보 길찾기에서 확인해요."}
         </p>
       </div>
 
@@ -83,9 +110,17 @@ export function CampusMap({ day, cart }: { day: Weekday; cart: CartCourse[] }) {
         </p>
       )}
 
+      {canOpenFullDayRoute && (
+        <div className="mt-3">
+          <NaverWalkingAction points={fullDayRoutePoints} label="하루 동선 도보 길찾기" showDesktopHint />
+        </div>
+      )}
+
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-secondary/30">
-        {useRealMap ? (
-          <KakaoCampusMap geoStops={geoStops} />
+        {mapProvider === "naver" ? (
+          <NaverCampusMap geoStops={geoStops} onFailure={handleNaverMapFailure} />
+        ) : mapProvider === "kakao" ? (
+          <KakaoCampusMap geoStops={geoStops} onFailure={handleKakaoMapFailure} />
         ) : (
           <SchematicMap mapStops={mapStops} />
         )}
@@ -95,12 +130,24 @@ export function CampusMap({ day, cart }: { day: Weekday; cart: CartCourse[] }) {
         {stops.map((stop, i) => {
           const prevStop = stops[i - 1]
           const offCampusJump = prevStop && prevStop.location.campus !== stop.location.campus
+          const prevCoord = prevStop ? getRealCoordinate(prevStop.location) : null
+          const currentCoord = getRealCoordinate(stop.location)
+          const legRoutePoints: NaverWalkingPoint[] | null =
+            prevStop && !offCampusJump && prevCoord && currentCoord
+              ? [
+                  { ...prevCoord, name: `${prevStop.location.campus} ${prevStop.location.building}` },
+                  { ...currentCoord, name: `${stop.location.campus} ${stop.location.building}` },
+                ]
+              : null
           return (
             <li key={stop.order}>
               {i > 0 && !offCampusJump && (
-                <p className="pl-1 text-xs text-muted-foreground">
-                  도보 이동 약 {estimateWalkMinutes(prevStop.location, stop.location)}분 (추정)
-                </p>
+                <div className="flex min-h-7 flex-wrap items-center justify-between gap-2 pl-1">
+                  <p className="text-xs text-muted-foreground">
+                    도보 이동 약 {estimateWalkMinutes(prevStop.location, stop.location)}분 (직선거리 추정)
+                  </p>
+                  {legRoutePoints && <NaverWalkingAction points={legRoutePoints} label="실제 도보 길찾기" compact />}
+                </div>
               )}
               {offCampusJump && (
                 <p className="pl-1 text-xs font-medium text-destructive">
@@ -132,7 +179,7 @@ export function CampusMap({ day, cart }: { day: Weekday; cart: CartCourse[] }) {
           강의실 정보가 없어 지도에 표시하지 못한 과목: {unlocatedCourseNames.join(", ")}
         </p>
       )}
-      {useRealMap && missingCoordBuildings.length > 0 && (
+      {missingCoordBuildings.length > 0 && (
         <p className="mt-2 text-xs text-muted-foreground">
           정확한 좌표를 찾지 못해 지도 핀으로는 안 뜨는 건물(목록에는 포함): {missingCoordBuildings.join(", ")}
         </p>
@@ -141,23 +188,137 @@ export function CampusMap({ day, cart }: { day: Weekday; cart: CartCourse[] }) {
   )
 }
 
-/** 카카오맵 SDK로 그리는 실제 지도 — 정류지에 번호 핀을 찍고 순서대로 선으로 잇는다. */
-function KakaoCampusMap({ geoStops }: { geoStops: { stop: CampusStop; coord: { lat: number; lng: number } }[] }) {
+/** 네이버 동적 지도에는 정류지 핀만 표시한다. 실제 보행 경로는 지도 앱에서 계산한다. */
+function NaverCampusMap({
+  geoStops,
+  onFailure,
+}: {
+  geoStops: { stop: CampusStop; coord: { lat: number; lng: number } }[]
+  onFailure: () => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<any>(null)
+  const markersRef = useRef<any[]>([])
+  const [sdkReady, setSdkReady] = useState(false)
+
+  function loadSdk() {
+    if (window.naver?.maps) setSdkReady(true)
+  }
+
+  function handleScriptReady() {
+    if (!window.naver?.maps) {
+      onFailure()
+      return
+    }
+    setSdkReady(true)
+  }
+
+  useEffect(() => {
+    const previousAuthFailure = window.navermap_authFailure
+    window.navermap_authFailure = onFailure
+    loadSdk()
+
+    return () => {
+      window.navermap_authFailure = previousAuthFailure
+    }
+  }, [onFailure])
+
+  useEffect(() => {
+    if (!sdkReady || !containerRef.current || geoStops.length === 0) return
+    const naver = window.naver
+
+    if (!mapRef.current) {
+      mapRef.current = new naver.maps.Map(containerRef.current, {
+        center: new naver.maps.LatLng(geoStops[0].coord.lat, geoStops[0].coord.lng),
+        zoom: 16,
+      })
+    }
+    const map = mapRef.current
+
+    markersRef.current.forEach((marker) => marker.setMap(null))
+    markersRef.current = []
+
+    const firstPosition = new naver.maps.LatLng(geoStops[0].coord.lat, geoStops[0].coord.lng)
+    const bounds = new naver.maps.LatLngBounds(firstPosition, firstPosition)
+
+    for (const { stop, coord } of geoStops) {
+      const position = new naver.maps.LatLng(coord.lat, coord.lng)
+      bounds.extend(position)
+
+      const marker = new naver.maps.Marker({
+        map,
+        position,
+        title: `${stop.location.building} ${stop.location.room}호`,
+        icon: {
+          content: `<span style="display:flex;width:28px;height:28px;align-items:center;justify-content:center;border:2px solid #6d28d9;border-radius:50%;background:#fff;color:#6d28d9;font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.22)">${stop.order}</span>`,
+          anchor: new naver.maps.Point(14, 14),
+        },
+      })
+      markersRef.current.push(marker)
+    }
+
+    if (geoStops.length === 1) map.setCenter(firstPosition)
+    else map.fitBounds(bounds)
+
+    return () => {
+      markersRef.current.forEach((marker) => marker.setMap(null))
+      markersRef.current = []
+    }
+  }, [sdkReady, geoStops])
+
+  return (
+    <>
+      <Script
+        src={`https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${NAVER_MAP_KEY_ID}`}
+        strategy="afterInteractive"
+        onLoad={handleScriptReady}
+        onReady={handleScriptReady}
+        onError={onFailure}
+      />
+      <div ref={containerRef} className="aspect-square w-full md:aspect-video" />
+    </>
+  )
+}
+
+/** 기존 카카오 지도 키를 사용하는 폴백. 정류지 핀만 표시한다. */
+function KakaoCampusMap({
+  geoStops,
+  onFailure,
+}: {
+  geoStops: { stop: CampusStop; coord: { lat: number; lng: number } }[]
+  onFailure: () => void
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const overlaysRef = useRef<any[]>([])
   const [sdkReady, setSdkReady] = useState(false)
+  const sdkReadyRef = useRef(false)
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  function loadSdk() {
-    if (!window.kakao?.maps) return
-    window.kakao.maps.load(() => setSdkReady(true))
+  function loadSdk(failIfUnavailable = false) {
+    if (!window.kakao?.maps) {
+      if (failIfUnavailable) onFailure()
+      return
+    }
+    window.kakao.maps.load(() => {
+      sdkReadyRef.current = true
+      setSdkReady(true)
+    })
+    if (failIfUnavailable) {
+      loadTimeoutRef.current = setTimeout(() => {
+        if (!sdkReadyRef.current) onFailure()
+      }, 3000)
+    }
   }
 
   // next/script의 onLoad는 이 스크립트를 "처음" 로드한 컴포넌트 인스턴스에서만 불릴 수 있어
   // (다른 화면에서 먼저 로드해둔 경우 등) mount 시점에 이미 로드돼 있는지도 직접 확인한다.
   useEffect(() => {
     loadSdk()
-  }, [])
+    return () => {
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
+    }
+  }, [onFailure])
 
   useEffect(() => {
     if (!sdkReady || !containerRef.current || geoStops.length === 0) return
@@ -175,12 +336,9 @@ function KakaoCampusMap({ geoStops }: { geoStops: { stop: CampusStop; coord: { l
     overlaysRef.current = []
 
     const bounds = new kakao.maps.LatLngBounds()
-    const path: any[] = []
-
     for (const { stop, coord } of geoStops) {
       const position = new kakao.maps.LatLng(coord.lat, coord.lng)
       bounds.extend(position)
-      path.push(position)
 
       const content = document.createElement("div")
       content.className =
@@ -191,18 +349,6 @@ function KakaoCampusMap({ geoStops }: { geoStops: { stop: CampusStop; coord: { l
       overlaysRef.current.push(overlay)
     }
 
-    if (path.length > 1) {
-      const polyline = new kakao.maps.Polyline({
-        path,
-        strokeWeight: 3,
-        strokeColor: ROUTE_LINE_COLOR,
-        strokeOpacity: 0.8,
-        strokeStyle: "solid",
-      })
-      polyline.setMap(map)
-      overlaysRef.current.push(polyline)
-    }
-
     map.setBounds(bounds)
   }, [sdkReady, geoStops])
 
@@ -211,10 +357,57 @@ function KakaoCampusMap({ geoStops }: { geoStops: { stop: CampusStop; coord: { l
       <Script
         src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false`}
         strategy="afterInteractive"
-        onLoad={loadSdk}
+        onLoad={() => loadSdk(true)}
+        onReady={() => loadSdk(true)}
+        onError={onFailure}
       />
       <div ref={containerRef} className="aspect-square w-full md:aspect-video" />
     </>
+  )
+}
+
+function NaverWalkingAction({
+  points,
+  label,
+  compact = false,
+  showDesktopHint = false,
+}: {
+  points: NaverWalkingPoint[]
+  label: string
+  compact?: boolean
+  showDesktopHint?: boolean
+}) {
+  const [href, setHref] = useState<string | null | undefined>(undefined)
+
+  useEffect(() => {
+    setHref(buildNaverWalkingUrl(points, window.location.origin, navigator.userAgent))
+  }, [points])
+
+  if (href === undefined) return null
+
+  if (!href) {
+    if (!showDesktopHint) return null
+    return (
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Smartphone className="size-3.5 shrink-0" aria-hidden="true" />
+        실제 도보 길찾기는 모바일에서 이 시간표를 열면 사용할 수 있어요.
+      </p>
+    )
+  }
+
+  return (
+    <a
+      href={href}
+      className={
+        compact
+          ? "inline-flex min-h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground hover:bg-muted"
+          : "inline-flex min-h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+      }
+      title="네이버 지도 앱에서 실제 도보 경로 열기"
+    >
+      <Footprints className={compact ? "size-3.5" : "size-4"} aria-hidden="true" />
+      {label}
+    </a>
   )
 }
 
