@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>반딧불이 캐릭터 애니메이션 데모</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #f4f2fb;
+        overflow: hidden;
+      }
+
+      /* 화면 전체를 날아다니는 컨테이너 */
+      .firefly-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 90px;
+        height: 90px;
+        z-index: 9999;
+        pointer-events: none;
+        animation: flyPath 18s ease-in-out infinite;
+      }
+
+      /* 살짝 위아래로 흔들리는 날갯짓 느낌 */
+      .firefly-bob {
+        width: 100%;
+        height: 100%;
+        animation: bob 1.6s ease-in-out infinite;
+      }
+
+      .firefly-bob svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      /* 꼬리 빛 깜빡임 */
+      #glow-radial stop:first-child {
+        animation: glowPulse 2.4s ease-in-out infinite;
+      }
+
+      @keyframes glowPulse {
+        0%,
+        100% {
+          stop-opacity: 0.9;
+        }
+        50% {
+          stop-opacity: 0.25;
+        }
+      }
+
+      /* 날개 팔랑임 */
+      .wing {
+        transform-origin: center;
+        animation: flap 0.35s ease-in-out infinite alternate;
+      }
+      .wing-right {
+        animation-delay: 0.05s;
+      }
+
+      @keyframes flap {
+        0% {
+          transform: scaleX(1);
+        }
+        100% {
+          transform: scaleX(0.85);
+        }
+      }
+
+      @keyframes bob {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+        50% {
+          transform: translateY(-14px) rotate(3deg);
+        }
+      }
+
+      /* 화면을 크게 도는 경로 (원하는 지점으로 좌표만 바꿔주면 됨) */
+      @keyframes flyPath {
+        0% {
+          transform: translate(10vw, 70vh) scale(0.9);
+        }
+        20% {
+          transform: translate(70vw, 20vh) scale(1.05);
+        }
+        40% {
+          transform: translate(85vw, 60vh) scale(0.85);
+        }
+        60% {
+          transform: translate(40vw, 80vh) scale(1);
+        }
+        80% {
+          transform: translate(15vw, 30vh) scale(0.95);
+        }
+        100% {
+          transform: translate(10vw, 70vh) scale(0.9);
+        }
+      }
+
+      .hint {
+        position: absolute;
+        bottom: 24px;
+        left: 24px;
+        font-family: sans-serif;
+        font-size: 13px;
+        color: #6a63a8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="firefly-wrapper">
+      <div class="firefly-bob">
+        <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="glow-radial" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffd76a" stop-opacity="0.9" />
+              <stop offset="100%" stop-color="#ffd76a" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse
+            cx="340"
+            cy="370"
+            rx="80"
+            ry="12"
+            fill="#3d3480"
+            opacity="0.06"
+          />
+          <circle cx="380" cy="290" r="70" fill="url(#glow-radial)" />
+          <g class="wing wing-left">
+            <ellipse
+              cx="255"
+              cy="180"
+              rx="60"
+              ry="80"
+              fill="#f5f3ff"
+              fill-opacity="0.5"
+              stroke="#c9c2f5"
+              stroke-width="2"
+              transform="rotate(-20 255 180)"
+            />
+          </g>
+          <g class="wing wing-right">
+            <ellipse
+              cx="425"
+              cy="180"
+              rx="60"
+              ry="80"
+              fill="#f5f3ff"
+              fill-opacity="0.5"
+              stroke="#c9c2f5"
+              stroke-width="2"
+              transform="rotate(20 425 180)"
+            />
+          </g>
+          <ellipse
+            cx="340"
+            cy="210"
+            rx="80"
+            ry="90"
+            fill="#7c6cf0"
+            stroke="#5b4bd6"
+            stroke-width="4"
+          />
+          <path
+            d="M300 275 Q340 320 320 355 Q345 340 340 380 Q365 345 380 355 Q365 315 300 275Z"
+            fill="#ffd76a"
+            stroke="#e8b93e"
+            stroke-width="3"
+          />
+          <ellipse
+            cx="340"
+            cy="185"
+            rx="62"
+            ry="55"
+            fill="#f5f3ff"
+            stroke="#c9c2f5"
+            stroke-width="3"
+          />
+          <circle cx="315" cy="180" r="8" fill="#3d3480" />
+          <circle cx="365" cy="180" r="8" fill="#3d3480" />
+          <circle cx="318" cy="177" r="2.5" fill="#f5f3ff" />
+          <circle cx="368" cy="177" r="2.5" fill="#f5f3ff" />
+          <ellipse
+            cx="298"
+            cy="200"
+            rx="10"
+            ry="6"
+            fill="#e8543e"
+            opacity="0.3"
+          />
+          <ellipse
+            cx="382"
+            cy="200"
+            rx="10"
+            ry="6"
+            fill="#e8543e"
+            opacity="0.3"
+          />
+          <path
+            d="M315 205 Q340 220 365 205"
+            stroke="#3d3480"
+            stroke-width="4"
+            fill="none"
+            stroke-linecap="round"
+          />
+          <line
+            x1="315"
+            y1="135"
+            x2="300"
+            y2="115"
+            stroke="#5b4bd6"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <line
+            x1="365"
+            y1="135"
+            x2="380"
+            y2="115"
+            stroke="#5b4bd6"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <circle
+            cx="300"
+            cy="112"
+            r="5"
+            fill="#7c6cf0"
+            stroke="#5b4bd6"
+            stroke-width="2"
+          />
+          <circle
+            cx="380"
+            cy="112"
+            r="5"
+            fill="#7c6cf0"
+            stroke="#5b4bd6"
+            stroke-width="2"
+          />
+          <path
+            d="M300 240 L275 265"
+            stroke="#5b4bd6"
+            stroke-width="5"
+            fill="none"
+            stroke-linecap="round"
+          />
+          <path
+            d="M380 240 L405 265"
+            stroke="#5b4bd6"
+            stroke-width="5"
+            fill="none"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <div class="hint">
+      홈페이지 배경 위에 이 코드를 그대로 붙여넣으면 반딧불이가 화면을
+      돌아다녀요.
+    </div>
+  </body>
+</html>
