@@ -16,6 +16,11 @@ const poppins = Poppins({
   variable: '--font-poppins',
 })
 
+const tmapPublicMapKey = process.env.NEXT_PUBLIC_TMAP_MAP_KEY?.trim()
+const tmapVectorSdkUrl = tmapPublicMapKey
+  ? `https://apis.openapi.sk.com/tmap/vectorjs?version=1&appKey=${encodeURIComponent(tmapPublicMapKey)}`
+  : null
+
 export const metadata: Metadata = {
   title: '수강길잡이 — AI 수강 도우미',
   description:
@@ -58,6 +63,18 @@ export default function RootLayout({
       lang="ko"
       className={`bg-background ${notoSansKr.variable} ${poppins.variable}`}
     >
+      <head>
+        {tmapVectorSdkUrl ? (
+          <>
+            {/*
+              TMAP's bootstrap synchronously document.write()s its SDK and stylesheet.
+              It must remain a parser-time script; next/script strategies load it too late.
+            */}
+            {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+            <script id="tmap-vector-sdk" src={tmapVectorSdkUrl} />
+          </>
+        ) : null}
+      </head>
       <body className="font-sans antialiased">
         <CartProvider>{children}</CartProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}

@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect, useId, useState } from "react"
-import Script from "next/script"
+import { useCallback, useEffect, useId, useState } from "react"
 
 import type { TmapWalkingRoute } from "@/lib/timetable/tmap-contract"
 
 const ROUTE_COLORS = ["#6d28d9", "#2563eb", "#059669", "#d97706", "#dc2626"]
+const TMAP_SDK_READY_TIMEOUT_MS = 12_000
+
+type TmapSdkState = "missing-key" | "loading" | "ready" | "failed"
 
 export type TmapMapStop = {
   order: number
@@ -20,51 +22,79 @@ type TmapRouteMapProps = {
 }
 
 export function TmapRouteMap({ routes, stops }: TmapRouteMapProps) {
-  const publicMapKey = process.env.NEXT_PUBLIC_TMAP_MAP_KEY
-  const [sdkState, setSdkState] = useState<"loading" | "ready" | "failed">("loading")
+  const hasPublicMapKey = Boolean(process.env.NEXT_PUBLIC_TMAP_MAP_KEY?.trim())
+  const [sdkState, setSdkState] = useState<TmapSdkState>(() => {
+    if (!hasPublicMapKey) return "missing-key"
+    if (typeof window !== "undefined" && window.Tmapv3?.Map) return "ready"
+    return "loading"
+  })
 
-  if (!publicMapKey || sdkState === "failed") {
+  useEffect(() => {
+    if (sdkState !== "loading") return
+
+    const startedAt = Date.now()
+    const timer = window.setInterval(() => {
+      if (window.Tmapv3?.Map) {
+        window.clearInterval(timer)
+        setSdkState("ready")
+        return
+      }
+
+      if (Date.now() - startedAt >= TMAP_SDK_READY_TIMEOUT_MS) {
+        window.clearInterval(timer)
+        setSdkState("failed")
+      }
+    }, 100)
+
+    return () => window.clearInterval(timer)
+  }, [sdkState])
+
+  const handleCanvasError = useCallback(() => setSdkState("failed"), [])
+
+  if (sdkState === "missing-key" || sdkState === "failed") {
     return (
       <div>
         <RouteOutline routes={routes} stops={stops} />
         <p className="border-t border-border bg-background/80 px-3 py-2 text-xs text-muted-foreground">
-          TMAP 실제 경로 윤곽이에요. 공개 지도 키가 설정되면 같은 경로를 TMAP 바탕지도에서 보여줘요.
+          {sdkState === "missing-key"
+            ? "TMAP 공개 지도 키가 배포 환경에 없어 실제 경로 윤곽만 표시하고 있어요."
+            : "TMAP 지도 SDK를 불러오지 못해 실제 경로 윤곽만 표시하고 있어요. 새로고침 후에도 계속되면 Vector Map 권한과 허용 도메인을 확인해 주세요."}
         </p>
       </div>
     )
   }
 
-  return (
-    <>
-      <Script
-        id="tmap-vector-sdk"
-        src={`https://apis.openapi.sk.com/tmap/vectorjs?version=1&appKey=${encodeURIComponent(publicMapKey)}`}
-        strategy="afterInteractive"
-        onLoad={() => setSdkState(window.Tmapv3 ? "ready" : "failed")}
-        onReady={() => setSdkState(window.Tmapv3 ? "ready" : "failed")}
-        onError={() => setSdkState("failed")}
-      />
-      {sdkState === "ready" ? (
-        <TmapVectorCanvas routes={routes} stops={stops} />
-      ) : (
-        <div className="flex aspect-square w-full items-center justify-center bg-muted/40 md:aspect-video" role="status">
-          <span className="text-sm text-muted-foreground">TMAP 지도를 불러오는 중…</span>
-        </div>
-      )}
-    </>
+  return sdkState === "ready" ? (
+    <TmapVectorCanvas routes={routes} stops={stops} onError={handleCanvasError} />
+  ) : (
+    <div className="flex aspect-square min-h-72 w-full items-center justify-center bg-muted/40 md:aspect-video" role="status">
+      <span className="text-sm text-muted-foreground">TMAP 지도를 불러오는 중…</span>
+    </div>
   )
 }
 
-function TmapVectorCanvas({ routes, stops }: TmapRouteMapProps) {
+function TmapVectorCanvas({
+  routes,
+  stops,
+  onError,
+}: TmapRouteMapProps & {
+  onError: () => void
+}) {
   const rawId = useId()
   const containerId = `tmap-route-${rawId.replaceAll(":", "")}`
 
   useEffect(() => {
     const sdk = window.Tmapv3
-    if (!sdk) return
+    if (!sdk?.Map) {
+      const frame = window.requestAnimationFrame(onError)
+      return () => window.cancelAnimationFrame(frame)
+    }
 
     const allPoints = routes.flatMap((route) => route.lines.flat())
-    if (allPoints.length === 0) return
+    if (allPoints.length === 0) {
+      const frame = window.requestAnimationFrame(onError)
+      return () => window.cancelAnimationFrame(frame)
+    }
     const center = allPoints.reduce(
       (sum, [lng, lat]) => ({ lat: sum.lat + lat, lng: sum.lng + lng }),
       { lat: 0, lng: 0 },
@@ -78,48 +108,59 @@ function TmapVectorCanvas({ routes, stops }: TmapRouteMapProps) {
       Math.max(...longitudes) - Math.min(...longitudes),
     )
     const zoom = span > 0.02 ? 13 : span > 0.01 ? 14 : span > 0.005 ? 15 : 17
-    const map = new sdk.Map(containerId, {
-      center: new sdk.LatLng(center.lat, center.lng),
-      width: "100%",
-      height: "100%",
-      zoom,
-      zoomControl: true,
-      scrollwheel: true,
-    })
     const overlays: TmapVectorOverlay[] = []
+    let map: TmapVectorMap | undefined
 
-    routes.forEach((route, routeIndex) => {
-      route.lines.forEach((line) => {
-        const overlay = new sdk.Polyline({
-          path: line.map(([lng, lat]) => new sdk.LatLng(lat, lng)),
-          strokeColor: ROUTE_COLORS[routeIndex % ROUTE_COLORS.length],
-          strokeWeight: 6,
-          strokeOpacity: 0.88,
-          direction: true,
-          map,
-        })
-        overlays.push(overlay)
+    try {
+      const initializedMap = new sdk.Map(containerId, {
+        center: new sdk.LatLng(center.lat, center.lng),
+        width: "100%",
+        height: "100%",
+        zoom,
+        zoomControl: true,
+        scrollwheel: true,
       })
-    })
+      map = initializedMap
 
-    stops.forEach((stop) => {
-      overlays.push(
-        new sdk.Marker({
-          position: new sdk.LatLng(stop.lat, stop.lng),
-          title: `${stop.order}. ${stop.building}`,
-          label: String(stop.order),
-          map,
-        }),
-      )
-    })
+      routes.forEach((route, routeIndex) => {
+        route.lines.forEach((line) => {
+          const overlay = new sdk.Polyline({
+            path: line.map(([lng, lat]) => new sdk.LatLng(lat, lng)),
+            strokeColor: ROUTE_COLORS[routeIndex % ROUTE_COLORS.length],
+            strokeWeight: 6,
+            strokeOpacity: 0.88,
+            direction: true,
+            map: initializedMap,
+          })
+          overlays.push(overlay)
+        })
+      })
+
+      stops.forEach((stop) => {
+        overlays.push(
+          new sdk.Marker({
+            position: new sdk.LatLng(stop.lat, stop.lng),
+            title: `${stop.order}. ${stop.building}`,
+            label: String(stop.order),
+            map: initializedMap,
+          }),
+        )
+      })
+    } catch (error) {
+      overlays.forEach((overlay) => overlay.setMap(null))
+      map?.destroy?.()
+      console.error("TMAP 지도를 초기화하지 못했습니다.", error)
+      const frame = window.requestAnimationFrame(onError)
+      return () => window.cancelAnimationFrame(frame)
+    }
 
     return () => {
       overlays.forEach((overlay) => overlay.setMap(null))
-      map.destroy?.()
+      map?.destroy?.()
     }
-  }, [containerId, routes, stops])
+  }, [containerId, onError, routes, stops])
 
-  return <div id={containerId} className="aspect-square w-full md:aspect-video" aria-label="TMAP 실제 보행 경로 지도" />
+  return <div id={containerId} className="aspect-square min-h-72 w-full md:aspect-video" aria-label="TMAP 실제 보행 경로 지도" />
 }
 
 function RouteOutline({ routes, stops }: TmapRouteMapProps) {
