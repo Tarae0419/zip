@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Link from "next/link"
-import { useEffect, useState, useTransition } from "react"
+import { useState, useSyncExternalStore, useTransition } from "react"
 import {
   AlertCircle,
   BrainCircuit,
@@ -50,6 +50,36 @@ const typeStyles: Record<PlanItemType, string> = {
 
 type RequiredCourseOption = { code: string; name: string; credits: number }
 type InterestField = { id: string; name: string; icon: string; description: string }
+type SavedCurriculumPlan = {
+  result: Extract<CurriculumPlanResult, { status: "ok" }>
+  careerKeyword: string
+}
+
+const subscribeToClient = () => () => undefined
+
+function readSavedCurriculumPlan(): SavedCurriculumPlan | null {
+  if (typeof window === "undefined") return null
+
+  try {
+    const raw = window.localStorage.getItem("curriculum-plan-v2")
+    if (!raw) return null
+    const saved = JSON.parse(raw) as { result?: CurriculumPlanResult; careerKeyword?: string }
+    if (
+      saved.result?.status !== "ok" ||
+      !Array.isArray(saved.result.semesters) ||
+      !Array.isArray(saved.result.capabilityActivities)
+    ) {
+      return null
+    }
+    return {
+      result: saved.result,
+      careerKeyword: typeof saved.careerKeyword === "string" ? saved.careerKeyword : "",
+    }
+  } catch {
+    window.localStorage.removeItem("curriculum-plan-v2")
+    return null
+  }
+}
 
 export function CurriculumPlanner({
   curriculumDepartments,
@@ -66,6 +96,8 @@ export function CurriculumPlanner({
   myDepartment: string | null
   curriculumMetadataByDepartment: Record<string, { admissionYear: number; dataStatus: "illustrative" | "confirmed" }>
 }) {
+  const [savedPlan] = useState(readSavedCurriculumPlan)
+  const isClient = useSyncExternalStore(subscribeToClient, () => true, () => false)
   const [isPending, startTransition] = useTransition()
   // 학과는 더 이상 직접 고르게 하지 않는다 — 회원가입 때 저장해둔 본인 학과를 그대로 쓴다.
   const department = myDepartment ?? ""
@@ -78,13 +110,15 @@ export function CurriculumPlanner({
   const [completedCodes, setCompletedCodes] = useState<string[]>([])
   const [interestOrder, setInterestOrder] = useState<string[]>([])
   const [excludedCodes, setExcludedCodes] = useState<string[]>([])
-  const [careerKeyword, setCareerKeyword] = useState("")
+  const [careerKeyword, setCareerKeyword] = useState(savedPlan?.careerKeyword ?? "")
 
-  const [result, setResult] = useState<CurriculumPlanResult | null>(null)
+  const [result, setResult] = useState<CurriculumPlanResult | null>(savedPlan?.result ?? null)
   const [activeTab, setActiveTab] = useState(0)
   const [openItem, setOpenItem] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [saveMessage, setSaveMessage] = useState<string | null>(
+    savedPlan ? "이 브라우저에 저장된 커리큘럼을 불러왔어요." : null,
+  )
   const [feedback, setFeedback] = useState({ accuracy: 0, usefulness: 0, explainability: 0 })
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
 
@@ -151,24 +185,12 @@ export function CurriculumPlanner({
     runGenerate([])
   }
 
-  const activeSemester = result?.status === "ok" ? result.semesters[activeTab] : undefined
+  const visibleResult = isClient ? result : null
+  const visibleCareerKeyword = isClient ? careerKeyword : ""
+  const visibleSaveMessage = isClient ? saveMessage : null
+  const activeSemester = visibleResult?.status === "ok" ? visibleResult.semesters[activeTab] : undefined
 
   const noDepartments = curriculumDepartments.length === 0
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem("curriculum-plan-v2")
-      if (!raw) return
-      const saved = JSON.parse(raw) as { result?: CurriculumPlanResult; careerKeyword?: string }
-      if (saved.result?.status === "ok" && Array.isArray(saved.result.semesters) && Array.isArray(saved.result.capabilityActivities)) {
-        setResult(saved.result)
-        setCareerKeyword(saved.careerKeyword ?? "")
-        setSaveMessage("이 브라우저에 저장된 커리큘럼을 불러왔어요.")
-      }
-    } catch {
-      window.localStorage.removeItem("curriculum-plan-v2")
-    }
-  }, [])
 
   function updateActivity(index: number, field: "title" | "reason", value: string) {
     setResult((current) => {
@@ -360,7 +382,7 @@ export function CurriculumPlanner({
               <input
                 type="search"
                 maxLength={80}
-                value={careerKeyword}
+                value={visibleCareerKeyword}
                 onChange={(event) => setCareerKeyword(event.target.value)}
                 placeholder="예: 생성형 AI 서비스 기획, 데이터 분석"
                 className="input"
@@ -397,13 +419,13 @@ export function CurriculumPlanner({
 
       {/* 결과 영역 */}
       <div>
-        {!result && !isPending && <EmptyResult />}
-        {isPending && !result && <LoadingResult />}
+        {!visibleResult && !isPending && <EmptyResult />}
+        {isPending && !visibleResult && <LoadingResult />}
 
-        {result?.status === "no_curriculum_data" && (
+        {visibleResult?.status === "no_curriculum_data" && (
           <div className="flex h-full min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center">
             <p className="font-display font-semibold text-foreground">
-              &apos;{result.department}&apos;의 커리큘럼 데이터가 아직 없어요
+              &apos;{visibleResult.department}&apos;의 커리큘럼 데이터가 아직 없어요
             </p>
             <p className="mt-1 max-w-xs text-sm text-muted-foreground">
               현재는 일부 학과만 지원돼요. 다른 학과를 선택해보세요.
@@ -411,16 +433,16 @@ export function CurriculumPlanner({
           </div>
         )}
 
-        {result?.status === "ok" && activeSemester && (
+        {visibleResult?.status === "ok" && activeSemester && (
           <div>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-3">
               <p className="text-sm text-muted-foreground">추천 결과와 직접 수정한 활동을 브라우저에 보관할 수 있어요.</p>
               <button type="button" onClick={savePlan} className="rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90">
                 현재 계획 저장
               </button>
-              {saveMessage ? <p className="w-full text-xs text-primary" role="status">{saveMessage}</p> : null}
+              {visibleSaveMessage ? <p className="w-full text-xs text-primary" role="status">{visibleSaveMessage}</p> : null}
             </div>
-            {result.notes.map((note, i) => (
+            {visibleResult.notes.map((note, i) => (
               <div key={i} className="mt-2 flex items-start gap-2 rounded-xl border border-border bg-accent/50 p-3.5 text-sm text-accent-foreground first:mt-0">
                 <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <p>{note}</p>
@@ -440,7 +462,7 @@ export function CurriculumPlanner({
 
             {/* 학기 탭 */}
             <div className="mt-5 flex flex-wrap gap-2">
-              {result.semesters.map((sem, i) => (
+              {visibleResult.semesters.map((sem, i) => (
                 <button
                   key={sem.label}
                   type="button"
@@ -478,7 +500,7 @@ export function CurriculumPlanner({
               )}
             </div>
 
-            {result.capabilityActivities.length > 0 ? (
+            {visibleResult.capabilityActivities.length > 0 ? (
               <section className="mt-8">
                 <div className="flex flex-wrap items-end justify-between gap-2">
                   <div>
@@ -488,7 +510,7 @@ export function CurriculumPlanner({
                   <span className="text-xs text-muted-foreground">공식 교내 프로그램이 아닌 AI 제안일 수 있어요.</span>
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  {result.capabilityActivities.map((activity, index) => (
+                  {visibleResult.capabilityActivities.map((activity, index) => (
                     <article key={`${activity.grade}-${activity.title}-${index}`} className="rounded-xl border border-border bg-card p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">{activity.grade}학년</span>

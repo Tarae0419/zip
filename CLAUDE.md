@@ -4,7 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**수강길잡이** — an AI-assisted course-planning app for Korean university students. Full PRD lives at `docs/PRD.md`; read it for feature detail (F1–F4), personas, and data entities before implementing any feature. Development is tracked sprint-by-sprint in `docs/SPRINT_PLAN.md` — check it for what's done, what's next, and check off items there (with their DoD) as you complete them; log any new decision in its 오픈 이슈 로그 table rather than editing the PRD. Summary:
+**수강길잡이** — an AI-assisted course-planning app for Korean university students.
+
+The current product authority is `docs/PRD_V2.md`, and implementation/rework is tracked in
+`docs/SPRINT_PLAN_V2.md`. Existing code and checkmarks in `docs/SPRINT_PLAN.md` are historical F1–F5
+implementation evidence only; they are not V2 completion. `docs/PRD.md`, `docs/SPRINT_PLAN.md`, and
+`docs/FEATURE_SUMMARY.md` remain useful for legacy behavior and decisions, but when they conflict with V2,
+`docs/PRD_V2.md` wins. Summary of the legacy foundation:
 
 - **F1** Review hashtags + AI-generated per-course summary (min. 5 reviews to summarize)
 - **F2** Unified search: exact course-name matches + academic-field-tag matches, shown as separate result sections

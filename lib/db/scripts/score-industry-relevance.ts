@@ -4,7 +4,7 @@
 import fs from "node:fs/promises"
 import { sql } from "drizzle-orm"
 import { db } from "../client"
-import { courses, industryTags } from "../schema"
+import { industryTags } from "../schema"
 
 const OUTPUT_PATH = "lib/db/scripts/industry-relevance-result.json"
 const TOP_K_PER_TAG = 40

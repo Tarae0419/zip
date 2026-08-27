@@ -102,7 +102,7 @@ export function CurriculumForm({ initial }: { initial?: InitialValue }) {
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm font-medium text-foreground">교양 요건 (한 줄에 하나, "이름:학점")</label>
+        <label className="text-sm font-medium text-foreground">교양 요건 (한 줄에 하나, &quot;이름:학점&quot;)</label>
         <textarea
           value={generalEd}
           onChange={(e) => setGeneralEd(e.target.value)}

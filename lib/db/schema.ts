@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm"
 import {
+  type AnyPgColumn,
   boolean,
   integer,
   jsonb,
@@ -91,7 +92,7 @@ export const courseDepartmentTracks = pgTable("course_department_tracks", {
 export const fieldTags = pgTable("field_tags", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 100 }).notNull().unique(),
-  parentId: uuid("parent_id").references((): any => fieldTags.id),
+  parentId: uuid("parent_id").references((): AnyPgColumn => fieldTags.id),
   synonyms: jsonb("synonyms").$type<string[]>().default([]),
 })
 

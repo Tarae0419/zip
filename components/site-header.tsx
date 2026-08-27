@@ -4,7 +4,7 @@ import type React from "react"
 
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef } from "react"
 import { Compass, Search, Sparkles, CalendarDays, LogOut, BriefcaseBusiness, BookOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { logout } from "@/lib/actions/auth"
@@ -21,18 +21,18 @@ export function SiteHeader({ userName }: { userName: string | null }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [query, setQuery] = useState("")
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   // 검색 결과 화면에서는 현재 검색어를 검색창에 반영
   useEffect(() => {
-    if (pathname === "/search") {
-      setQuery(searchParams.get("q") ?? "")
+    if (pathname === "/search" && searchInputRef.current) {
+      searchInputRef.current.value = searchParams.get("q") ?? ""
     }
   }, [pathname, searchParams])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const trimmed = query.trim()
+    const trimmed = searchInputRef.current?.value.trim() ?? ""
     if (!trimmed) return
     router.push(`/search?q=${encodeURIComponent(trimmed)}`)
   }
@@ -66,9 +66,8 @@ export function SiteHeader({ userName }: { userName: string | null }) {
               aria-hidden="true"
             />
             <input
+              ref={searchInputRef}
               type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
               placeholder="과목명 또는 관심 분야를 검색해보세요"
               aria-label="과목 검색"
               className="h-10 w-full rounded-full border border-input bg-secondary/60 pl-9 pr-4 text-sm text-foreground outline-none transition focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/25"

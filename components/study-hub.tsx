@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, useTransition } from "react"
+import { useMemo, useState, useSyncExternalStore, useTransition } from "react"
 import { BookOpen, Loader2, Sparkles } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { generateStudyInsights } from "@/lib/actions/study"
@@ -8,6 +8,19 @@ import { hasEnoughStudyEvidence, sanitizeStudyHubData, STUDY_HUB_STORAGE_KEY } f
 import type { StudyCourseRecord, StudyHubData } from "@/lib/study/types"
 
 const EMPTY_DATA: StudyHubData = { version: 1, records: [] }
+const subscribeToClient = () => () => undefined
+
+function readStudyHubData(): StudyHubData {
+  if (typeof window === "undefined") return EMPTY_DATA
+
+  try {
+    const raw = window.localStorage.getItem(STUDY_HUB_STORAGE_KEY)
+    return raw ? sanitizeStudyHubData(JSON.parse(raw)) ?? EMPTY_DATA : EMPTY_DATA
+  } catch {
+    window.localStorage.removeItem(STUDY_HUB_STORAGE_KEY)
+    return EMPTY_DATA
+  }
+}
 
 function emptyRecord(course: { id: string; name: string; semester: string }): StudyCourseRecord {
   return { courseId: course.id, courseName: course.name, semester: course.semester, objective: "", weeklyNotes: "", assignments: "", exams: "", careerKeyword: "", aiSummary: "", interviewQuestions: [], generatedAt: null, updatedAt: new Date().toISOString() }
@@ -15,20 +28,11 @@ function emptyRecord(course: { id: string; name: string; semester: string }): St
 
 export function StudyHub() {
   const { cart, mounted: cartMounted } = useCart()
-  const [data, setData] = useState<StudyHubData>(EMPTY_DATA)
-  const [storageMounted, setStorageMounted] = useState(false)
+  const [data, setData] = useState<StudyHubData>(readStudyHubData)
+  const storageMounted = useSyncExternalStore(subscribeToClient, () => true, () => false)
   const [selectedKey, setSelectedKey] = useState("")
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STUDY_HUB_STORAGE_KEY)
-      const parsed = raw ? sanitizeStudyHubData(JSON.parse(raw)) : null
-      if (parsed) setData(parsed)
-    } catch { window.localStorage.removeItem(STUDY_HUB_STORAGE_KEY) }
-    finally { setStorageMounted(true) }
-  }, [])
 
   const courses = useMemo(() => [...cart].sort((a, b) => b.semester.localeCompare(a.semester) || a.name.localeCompare(b.name, "ko")), [cart])
   const activeKey = selectedKey || (courses[0] ? `${courses[0].id}|${courses[0].semester}` : "")

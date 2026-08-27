@@ -4,7 +4,7 @@ import type React from "react"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Compass, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { login } from "@/lib/actions/auth"
@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [studentId, setStudentId] = useState("")
   const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(true)
+  const rememberMeRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -23,11 +23,12 @@ export default function LoginPage() {
   // 않는 localStorage에 저장한다.
   useEffect(() => {
     const stored = window.localStorage.getItem(REMEMBER_ME_KEY)
-    if (stored !== null) setRememberMe(stored === "true")
+    if (stored !== null && rememberMeRef.current) {
+      rememberMeRef.current.checked = stored === "true"
+    }
   }, [])
 
   function handleRememberMeChange(checked: boolean) {
-    setRememberMe(checked)
     window.localStorage.setItem(REMEMBER_ME_KEY, String(checked))
   }
 
@@ -36,7 +37,7 @@ export default function LoginPage() {
     setError(null)
     setIsSubmitting(true)
 
-    const result = await login({ studentId, password, rememberMe })
+    const result = await login({ studentId, password, rememberMe: rememberMeRef.current?.checked ?? true })
 
     setIsSubmitting(false)
 
@@ -105,8 +106,9 @@ export default function LoginPage() {
 
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input
+              ref={rememberMeRef}
               type="checkbox"
-              checked={rememberMe}
+              defaultChecked
               onChange={(e) => handleRememberMeChange(e.target.checked)}
               className="size-4 rounded border-input accent-primary"
             />

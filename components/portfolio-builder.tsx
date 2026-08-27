@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState, useSyncExternalStore } from "react"
 import { CheckCircle2, Download, Plus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createEmptyPortfolioItem, PORTFOLIO_STORAGE_KEY, sanitizePortfolioData } from "@/lib/portfolio/storage"
@@ -10,24 +10,25 @@ import type { CurriculumPlanResult } from "@/lib/curriculum/types"
 const EMPTY_DATA: PortfolioData = { version: 1, visibility: "private", items: [], updatedAt: "" }
 const categories: PortfolioItemCategory[] = ["프로젝트", "자격증", "대외활동", "수업", "기타"]
 const statuses: PortfolioItemStatus[] = ["계획", "진행 중", "완료"]
+const subscribeToClient = () => () => undefined
+
+function readPortfolioData(): PortfolioData {
+  if (typeof window === "undefined") return EMPTY_DATA
+
+  try {
+    const raw = window.localStorage.getItem(PORTFOLIO_STORAGE_KEY)
+    return raw ? sanitizePortfolioData(JSON.parse(raw)) ?? EMPTY_DATA : EMPTY_DATA
+  } catch {
+    window.localStorage.removeItem(PORTFOLIO_STORAGE_KEY)
+    return EMPTY_DATA
+  }
+}
 
 export function PortfolioBuilder() {
-  const [data, setData] = useState<PortfolioData>(EMPTY_DATA)
-  const [mounted, setMounted] = useState(false)
+  const [data, setData] = useState<PortfolioData>(readPortfolioData)
+  const mounted = useSyncExternalStore(subscribeToClient, () => true, () => false)
   const [message, setMessage] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(PORTFOLIO_STORAGE_KEY)
-      const parsed = raw ? sanitizePortfolioData(JSON.parse(raw)) : null
-      if (parsed) setData(parsed)
-    } catch {
-      window.localStorage.removeItem(PORTFOLIO_STORAGE_KEY)
-    } finally {
-      setMounted(true)
-    }
-  }, [])
 
   const completed = useMemo(() => data.items.filter((item) => item.status === "완료").length, [data.items])
   const completionRate = data.items.length === 0 ? 0 : Math.round((completed / data.items.length) * 100)

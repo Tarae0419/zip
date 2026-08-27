@@ -49,8 +49,7 @@ export function CartTimetableView({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { cart, mounted, removeCourse, replaceSemesterCart } = useCart()
-  const [selectedDay, setSelectedDay] = useState<Weekday>("월")
-  const [dayManuallySelected, setDayManuallySelected] = useState(false)
+  const [selectedDay, setSelectedDay] = useState<Weekday | null>(null)
   const [managingCourseId, setManagingCourseId] = useState<string | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -78,6 +77,10 @@ export function CartTimetableView({
 
   const scopedCart = useMemo(() => cart.filter((c) => c.semester === activeSemester), [cart, activeSemester])
   const otherSemesterItems = useMemo(() => cart.filter((c) => c.semester !== activeSemester), [cart, activeSemester])
+  const displayedDay =
+    selectedDay ??
+    (mounted ? WEEKDAYS.find((day) => getSessionsForDay(scopedCart, day).length > 0) : undefined) ??
+    "월"
   const totalCredits = scopedCart.reduce((sum, c) => sum + c.credits, 0)
   const managingCourse = scopedCart.find((c) => c.id === managingCourseId) ?? null
   // 시간표 그리드에 블록으로 안 뜨는(수업 시간 정보가 없는) 과목은 별도 목록으로 계속 보여준다 —
@@ -139,15 +142,6 @@ export function CartTimetableView({
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [managingCourseId])
-
-  // 기본 선택 요일("월")에 담은 강의가 하나도 없으면 지도가 "이 요일엔 강의가 없어요"만 보여줘
-  // 마치 데이터가 안 뜨는 것처럼 보인다 — 실제로 수업이 있는 첫 요일을 자동으로 선택해준다.
-  useEffect(() => {
-    if (!mounted || dayManuallySelected || scopedCart.length === 0) return
-    const dayWithData = WEEKDAYS.find((day) => getSessionsForDay(scopedCart, day).length > 0)
-    if (dayWithData) setSelectedDay(dayWithData)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, activeSemester, cart, dayManuallySelected])
 
   if (!activeSemester) {
     return (
@@ -404,13 +398,10 @@ export function CartTimetableView({
                   <button
                     key={day}
                     type="button"
-                    onClick={() => {
-                      setSelectedDay(day)
-                      setDayManuallySelected(true)
-                    }}
+                    onClick={() => setSelectedDay(day)}
                     className={cn(
                       "shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors",
-                      selectedDay === day
+                      displayedDay === day
                         ? "bg-primary text-primary-foreground"
                         : "bg-secondary text-secondary-foreground hover:bg-accent",
                     )}
@@ -420,7 +411,7 @@ export function CartTimetableView({
                       <span
                         className={cn(
                           "ml-1.5 inline-block size-1.5 rounded-full align-middle",
-                          selectedDay === day ? "bg-primary-foreground" : "bg-primary",
+                          displayedDay === day ? "bg-primary-foreground" : "bg-primary",
                         )}
                         aria-hidden="true"
                       />
@@ -431,7 +422,7 @@ export function CartTimetableView({
             </div>
 
             <div className="mt-4">
-              <CampusMap day={selectedDay} cart={scopedCart} />
+              <CampusMap day={displayedDay} cart={scopedCart} />
             </div>
           </section>
         </>
