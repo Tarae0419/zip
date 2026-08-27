@@ -2,7 +2,10 @@
 
 import { Info, MapPin } from "lucide-react"
 
-import { TmapRouteExperience } from "@/components/tmap-route-experience"
+import {
+  TmapRouteExperience,
+  TmapSingleStopExperience,
+} from "@/components/tmap-route-experience"
 import {
   buildCampusStops,
   estimateWalkMinutes,
@@ -90,7 +93,9 @@ export function CampusMap({ day, cart }: { day: Weekday; cart: CartCourse[] }) {
       )}
 
       <div className="mt-4">
-        {requestedLegs.length > 0 ? (
+        {stops.length === 1 ? (
+          <TmapSingleStopExperience stop={stops[0]} fallback={fallbackExperience} />
+        ) : requestedLegs.length > 0 ? (
           <TmapRouteExperience
             key={`${day}:${requestJson}`}
             stops={stops}

@@ -11,6 +11,7 @@ import type {
   TmapWalkingLegResult,
   TmapWalkingResponse,
 } from "@/lib/timetable/tmap-contract"
+import { formatTmapWalkDuration } from "@/lib/timetable/tmap-display"
 import {
   estimateWalkMinutes,
   formatMinutes,
@@ -36,6 +37,33 @@ type LoadState =
   | { status: "loading" }
   | { status: "success"; response: TmapWalkingResponse }
   | { status: "error"; httpStatus: number | null }
+
+export function TmapSingleStopExperience({
+  stop,
+  fallback,
+}: {
+  stop: CampusStop
+  fallback: ReactNode
+}) {
+  const coordinate = getRealCoordinate(stop.location)
+  if (!coordinate) return fallback
+
+  return (
+    <div>
+      <div className="overflow-hidden rounded-xl border border-border bg-secondary/30">
+        <TmapRouteMap
+          routes={[]}
+          stops={[{ order: stop.order, building: stop.location.building, ...coordinate }]}
+        />
+      </div>
+      <ol className="mt-4">
+        <li>
+          <StopCard stop={stop} />
+        </li>
+      </ol>
+    </div>
+  )
+}
 
 export function TmapRouteExperience({
   stops,
@@ -213,7 +241,8 @@ function RouteLegSummary({
   if (result?.status === "ok") {
     return (
       <p className="min-h-7 pl-1 text-xs font-medium text-emerald-800 dark:text-emerald-200">
-        {orderLabel(previousStop.order)} → {orderLabel(stop.order)} · 도보 {formatDuration(result.route.durationSeconds)}
+        {orderLabel(previousStop.order)} → {orderLabel(stop.order)} · 도보{" "}
+        {formatTmapWalkDuration(result.route.durationSeconds)}
       </p>
     )
   }
@@ -271,12 +300,6 @@ function isWalkingResponse(value: unknown): value is TmapWalkingResponse {
       "legs" in value &&
       Array.isArray(value.legs),
   )
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds <= 0) return "0분"
-  const minutes = Math.max(1, Math.ceil(seconds / 60))
-  return `${minutes}분`
 }
 
 function errorLabel(code: Extract<TmapWalkingLegResult, { status: "error" }>["code"]): string {

@@ -28,6 +28,12 @@ type TmapVectorNamespace = {
   ) => TmapVectorMap
   LatLng: new (lat: number, lng: number) => TmapVectorLatLng
   LatLngBounds: new (coordinate: TmapVectorLatLng) => TmapVectorLatLngBounds
+  InfoWindow: new (options: {
+    position: TmapVectorLatLng
+    content: string
+    type?: 1 | 2
+    map: TmapVectorMap
+  }) => TmapVectorOverlay
   Marker: new (options: {
     position: TmapVectorLatLng
     title?: string

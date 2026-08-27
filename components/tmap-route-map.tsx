@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useState } from "react"
 
 import type { TmapWalkingRoute } from "@/lib/timetable/tmap-contract"
+import { formatTmapWalkDuration } from "@/lib/timetable/tmap-display"
 
 const ROUTE_COLORS = ["#6d28d9", "#2563eb", "#059669", "#d97706", "#dc2626"]
 const TMAP_SDK_READY_TIMEOUT_MS = 12_000
@@ -28,6 +29,74 @@ type TmapOverlayController = {
   hasFailed: () => boolean
 }
 
+export function getTmapViewportPoints(
+  routes: TmapWalkingRoute[],
+  stops: TmapMapStop[],
+): Array<[number, number]> {
+  return [
+    ...routes.flatMap((route) => route.lines.flat()),
+    ...stops.map((stop) => [stop.lng, stop.lat] as [number, number]),
+  ]
+}
+
+type RouteSegment = {
+  from: [number, number]
+  to: [number, number]
+  lengthMeters: number
+}
+
+export function getTmapRouteMidpoint(route: TmapWalkingRoute): [number, number] | null {
+  const firstPoint = route.lines.find((line) => line.length > 0)?.[0] ?? null
+  if (!firstPoint) return null
+
+  const segments: RouteSegment[] = []
+  let totalLengthMeters = 0
+  for (const line of route.lines) {
+    for (let index = 1; index < line.length; index += 1) {
+      const from = line[index - 1]
+      const to = line[index]
+      const lengthMeters = coordinateDistanceMeters(from, to)
+      if (lengthMeters <= 0) continue
+      segments.push({ from, to, lengthMeters })
+      totalLengthMeters += lengthMeters
+    }
+  }
+
+  if (segments.length === 0) return firstPoint
+
+  const targetDistance = totalLengthMeters / 2
+  let traversedDistance = 0
+  for (const segment of segments) {
+    if (traversedDistance + segment.lengthMeters >= targetDistance) {
+      const ratio = (targetDistance - traversedDistance) / segment.lengthMeters
+      return [
+        segment.from[0] + (segment.to[0] - segment.from[0]) * ratio,
+        segment.from[1] + (segment.to[1] - segment.from[1]) * ratio,
+      ]
+    }
+    traversedDistance += segment.lengthMeters
+  }
+
+  return segments.at(-1)?.to ?? firstPoint
+}
+
+function coordinateDistanceMeters(from: [number, number], to: [number, number]): number {
+  const earthRadiusMeters = 6_371_000
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180
+  const latitudeDelta = toRadians(to[1] - from[1])
+  const longitudeDelta = toRadians(to[0] - from[0])
+  const fromLatitude = toRadians(from[1])
+  const toLatitude = toRadians(to[1])
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(fromLatitude) * Math.cos(toLatitude) * Math.sin(longitudeDelta / 2) ** 2
+  return 2 * earthRadiusMeters * Math.asin(Math.sqrt(haversine))
+}
+
+function routeDurationLabelContent(durationSeconds: number, routeColor: string): string {
+  return `<div aria-hidden="true" style="pointer-events:none;white-space:nowrap;border:2px solid ${routeColor};border-radius:999px;background:#ffffff;color:#111827;padding:5px 9px;font-size:12px;font-weight:700;line-height:1;box-shadow:0 2px 8px rgba(15,23,42,.22)">도보 ${formatTmapWalkDuration(durationSeconds)}</div>`
+}
+
 export function attachTmapRouteOverlays(
   sdk: TmapVectorNamespace,
   map: TmapVectorMap,
@@ -50,11 +119,12 @@ export function attachTmapRouteOverlays(
 
     try {
       routes.forEach((route, routeIndex) => {
+        const routeColor = ROUTE_COLORS[routeIndex % ROUTE_COLORS.length]
         route.lines.forEach((line) => {
           overlays.push(
             new sdk.Polyline({
               path: line.map(([lng, lat]) => new sdk.LatLng(lat, lng)),
-              strokeColor: ROUTE_COLORS[routeIndex % ROUTE_COLORS.length],
+              strokeColor: routeColor,
               strokeWeight: 6,
               strokeOpacity: 0.88,
               direction: true,
@@ -62,6 +132,19 @@ export function attachTmapRouteOverlays(
             }),
           )
         })
+
+        const midpoint = getTmapRouteMidpoint(route)
+        if (midpoint && Number.isFinite(route.durationSeconds)) {
+          const [lng, lat] = midpoint
+          overlays.push(
+            new sdk.InfoWindow({
+              position: new sdk.LatLng(lat, lng),
+              content: routeDurationLabelContent(route.durationSeconds, routeColor),
+              type: 2,
+              map,
+            }),
+          )
+        }
       })
 
       stops.forEach((stop) => {
@@ -75,14 +158,11 @@ export function attachTmapRouteOverlays(
         )
       })
 
-      const visiblePoints = [
-        ...routes
-          .flatMap((route) => route.lines.flat())
-          .map(([lng, lat]) => new sdk.LatLng(lat, lng)),
-        ...stops.map((stop) => new sdk.LatLng(stop.lat, stop.lng)),
-      ]
+      const visiblePoints = getTmapViewportPoints(routes, stops).map(
+        ([lng, lat]) => new sdk.LatLng(lat, lng),
+      )
       const firstPoint = visiblePoints[0]
-      if (firstPoint) {
+      if (firstPoint && visiblePoints.length > 1) {
         const bounds = new sdk.LatLngBounds(firstPoint)
         visiblePoints.slice(1).forEach((point) => bounds.extend(point))
         map.fitBounds(bounds, 40)
@@ -179,7 +259,7 @@ function TmapVectorCanvas({
       return () => window.cancelAnimationFrame(frame)
     }
 
-    const allPoints = routes.flatMap((route) => route.lines.flat())
+    const allPoints = getTmapViewportPoints(routes, stops)
     if (allPoints.length === 0) {
       const frame = window.requestAnimationFrame(onError)
       return () => window.cancelAnimationFrame(frame)
@@ -248,14 +328,17 @@ function TmapVectorCanvas({
     }
   }, [containerId, onError, routes, stops])
 
-  return <div id={containerId} className="aspect-square min-h-72 w-full md:aspect-video" aria-label="TMAP 실제 보행 경로 지도" />
+  return (
+    <div
+      id={containerId}
+      className="aspect-square min-h-72 w-full md:aspect-video"
+      aria-label={routes.length > 0 ? "TMAP 실제 보행 경로 지도" : "TMAP 수업 건물 위치 지도"}
+    />
+  )
 }
 
 function RouteOutline({ routes, stops }: TmapRouteMapProps) {
-  const allPoints = [
-    ...routes.flatMap((route) => route.lines.flat()),
-    ...stops.map((stop) => [stop.lng, stop.lat] as [number, number]),
-  ]
+  const allPoints = getTmapViewportPoints(routes, stops)
   if (allPoints.length === 0) {
     return <div className="aspect-square w-full bg-muted/40 md:aspect-video" />
   }
@@ -266,11 +349,11 @@ function RouteOutline({ routes, stops }: TmapRouteMapProps) {
   const maxLng = Math.max(...lngs)
   const minLat = Math.min(...lats)
   const maxLat = Math.max(...lats)
-  const lngSpan = Math.max(maxLng - minLng, 0.0001)
-  const latSpan = Math.max(maxLat - minLat, 0.0001)
+  const lngSpan = maxLng - minLng
+  const latSpan = maxLat - minLat
   const project = ([lng, lat]: [number, number]) => ({
-    x: 5 + ((lng - minLng) / lngSpan) * 90,
-    y: 95 - ((lat - minLat) / latSpan) * 90,
+    x: lngSpan === 0 ? 50 : 5 + ((lng - minLng) / lngSpan) * 90,
+    y: latSpan === 0 ? 50 : 95 - ((lat - minLat) / latSpan) * 90,
   })
 
   return (
