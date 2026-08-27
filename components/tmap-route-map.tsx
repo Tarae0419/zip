@@ -6,6 +6,7 @@ import type { TmapWalkingRoute } from "@/lib/timetable/tmap-contract"
 
 const ROUTE_COLORS = ["#6d28d9", "#2563eb", "#059669", "#d97706", "#dc2626"]
 const TMAP_SDK_READY_TIMEOUT_MS = 12_000
+const TMAP_CONFIG_LOAD_TIMEOUT_MS = 12_000
 
 type TmapSdkState = "missing-key" | "loading" | "ready" | "failed"
 
@@ -19,6 +20,94 @@ export type TmapMapStop = {
 type TmapRouteMapProps = {
   routes: TmapWalkingRoute[]
   stops: TmapMapStop[]
+}
+
+type TmapOverlayController = {
+  dispose: () => void
+  hasDrawn: () => boolean
+  hasFailed: () => boolean
+}
+
+export function attachTmapRouteOverlays(
+  sdk: TmapVectorNamespace,
+  map: TmapVectorMap,
+  routes: TmapWalkingRoute[],
+  stops: TmapMapStop[],
+  onError: (error: unknown) => void,
+): TmapOverlayController {
+  const overlays: TmapVectorOverlay[] = []
+  let disposed = false
+  let drawn = false
+  let failed = false
+
+  const removeOverlays = () => {
+    overlays.forEach((overlay) => overlay.setMap(null))
+    overlays.length = 0
+  }
+
+  const drawOverlays = () => {
+    if (disposed || drawn || failed) return
+
+    try {
+      routes.forEach((route, routeIndex) => {
+        route.lines.forEach((line) => {
+          overlays.push(
+            new sdk.Polyline({
+              path: line.map(([lng, lat]) => new sdk.LatLng(lat, lng)),
+              strokeColor: ROUTE_COLORS[routeIndex % ROUTE_COLORS.length],
+              strokeWeight: 6,
+              strokeOpacity: 0.88,
+              direction: true,
+              map,
+            }),
+          )
+        })
+      })
+
+      stops.forEach((stop) => {
+        overlays.push(
+          new sdk.Marker({
+            position: new sdk.LatLng(stop.lat, stop.lng),
+            title: `${stop.order}. ${stop.building}`,
+            label: String(stop.order),
+            map,
+          }),
+        )
+      })
+
+      const visiblePoints = [
+        ...routes
+          .flatMap((route) => route.lines.flat())
+          .map(([lng, lat]) => new sdk.LatLng(lat, lng)),
+        ...stops.map((stop) => new sdk.LatLng(stop.lat, stop.lng)),
+      ]
+      const firstPoint = visiblePoints[0]
+      if (firstPoint) {
+        const bounds = new sdk.LatLngBounds(firstPoint)
+        visiblePoints.slice(1).forEach((point) => bounds.extend(point))
+        map.fitBounds(bounds, 40)
+      }
+      drawn = true
+    } catch (error) {
+      failed = true
+      removeOverlays()
+      map.off?.("ConfigLoad", drawOverlays)
+      onError(error)
+    }
+  }
+
+  map.on("ConfigLoad", drawOverlays)
+
+  return {
+    dispose: () => {
+      if (disposed) return
+      disposed = true
+      map.off?.("ConfigLoad", drawOverlays)
+      removeOverlays()
+    },
+    hasDrawn: () => drawn,
+    hasFailed: () => failed,
+  }
 }
 
 export function TmapRouteMap({ routes, stops }: TmapRouteMapProps) {
@@ -108,8 +197,17 @@ function TmapVectorCanvas({
       Math.max(...longitudes) - Math.min(...longitudes),
     )
     const zoom = span > 0.02 ? 13 : span > 0.01 ? 14 : span > 0.005 ? 15 : 17
-    const overlays: TmapVectorOverlay[] = []
     let map: TmapVectorMap | undefined
+    let overlayController: TmapOverlayController | undefined
+    let configLoadTimer: number | undefined
+    let errorFrame: number | undefined
+
+    const reportError = (message: string, error?: unknown) => {
+      console.error(message, error)
+      if (errorFrame === undefined) {
+        errorFrame = window.requestAnimationFrame(onError)
+      }
+    }
 
     try {
       const initializedMap = new sdk.Map(containerId, {
@@ -117,45 +215,35 @@ function TmapVectorCanvas({
         width: "100%",
         height: "100%",
         zoom,
-        zoomControl: true,
-        scrollwheel: true,
+        naviControl: true,
       })
       map = initializedMap
-
-      routes.forEach((route, routeIndex) => {
-        route.lines.forEach((line) => {
-          const overlay = new sdk.Polyline({
-            path: line.map(([lng, lat]) => new sdk.LatLng(lat, lng)),
-            strokeColor: ROUTE_COLORS[routeIndex % ROUTE_COLORS.length],
-            strokeWeight: 6,
-            strokeOpacity: 0.88,
-            direction: true,
-            map: initializedMap,
-          })
-          overlays.push(overlay)
-        })
-      })
-
-      stops.forEach((stop) => {
-        overlays.push(
-          new sdk.Marker({
-            position: new sdk.LatLng(stop.lat, stop.lng),
-            title: `${stop.order}. ${stop.building}`,
-            label: String(stop.order),
-            map: initializedMap,
-          }),
-        )
-      })
+      overlayController = attachTmapRouteOverlays(
+        sdk,
+        initializedMap,
+        routes,
+        stops,
+        (error) => reportError("TMAP 경로를 지도에 표시하지 못했습니다.", error),
+      )
+      configLoadTimer = window.setTimeout(() => {
+        if (overlayController?.hasDrawn() || overlayController?.hasFailed()) return
+        overlayController?.dispose()
+        reportError("TMAP 지도 준비 시간이 초과되어 경로 윤곽으로 전환합니다.")
+      }, TMAP_CONFIG_LOAD_TIMEOUT_MS)
     } catch (error) {
-      overlays.forEach((overlay) => overlay.setMap(null))
+      overlayController?.dispose()
       map?.destroy?.()
-      console.error("TMAP 지도를 초기화하지 못했습니다.", error)
-      const frame = window.requestAnimationFrame(onError)
-      return () => window.cancelAnimationFrame(frame)
+      reportError("TMAP 지도를 초기화하지 못했습니다.", error)
+      return () => {
+        if (configLoadTimer !== undefined) window.clearTimeout(configLoadTimer)
+        if (errorFrame !== undefined) window.cancelAnimationFrame(errorFrame)
+      }
     }
 
     return () => {
-      overlays.forEach((overlay) => overlay.setMap(null))
+      if (configLoadTimer !== undefined) window.clearTimeout(configLoadTimer)
+      if (errorFrame !== undefined) window.cancelAnimationFrame(errorFrame)
+      overlayController?.dispose()
       map?.destroy?.()
     }
   }, [containerId, onError, routes, stops])

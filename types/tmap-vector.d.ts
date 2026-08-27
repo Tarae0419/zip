@@ -1,6 +1,13 @@
 type TmapVectorLatLng = object
 
+type TmapVectorLatLngBounds = {
+  extend: (coordinate: TmapVectorLatLng) => void
+}
+
 type TmapVectorMap = {
+  on: (eventName: "ConfigLoad", listener: () => void) => void
+  off?: (eventName: "ConfigLoad", listener: () => void) => void
+  fitBounds: (bounds: TmapVectorLatLngBounds, margin?: number) => void
   destroy?: () => void
 }
 
@@ -16,11 +23,11 @@ type TmapVectorNamespace = {
       width: string
       height: string
       zoom: number
-      zoomControl?: boolean
-      scrollwheel?: boolean
+      naviControl?: boolean
     },
   ) => TmapVectorMap
   LatLng: new (lat: number, lng: number) => TmapVectorLatLng
+  LatLngBounds: new (coordinate: TmapVectorLatLng) => TmapVectorLatLngBounds
   Marker: new (options: {
     position: TmapVectorLatLng
     title?: string

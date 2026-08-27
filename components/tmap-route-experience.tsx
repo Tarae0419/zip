@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
-import { AlertTriangle, Footprints, Info, Loader2, MapPin } from "lucide-react"
+import { AlertTriangle, Info, Loader2, MapPin } from "lucide-react"
 
 import type { CampusStop } from "@/lib/timetable/types"
 import type {
@@ -140,38 +140,14 @@ export function TmapRouteExperience({
     const coordinate = getRealCoordinate(stop.location)
     return coordinate ? [{ order: stop.order, building: stop.location.building, ...coordinate }] : []
   })
-  const totalDistanceMeters = successfulLegs.reduce(
-    (sum, leg) => sum + leg.route.distanceMeters,
-    0,
-  )
-  const totalDurationSeconds = successfulLegs.reduce(
-    (sum, leg) => sum + leg.route.durationSeconds,
-    0,
-  )
   const wholeDayComplete =
     successfulLegs.length + sameLocationCount === state.response.legs.length &&
     requestedLegs.length === Math.max(0, stops.length - 1)
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-900 dark:text-emerald-100" role="status" aria-live="polite">
-        <div className="flex min-w-0 items-start gap-2">
-          <Footprints className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <p>
-            {wholeDayComplete ? "하루 전체 이동 구간 계산 완료" : `TMAP 성공 ${successfulLegs.length}개 구간 합계`} ·{" "}
-            <strong>{formatDistance(totalDistanceMeters)}</strong> ·{" "}
-            <strong>도보 {formatDuration(totalDurationSeconds)}</strong>
-          </p>
-        </div>
-        {!wholeDayComplete ? (
-          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:text-amber-100">
-            부분 경로
-          </span>
-        ) : null}
-      </div>
-
       {successfulLegs.length > 0 ? (
-        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-secondary/30">
+        <div className="overflow-hidden rounded-xl border border-border bg-secondary/30">
           <TmapRouteMap routes={successfulLegs.map((leg) => leg.route)} stops={mapStops} />
         </div>
       ) : (
@@ -210,7 +186,7 @@ export function TmapRouteExperience({
       {!wholeDayComplete ? (
         <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
           <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-          실패하거나 검증되지 않은 구간은 합계에서 제외하고 직선거리 기반 추정값으로 명확히 구분했어요.
+          일부 구간은 실제 경로 대신 예상 시간 또는 별도 안내로 표시했어요.
         </p>
       ) : null}
     </div>
@@ -229,7 +205,7 @@ function RouteLegSummary({
   if (result?.status === "error" && result.code === "SAME_LOCATION") {
     return (
       <p className="min-h-7 pl-1 text-xs font-medium text-emerald-800 dark:text-emerald-200">
-        같은 건물 · 별도 이동 없음
+        {orderLabel(previousStop.order)} → {orderLabel(stop.order)} · 도보 0분 (같은 위치)
       </p>
     )
   }
@@ -237,15 +213,16 @@ function RouteLegSummary({
   if (result?.status === "ok") {
     return (
       <p className="min-h-7 pl-1 text-xs font-medium text-emerald-800 dark:text-emerald-200">
-        TMAP 실제 도보 {formatDistance(result.route.distanceMeters)} · {formatDuration(result.route.durationSeconds)}
+        {orderLabel(previousStop.order)} → {orderLabel(stop.order)} · 도보 {formatDuration(result.route.durationSeconds)}
       </p>
     )
   }
 
   return (
     <p className="min-h-7 pl-1 text-xs text-muted-foreground">
-      {result?.status === "error" ? `${errorLabel(result.code)} · ` : "경로 호출 상한 또는 좌표 확인 필요 · "}
-      도보 약 {estimateWalkMinutes(previousStop.location, stop.location)}분 (직선거리 기반 추정)
+      {orderLabel(previousStop.order)} → {orderLabel(stop.order)} · 예상 도보 약{" "}
+      {estimateWalkMinutes(previousStop.location, stop.location)}분
+      {result?.status === "error" ? ` (${errorLabel(result.code)}, 직선거리 기반)` : " (직선거리 기반)"}
     </p>
   )
 }
@@ -294,10 +271,6 @@ function isWalkingResponse(value: unknown): value is TmapWalkingResponse {
       "legs" in value &&
       Array.isArray(value.legs),
   )
-}
-
-function formatDistance(meters: number): string {
-  return meters >= 1_000 ? `${(meters / 1_000).toFixed(1)}km` : `${Math.round(meters)}m`
 }
 
 function formatDuration(seconds: number): string {
