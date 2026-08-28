@@ -1,5 +1,8 @@
 # 수강길잡이 PRD
 
+> **레거시 문서:** 최초 F1~F5 요구사항 기록이다. 현재 제품 요구사항은 `docs/PRD_V2.md`, 실행 순서와 완료
+> 판정은 `docs/SPRINT_PLAN_V2.md`가 단일 기준이다. 충돌 내역은 `docs/R0_DOCUMENT_AUTHORITY.md`를 따른다.
+
 **목차**
 
 1. 문서 정보

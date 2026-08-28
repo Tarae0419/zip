@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 기준일 | 2026-08-27 |
+| 기준일 | 2026-08-28 |
 | 비교 기준 | docs/PRD_V2.md |
 | 목적 | 코드 존재와 PRD2 완료를 분리하고 재작업 범위 확정 |
 | 판정 | 기존 완료 승계 없음 |
@@ -27,6 +27,34 @@
 | F14 취업 사례·자소서 | 엔티티·화면·권한 원장 없음 | 미지원 | 관련 구현 없음 | R17 조건부 |
 | F15 선호 시간표 | 현재 장바구니 과목의 분반 조합과 선호 점수 | 부분 구현 | lib/timetable/preferences.ts, schedule-preferences.ts | R6 |
 | F16 품질 피드백 | 커리큘럼 만족도 3항목 localStorage | 로컬 데모 | curriculum-planner.tsx | R9 |
+
+### 1.1 사용자 여정·데이터·액션·관리자 경로 매트릭스
+
+정적 감사 기준은 `main@e9c1610`이다. 이 표의 완료는 코드 경로를 분류했다는 뜻이며, 실데이터 범위·권한·브라우저
+E2E·외부 응답·현장 검수는 각 R0 게이트와 기능 스프린트에서 별도로 검증한다.
+
+| 기능·분류 | 사용자 여정·route | 읽기 흐름 | 쓰기·서버 액션 | 저장소·외부 | 관리자 경로 | PRD2 핵심 간극 |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 재설계 | `/courses/[id]`에서 요약·리뷰 확인 → 태그 제안 → 등록·삭제 | 과목·동일 학수번호 리뷰·요약 조회 | `submitReview`, `suggestReviewHashtags`, `deleteReview` | `courses`, `reviews`, `summaries`; OpenAI | `/admin/reviews`, `/admin/courses/[id]` | 삭제 후 stale 처리와 AI 입력·모델·근거 버전 없음 |
+| F2 재검증 | `/search?q=&tab=name\|field`에서 과목명·학문 분야 탐색 | `searchCoursesByName`, `searchCoursesByFieldTag` | 사용자 쓰기 없음 | `field_tags`, `course_field_tags`, `courses` | `/admin/courses/[id]` 분야 태그 편집 | URL 상태·동의어 품질·전 학과 성능·F4 전달 재검증 |
+| F3 재설계 | `/fields`에서 산업 분야 선택 → 관련도순 과목 확인 | `getIndustryFields`, `getIndustryFieldCourses` | 오프라인 분류·임베딩 스크립트 | `industry_tags`, `course_industry_tags`, `course_embeddings`; OpenAI | `/admin/courses/[id]` 산업 태그 편집 | 분류·임베딩·검수 버전과 공통 관심 분야 원장 없음 |
+| F4 재설계 | `/curriculum` 입력 → 계획 생성 → 편집·제외 | 사용자·교육과정·과목 조회 후 결정론 배치 | `generateCurriculumPlan` | `users`, `curricula`, `courses`; OpenAI; `curriculum-plan-v2` localStorage | `/admin/curricula*`, `/admin/courses/[id]` | 계획 DB·입학연도 선택·버전·복원·서버 재검증 없음 |
+| F5 재검증 | 과목 상세/`/cart` 담기 → 시간표 → 요일별 TMAP 지도·구간 시간 | 장바구니·과목·건물 allowlist 조회 | `getCartItems`, `addCartItem`, `removeCartItem`; `POST /api/tmap/walking` | `cart_items`, `courses`; TMAP REST·Vector JS; 23시간 메모리 캐시 | 전용 관리 없음, 과목 공개 여부만 간접 관리 | 출입구 현장 검수·일일 쿼터 계측·F15 확정 계약 필요 |
+| F6 재설계 | `/courses/[id]`에서 학기별 수강 추세 확인 | `getCourseEnrollmentTrend`와 규칙 기반 `summarizeEnrollmentTrend` | 쓰기·전용 action 없음 | 현재 `courses.enrolledCount/capacity` | 전용 관리 없음 | snapshot·결측/0·부분 분반·계보·출처 없음 |
+| F7 재설계 | `/curriculum`에서 학년별 역량 활동 생성·편집 | F4 결과와 사용자 키워드 사용 | F4 action 내부 `generateCapabilityActivities` | OpenAI 또는 규칙 폴백; F4 localStorage에 포함 | 전용 관리 없음 | 공식 근거·계정 버전·F4 과목 순위 연결 없음 |
+| F8 재설계 | `/portfolio`에서 항목 CRUD·커리큘럼 활동 가져오기 | `curriculum-plan-v2`, `portfolio-v1` 읽기 | 브라우저 로컬 CRUD | localStorage만 사용 | 없음 | 계정 소유권·원본 ID·버전·충돌·휴지통·내보내기 없음 |
+| F9 미지원 | 사용자 route 없음 | 없음 | 없음 | 원장·스키마 없음 | 없음 | 포트폴리오의 자격증 분류는 공식 원장·추천 기능이 아님 |
+| F10 재설계 | `/study`에서 장바구니 과목 선택 → 기록 → 요약·질문 | DB 장바구니와 `study-hub-v1` 읽기 | `generateStudyInsights`; 브라우저 기록 CRUD | `cart_items`, OpenAI, localStorage | 없음 | StudyRecord DB·80자 근거 서버 검증·원본/수정본·복원 없음 |
+| F11 미지원 | 사용자 route 없음 | 없음 | 없음 | nullable `courses.syllabusUrl`만 존재 | 없음 | 허용 교재·강의계획서 원장·실데이터·화면 없음 |
+| F12 재설계 | `/curriculum`에서 최신 curriculum·선수코드 기반 배치 | `curricula.requiredCourseCodes`, `courses.prerequisiteCodes` | F4 action에서 사용 | `curricula`, `courses` | `/admin/curricula*`, `/admin/courses/[id]` | 관계형 선수·동시·택일·예외·출처·적용기간·순환검사 없음 |
+| F13 미지원 | 사용자 route 없음 | 없음 | 없음 | 설계 문서만 존재 | 없음 | 승인된 공지·채용 수집기·상태·알림 원장 없음 |
+| F14 미지원 | 사용자 route 없음 | 없음 | 없음 | 스키마·권한 원장 없음 | 없음 | 허용 취업 사례·비식별화·철회 흐름 없음 |
+| F15 재설계 | `/cart` 선호 입력 → 후보 비교 → 적용 | 현재 장바구니 과목의 동일 과목 분반 조회 | `createPreferredScheduleCandidates`, `applyPreferredScheduleCandidate` | `cart_items`, `courses`, `users`; 적용 시 transaction | 없음 | 남은 필수 자동 산출·후보/확정 엔티티·탐색 상한·전체 하드 재검증 없음 |
+| F16 재설계 | `/curriculum`에서 3개 만족도 점수 저장 | `curriculum-feedback-v2` 읽기 | 브라우저 단건 저장 | localStorage만 사용 | 없음 | 최신성 포함 4항목·대상 버전·정정 상태·운영 집계 없음 |
+
+관리자 공통 route는 `/admin`, `/admin/reviews`, `/admin/courses`, `/admin/courses/[id]`,
+`/admin/curricula`, `/admin/curricula/new`, `/admin/curricula/[id]`, `/admin/users`다. 현재 관리자 mutation은
+`requireAdmin()`을 호출하지만 출처·AI 이력·건물 좌표·피드백·공지/채용·자격증·콘텐츠 권한을 관리하는 경로는 없다.
 
 ## 2. 즉시 해결해야 할 신뢰성 문제
 
@@ -77,7 +105,8 @@
 - components/curriculum-planner.tsx, cart-timetable-view.tsx, campus-map.tsx와 lib/db/queries.ts는 책임 분리가 필요한 대형 파일이다.
 - TMAP Vector SDK는 별도 클라이언트 경계에서 조건부 동적 로딩하도록 분리했고 Kakao/NAVER 런타임·외부 앱 폴백을 제거했다. R7에서는 공개 지도 키와 실패 상태를 실제 기기에서 수용 검증한다.
 
-세부 file:line 감사와 접근성 목록은 docs/R0_UI_PERFORMANCE_AUDIT.md에서 관리한다.
+빌드·route별 JS 실측과 미계측 운영 지표는 `docs/R0_PERFORMANCE_BASELINE.md`에서 관리한다. 키보드·포커스·모달·
+스크린리더·reduced motion·모바일 긴 텍스트의 재현 목록은 아직 작성 전이며 R0의 별도 미완료 항목이다.
 
 ## 4. 현재 데이터 흐름
 

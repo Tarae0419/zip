@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-28T03:47:49.672Z",
+  "buildId": "AigS4uDnfvXJTMnujjYo4",
+  "source": {
+    "routes": 19,
+    "clientComponents": 30,
+    "serverActionFiles": 10,
+    "localStorageFiles": 7,
+    "testFiles": 12,
+    "databaseTables": 13
+  },
+  "clientJavaScript": {
+    "emittedChunkCount": 35,
+    "emittedRawJsBytes": 1053033,
+    "emittedGzipJsBytes": 332314,
+    "largestEmittedChunks": [
+      {
+        "file": ".next/static/chunks/0f~huw~9oohwv.js",
+        "rawBytes": 227527,
+        "gzipBytes": 71003
+      },
+      {
+        "file": ".next/static/chunks/03~yq9q893hmn.js",
+        "rawBytes": 112594,
+        "gzipBytes": 39627
+      },
+      {
+        "file": ".next/static/chunks/0oc6he0mhtg6l.js",
+        "rawBytes": 110358,
+        "gzipBytes": 29313
+      },
+      {
+        "file": ".next/static/chunks/0eltxmq3qf-hh.js",
+        "rawBytes": 54635,
+        "gzipBytes": 12882
+      },
+      {
+        "file": ".next/static/chunks/0umqdkoh7qt47.js",
+        "rawBytes": 44500,
+        "gzipBytes": 11816
+      }
+    ],
+    "note": "All emitted JavaScript chunks; this is not what one page necessarily transfers.",
+    "routes": [
+      {
+        "route": "/",
+        "initialChunkCount": 12,
+        "initialRawJsBytes": 696484,
+        "initialGzipJsBytes": 209187
+      },
+      {
+        "route": "/admin",
+        "initialChunkCount": 10,
+        "initialRawJsBytes": 638205,
+        "initialGzipJsBytes": 191426
+      },
+      {
+        "route": "/admin/courses",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 639080,
+        "initialGzipJsBytes": 191970
+      },
+      {
+        "route": "/admin/courses/[id]",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 647859,
+        "initialGzipJsBytes": 194402
+      },
+      {
+        "route": "/admin/curricula",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 638991,
+        "initialGzipJsBytes": 192025
+      },
+      {
+        "route": "/admin/curricula/[id]",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 642636,
+        "initialGzipJsBytes": 193111
+      },
+      {
+        "route": "/admin/curricula/new",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 642636,
+        "initialGzipJsBytes": 193111
+      },
+      {
+        "route": "/admin/reviews",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 639698,
+        "initialGzipJsBytes": 192235
+      },
+      {
+        "route": "/admin/users",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 639871,
+        "initialGzipJsBytes": 192208
+      },
+      {
+        "route": "/cart",
+        "initialChunkCount": 14,
+        "initialRawJsBytes": 759516,
+        "initialGzipJsBytes": 228209
+      },
+      {
+        "route": "/courses/[id]",
+        "initialChunkCount": 12,
+        "initialRawJsBytes": 708150,
+        "initialGzipJsBytes": 212762
+      },
+      {
+        "route": "/curriculum",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 696045,
+        "initialGzipJsBytes": 209837
+      },
+      {
+        "route": "/fields",
+        "initialChunkCount": 12,
+        "initialRawJsBytes": 708905,
+        "initialGzipJsBytes": 213270
+      },
+      {
+        "route": "/login",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 679538,
+        "initialGzipJsBytes": 205540
+      },
+      {
+        "route": "/portfolio",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 680970,
+        "initialGzipJsBytes": 205568
+      },
+      {
+        "route": "/search",
+        "initialChunkCount": 12,
+        "initialRawJsBytes": 706222,
+        "initialGzipJsBytes": 212312
+      },
+      {
+        "route": "/signup",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 686637,
+        "initialGzipJsBytes": 207438
+      },
+      {
+        "route": "/study",
+        "initialChunkCount": 11,
+        "initialRawJsBytes": 678840,
+        "initialGzipJsBytes": 205064
+      },
+      {
+        "route": "/welcome",
+        "initialChunkCount": 10,
+        "initialRawJsBytes": 646022,
+        "initialGzipJsBytes": 194544
+      }
+    ]
+  },
+  "instrumentation": {
+    "productionAnalyticsComponent": true,
+    "pageResponseP95": {
+      "status": "unavailable",
+      "reason": "No representative route benchmark or production Web Vital export is connected yet."
+    },
+    "databaseQueries": {
+      "status": "unavailable",
+      "reason": "No per-request Neon/Drizzle query counter is connected yet."
+    },
+    "aiCallsAndFailures": {
+      "status": "unavailable",
+      "reason": "No sanitized OpenAI call counter and failure metric is connected yet."
+    },
+    "mapRequests": {
+      "status": "unavailable",
+      "reason": "TMAP route calls are rate-limited but daily usage telemetry is not connected yet."
+    }
+  }
+}
