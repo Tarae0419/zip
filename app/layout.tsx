@@ -76,6 +76,12 @@ export default function RootLayout({
         ) : null}
       </head>
       <body className="font-sans antialiased">
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-foreground px-4 py-2 font-semibold text-background shadow-elevated focus:translate-y-0"
+        >
+          본문으로 건너뛰기
+        </a>
         <CartProvider>{children}</CartProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

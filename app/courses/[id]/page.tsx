@@ -45,7 +45,7 @@ export default async function CourseDetailPage({
     <div className="min-h-svh">
       <AppHeader />
 
-      <main className="mx-auto max-w-3xl px-4 py-8 md:px-6">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-4 py-8 md:px-6">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"

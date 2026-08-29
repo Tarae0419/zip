@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, type MouseEvent } from "react"
-import { createPortal } from "react-dom"
+import { useRef, useState, type MouseEvent, type RefObject } from "react"
+import { Dialog } from "@base-ui/react/dialog"
 import { AlertTriangle, Check, Loader2, ShoppingCart, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/components/cart-provider"
@@ -19,6 +19,8 @@ export function CartToggleButton({
   className?: string
 }) {
   const { mounted, cart, hasCourse, addCourse, removeCourse } = useCart()
+  const triggerButtonRef = useRef<HTMLButtonElement>(null)
+  const confirmButtonRef = useRef<HTMLButtonElement>(null)
   const [loading, setLoading] = useState(false)
   const [conflict, setConflict] = useState<TimeConflict | null>(null)
   const inCart = mounted && hasCourse(courseId)
@@ -53,8 +55,14 @@ export function CartToggleButton({
   const isSmall = size === "sm"
 
   return (
-    <>
+    <Dialog.Root
+      open={conflict !== null}
+      onOpenChange={(open) => {
+        if (!open) setConflict(null)
+      }}
+    >
       <button
+        ref={triggerButtonRef}
         type="button"
         onClick={handleClick}
         disabled={loading}
@@ -78,48 +86,53 @@ export function CartToggleButton({
         {inCart ? "담김" : "장바구니 담기"}
       </button>
 
-      {/* CourseCard 조상이 hover 시 transform(translate)을 걸어서(카드 살짝 뜨는 효과) fixed 모달이 그
-          카드 안에 갇혀 렌더링되는 문제가 있었다 — body로 포탈해서 뷰포트 기준으로 항상 중앙에 뜨게 한다. */}
-      {conflict && typeof document !== "undefined"
-        ? createPortal(<TimeConflictModal conflict={conflict} onClose={() => setConflict(null)} />, document.body)
-        : null}
-    </>
+      {conflict ? (
+        <TimeConflictDialog
+          conflict={conflict}
+          triggerButtonRef={triggerButtonRef}
+          confirmButtonRef={confirmButtonRef}
+        />
+      ) : null}
+    </Dialog.Root>
   )
 }
 
-function TimeConflictModal({ conflict, onClose }: { conflict: TimeConflict; onClose: () => void }) {
+function TimeConflictDialog({
+  conflict,
+  triggerButtonRef,
+  confirmButtonRef,
+}: {
+  conflict: TimeConflict
+  triggerButtonRef: RefObject<HTMLButtonElement | null>
+  confirmButtonRef: RefObject<HTMLButtonElement | null>
+}) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
-      role="presentation"
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-elevated"
-        onClick={(e) => e.stopPropagation()}
-        role="alertdialog"
-        aria-modal="true"
-        aria-label="시간표 충돌"
-      >
+    <Dialog.Portal>
+      <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
+      <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <Dialog.Popup
+          role="alertdialog"
+          initialFocus={confirmButtonRef}
+          finalFocus={triggerButtonRef}
+          className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-elevated outline-none"
+        >
         <div className="flex items-start justify-between gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
             <AlertTriangle className="size-5" aria-hidden="true" />
           </span>
-          <button
-            type="button"
-            onClick={onClose}
+          <Dialog.Close
             aria-label="닫기"
-            className="shrink-0 rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:size-8"
           >
             <X className="size-4" aria-hidden="true" />
-          </button>
+          </Dialog.Close>
         </div>
 
-        <p className="mt-3 font-display text-base font-bold text-foreground">시간표가 겹쳐요</p>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <Dialog.Title className="mt-3 font-display text-base font-bold text-foreground">시간표가 겹쳐요</Dialog.Title>
+        <Dialog.Description className="mt-1 text-sm text-muted-foreground">
           <span className="font-semibold text-foreground">{conflict.existingCourseName}</span>과(와) 수업 시간이 겹쳐서 담을 수
           없어요.
-        </p>
+        </Dialog.Description>
 
         <div className="mt-3 space-y-1.5 rounded-xl bg-secondary/50 p-3 text-sm">
           <p className="text-muted-foreground">
@@ -132,14 +145,14 @@ function TimeConflictModal({ conflict, onClose }: { conflict: TimeConflict; onCl
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onClose}
+        <Dialog.Close
+          ref={confirmButtonRef}
           className="mt-4 w-full rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition hover:bg-accent"
         >
           확인
-        </button>
-      </div>
-    </div>
+        </Dialog.Close>
+        </Dialog.Popup>
+      </Dialog.Viewport>
+    </Dialog.Portal>
   )
 }

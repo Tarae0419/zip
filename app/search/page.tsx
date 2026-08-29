@@ -20,7 +20,7 @@ export default async function SearchPage({
   return (
     <div className="min-h-svh">
       <AppHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <Suspense
           fallback={
             <div className="mx-auto max-w-6xl px-4 py-8 text-muted-foreground md:px-6">

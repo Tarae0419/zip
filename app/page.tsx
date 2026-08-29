@@ -18,7 +18,7 @@ export default async function HomePage() {
     <div className="min-h-svh">
       <AppHeader />
 
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero */}
         <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-accent/40 to-background">
           <div

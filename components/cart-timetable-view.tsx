@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useState, useTransition } from "react"
+import { useMemo, useRef, useState, useTransition, type RefObject } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { Dialog } from "@base-ui/react/dialog"
 import { CalendarDays, Info, Loader2, MapPin, Plus, ShoppingCart, Sparkles, Trash2, X } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { useCart } from "@/components/cart-provider"
@@ -49,6 +50,8 @@ export function CartTimetableView({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { cart, mounted, removeCourse, replaceSemesterCart } = useCart()
+  const manageCourseTriggerRef = useRef<HTMLButtonElement>(null)
+  const manageCourseFallbackRef = useRef<HTMLButtonElement>(null)
   const [selectedDay, setSelectedDay] = useState<Weekday | null>(null)
   const [managingCourseId, setManagingCourseId] = useState<string | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
@@ -133,16 +136,6 @@ export function CartTimetableView({
     })
   }
 
-  // Esc로 관리 팝업 닫기
-  useEffect(() => {
-    if (!managingCourseId) return
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setManagingCourseId(null)
-    }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [managingCourseId])
-
   if (!activeSemester) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">
@@ -174,6 +167,7 @@ export function CartTimetableView({
           <span className="font-display text-base font-bold text-foreground">시간표</span>
         </div>
         <button
+          ref={manageCourseFallbackRef}
           type="button"
           onClick={() => setAddModalOpen(true)}
           className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
@@ -215,7 +209,14 @@ export function CartTimetableView({
             </div>
             <p className="mt-1 text-sm text-muted-foreground">과목을 클릭하면 삭제 등 관리를 할 수 있어요.</p>
             <div className="mt-3">
-              <WeeklyTimetable cart={scopedCart} activeCourseId={managingCourseId} onSessionClick={setManagingCourseId} />
+              <WeeklyTimetable
+                cart={scopedCart}
+                activeCourseId={managingCourseId}
+                onSessionClick={(courseId, trigger) => {
+                  manageCourseTriggerRef.current = trigger
+                  setManagingCourseId(courseId)
+                }}
+              />
             </div>
           </section>
 
@@ -432,33 +433,33 @@ export function CartTimetableView({
         <OtherSemesterNotice items={otherSemesterItems} onRemove={removeCourse} />
       )}
 
-      {managingCourse && (
-        <CourseManagePopup
-          course={managingCourse}
-          onClose={() => setManagingCourseId(null)}
-          onRemove={() => {
-            removeCourse(managingCourse.id)
-            setManagingCourseId(null)
-          }}
-        />
-      )}
+      <CourseManagePopup
+        course={managingCourse}
+        triggerRef={manageCourseTriggerRef}
+        fallbackFocusRef={manageCourseFallbackRef}
+        onClose={() => setManagingCourseId(null)}
+        onRemove={() => {
+          if (!managingCourse) return
+          removeCourse(managingCourse.id)
+          setManagingCourseId(null)
+        }}
+      />
 
-      {addModalOpen && (
-        <AddCourseModal
-          semester={activeSemester}
-          query={query}
-          department={department}
-          departments={departments}
-          grade={grade}
-          category={category}
-          browsableCourses={browsableCourses}
-          browsableTotalCount={browsableTotalCount}
-          browsableTotalPages={browsableTotalPages}
-          page={page}
-          viewerDepartment={viewerDepartment}
-          onClose={() => setAddModalOpen(false)}
-        />
-      )}
+      <AddCourseModal
+        open={addModalOpen}
+        semester={activeSemester}
+        query={query}
+        department={department}
+        departments={departments}
+        grade={grade}
+        category={category}
+        browsableCourses={browsableCourses}
+        browsableTotalCount={browsableTotalCount}
+        browsableTotalPages={browsableTotalPages}
+        page={page}
+        viewerDepartment={viewerDepartment}
+        onClose={() => setAddModalOpen(false)}
+      />
     </div>
   )
 }
@@ -507,43 +508,50 @@ function OtherSemesterNotice({
 
 function CourseManagePopup({
   course,
+  triggerRef,
+  fallbackFocusRef,
   onClose,
   onRemove,
 }: {
-  course: CartCourse
+  course: CartCourse | null
+  triggerRef: RefObject<HTMLButtonElement | null>
+  fallbackFocusRef: RefObject<HTMLButtonElement | null>
   onClose: () => void
   onRemove: () => void
 }) {
-  const sessions = buildSessionsForCourse(course)
+  const sessions = course ? buildSessionsForCourse(course) : []
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
-      role="presentation"
+    <Dialog.Root
+      open={course !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
     >
-      <div
-        className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-elevated"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`${course.name} 관리`}
-      >
+      {course && (
+        <Dialog.Portal>
+          <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
+          <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <Dialog.Popup
+              finalFocus={() => {
+                const trigger = triggerRef.current
+                return trigger?.isConnected ? trigger : fallbackFocusRef.current
+              }}
+              className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-elevated outline-none"
+            >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate font-display text-base font-bold text-foreground">{course.name}</p>
-            <p className="mt-0.5 truncate text-sm text-muted-foreground">
+            <Dialog.Title className="truncate font-display text-base font-bold text-foreground">{course.name}</Dialog.Title>
+            <Dialog.Description className="mt-0.5 truncate text-sm text-muted-foreground">
               {course.department} · {course.professor} · {course.credits}학점
-            </p>
+            </Dialog.Description>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
+          <Dialog.Close
             aria-label="닫기"
-            className="shrink-0 rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:size-8"
           >
             <X className="size-4" aria-hidden="true" />
-          </button>
+          </Dialog.Close>
         </div>
 
         {sessions.length > 0 && (
@@ -581,15 +589,16 @@ function CourseManagePopup({
           >
             시간표에서 삭제
           </button>
-          <button
-            type="button"
-            onClick={onClose}
+          <Dialog.Close
             className="rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition hover:bg-accent"
           >
             닫기
-          </button>
+          </Dialog.Close>
         </div>
-      </div>
-    </div>
+            </Dialog.Popup>
+          </Dialog.Viewport>
+        </Dialog.Portal>
+      )}
+    </Dialog.Root>
   )
 }

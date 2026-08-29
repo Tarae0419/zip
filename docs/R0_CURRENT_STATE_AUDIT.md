@@ -106,7 +106,7 @@ E2E·외부 응답·현장 검수는 각 R0 게이트와 기능 스프린트에�
 - TMAP Vector SDK는 별도 클라이언트 경계에서 조건부 동적 로딩하도록 분리했고 Kakao/NAVER 런타임·외부 앱 폴백을 제거했다. R7에서는 공개 지도 키와 실패 상태를 실제 기기에서 수용 검증한다.
 
 빌드·route별 JS 실측과 미계측 운영 지표는 `docs/R0_PERFORMANCE_BASELINE.md`에서 관리한다. 키보드·포커스·모달·
-스크린리더·reduced motion·모바일 긴 텍스트의 재현 목록은 아직 작성 전이며 R0의 별도 미완료 항목이다.
+스크린리더·reduced motion·모바일 긴 텍스트의 재현 및 우선 수정 결과는 `docs/R0_ACCESSIBILITY_AUDIT.md`에서 관리한다.
 
 ## 4. 현재 데이터 흐름
 

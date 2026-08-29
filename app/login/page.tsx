@@ -51,7 +51,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-accent/40 to-background px-4 py-12">
+    <main id="main-content" tabIndex={-1} className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-accent/40 to-background px-4 py-12">
       <div
         aria-hidden="true"
         className="bg-dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,black,transparent)]"
@@ -134,6 +134,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   )
 }

@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useId, useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { Dialog } from "@base-ui/react/dialog"
 import { AlertCircle, Loader2, PenLine, Sparkles, Star, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { predefinedReviewTags } from "@/lib/mock-data"
@@ -11,6 +12,8 @@ const MIN_BODY_LENGTH_FOR_SUGGESTION = 10
 
 export function ReviewComposer({ courseId }: { courseId: string }) {
   const router = useRouter()
+  const errorId = useId()
+  const firstRatingRef = useRef<HTMLButtonElement>(null)
   const [isPending, startTransition] = useTransition()
   const [isSuggesting, startSuggestTransition] = useTransition()
   const [open, setOpen] = useState(false)
@@ -21,20 +24,6 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
   const [aiSuggestedTags, setAiSuggestedTags] = useState<string[]>([])
   const [hasSuggested, setHasSuggested] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // 모달 열림 시 배경 스크롤 방지 + ESC 닫기
-  useEffect(() => {
-    if (!open) return
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false)
-    }
-    document.addEventListener("keydown", onKey)
-    document.body.style.overflow = "hidden"
-    return () => {
-      document.removeEventListener("keydown", onKey)
-      document.body.style.overflow = ""
-    }
-  }, [open])
 
   function toggleTag(tag: string) {
     setSelectedTags((prev) =>
@@ -53,6 +42,7 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
   function handleSubmit() {
     if (rating === 0) {
       setError("별점을 선택해주세요.")
+      firstRatingRef.current?.focus()
       return
     }
     setError(null)
@@ -73,44 +63,40 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
     })
   }
 
+  const ratingIsInvalid = error === "별점을 선택해주세요."
+
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => {
-          setError(null)
-          setOpen(true)
-        }}
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (nextOpen) setError(null)
+        setOpen(nextOpen)
+      }}
+    >
+      <Dialog.Trigger
         className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
       >
         <PenLine className="size-4" aria-hidden="true" />
         수강평 작성하기
-      </button>
+      </Dialog.Trigger>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="수강평 작성"
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[90svh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-3xl bg-card p-6 shadow-elevated sm:rounded-2xl"
-          >
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm" />
+        <Dialog.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+          <Dialog.Popup className="max-h-[90svh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-3xl bg-card p-6 shadow-elevated outline-none sm:rounded-2xl">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-lg font-bold text-foreground">
+              <Dialog.Title className="font-display text-lg font-bold text-foreground">
                 수강평 작성하기
-              </h2>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
+              </Dialog.Title>
+              <Dialog.Description className="sr-only">
+                별점, 수강평과 해시태그를 입력해 수강평을 등록하세요.
+              </Dialog.Description>
+              <Dialog.Close
                 aria-label="닫기"
-                className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                className="flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:size-8"
               >
-                <X className="size-5" />
-              </button>
+                <X className="size-5" aria-hidden="true" />
+              </Dialog.Close>
             </div>
 
             {/* 별점 */}
@@ -119,6 +105,7 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
               <div
                 role="group"
                 aria-label="별점 선택"
+                aria-describedby={ratingIsInvalid ? errorId : undefined}
                 className="mt-2 flex items-center gap-1"
                 onMouseLeave={() => setHoverRating(0)}
               >
@@ -128,10 +115,14 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
                   return (
                     <button
                       key={value}
+                      ref={value === 1 ? firstRatingRef : undefined}
                       type="button"
                       aria-label={`${value}점`}
                       aria-pressed={rating === value}
-                      onClick={() => setRating(value)}
+                      onClick={() => {
+                        setRating(value)
+                        if (ratingIsInvalid) setError(null)
+                      }}
                       onMouseEnter={() => setHoverRating(value)}
                       className="p-0.5"
                     >
@@ -164,11 +155,13 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
               </label>
               <textarea
                 id="review-body"
+                name="reviewBody"
+                autoComplete="off"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={4}
                 placeholder="강의 난이도, 과제량, 시험 방식 등 후배들에게 도움이 될 이야기를 남겨주세요."
-                className="mt-2 w-full resize-none rounded-xl border border-input bg-background p-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+                className="mt-2 w-full resize-none rounded-xl border border-input bg-background p-3 text-base text-foreground outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/25 sm:text-sm"
               />
               <button
                 type="button"
@@ -212,7 +205,7 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
 
             {/* AI 추천 태그 — "AI로 태그 추천받기"를 눌렀을 때만 채워진다 */}
             {hasSuggested && (
-              <div className="mt-4">
+              <div className="mt-4" role="status" aria-live="polite">
                 <p className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
                   AI 추천 태그
                 </p>
@@ -246,20 +239,18 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
             )}
 
             {error && (
-              <div className="mt-4 flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              <div id={errorId} className="mt-4 flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
                 <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <p>{error}</p>
               </div>
             )}
 
             <div className="mt-6 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
+              <Dialog.Close
                 className="flex-1 rounded-full border border-border bg-card py-2.5 text-sm font-semibold text-foreground transition hover:bg-secondary"
               >
                 취소
-              </button>
+              </Dialog.Close>
               <button
                 type="button"
                 disabled={isPending}
@@ -269,9 +260,9 @@ export function ReviewComposer({ courseId }: { courseId: string }) {
                 {isPending ? "등록 중…" : "등록"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-    </>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

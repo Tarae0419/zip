@@ -8,6 +8,7 @@ import { useRef, useState } from "react"
 import { Check, Compass, GraduationCap, Loader2, Mail, ShieldCheck, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { requestSignup, verifySignupCode } from "@/lib/actions/auth"
+import { applyOtpInputChange, normalizeOtpCode } from "@/lib/auth/otp-input"
 import { cn } from "@/lib/utils"
 
 type Step = "form" | "verify"
@@ -18,7 +19,7 @@ const STEPS: { key: Step; label: string }[] = [
 ]
 
 const fieldClass =
-  "h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+  "h-11 w-full rounded-lg border border-input bg-background px-3.5 text-base text-foreground outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/25 sm:text-sm"
 
 export function SignupForm({ departments }: { departments: string[] }) {
   const router = useRouter()
@@ -91,7 +92,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
   }
 
   return (
-    <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-accent/40 to-background px-4 py-8">
+    <main id="main-content" tabIndex={-1} className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-accent/40 to-background px-4 py-8">
       <div
         aria-hidden="true"
         className="bg-dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,black,transparent)]"
@@ -305,7 +306,7 @@ export function SignupForm({ departments }: { departments: string[] }) {
           )}
         </div>
       </div>
-    </div>
+    </main>
   )
 }
 
@@ -348,21 +349,13 @@ function OtpInput({ value, onChange }: { value: string; onChange: (value: string
   const refs = useRef<(HTMLInputElement | null)[]>([])
 
   function setDigitAt(index: number, digit: string) {
-    const chars = value.padEnd(length, " ").split("")
-    chars[index] = digit
-    onChange(
-      chars
-        .join("")
-        .replace(/\s+$/, "")
-        .slice(0, length),
-    )
+    onChange(applyOtpInputChange(value, index, digit, length).value)
   }
 
   function handleChange(index: number, raw: string) {
-    const digit = raw.replace(/\D/g, "").slice(-1)
-    if (!digit) return
-    setDigitAt(index, digit)
-    if (index < length - 1) refs.current[index + 1]?.focus()
+    const change = applyOtpInputChange(value, index, raw, length)
+    onChange(change.value)
+    refs.current[change.focusIndex]?.focus()
   }
 
   function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
@@ -371,21 +364,23 @@ function OtpInput({ value, onChange }: { value: string; onChange: (value: string
     if (value[index]) {
       setDigitAt(index, "")
     } else if (index > 0) {
-      setDigitAt(index - 1, "")
-      refs.current[index - 1]?.focus()
+      const previousIndex = Math.min(index - 1, value.length - 1)
+      if (previousIndex < 0) return
+      setDigitAt(previousIndex, "")
+      refs.current[previousIndex]?.focus()
     }
   }
 
   function handlePaste(e: React.ClipboardEvent) {
     e.preventDefault()
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length)
+    const pasted = normalizeOtpCode(e.clipboardData.getData("text"), length)
     if (!pasted) return
     onChange(pasted)
     refs.current[Math.min(pasted.length, length - 1)]?.focus()
   }
 
   return (
-    <div className="flex justify-center gap-2" onPaste={handlePaste}>
+    <div className="grid w-full grid-cols-6 gap-1 sm:gap-2" onPaste={handlePaste}>
       {Array.from({ length }).map((_, i) => (
         <input
           key={i}
@@ -394,12 +389,14 @@ function OtpInput({ value, onChange }: { value: string; onChange: (value: string
           }}
           type="text"
           inputMode="numeric"
-          maxLength={1}
-          autoComplete="one-time-code"
+          maxLength={length}
+          autoComplete={i === 0 ? "one-time-code" : "off"}
           value={value[i] ?? ""}
           onChange={(e) => handleChange(i, e.target.value)}
+          onFocus={(e) => e.currentTarget.select()}
+          onClick={(e) => e.currentTarget.select()}
           onKeyDown={(e) => handleKeyDown(i, e)}
-          className="size-12 rounded-xl border border-input bg-background text-center text-xl font-bold text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+          className="aspect-square w-full min-w-0 rounded-xl border border-input bg-background text-center text-xl font-bold text-foreground outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/25 sm:max-w-12"
           aria-label={`인증코드 ${i + 1}번째 자리`}
         />
       ))}

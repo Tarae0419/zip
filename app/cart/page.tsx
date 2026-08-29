@@ -55,7 +55,7 @@ export default async function CartPage({
     <div className="min-h-svh">
       <AppHeader />
 
-      <main className="mx-auto max-w-4xl px-4 py-8 md:px-6">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-4xl px-4 py-8 md:px-6">
         <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">내 시간표</h1>
         <p className="mt-1 text-muted-foreground">
           학년도를 고르고 과목을 담으면, 시간표와 요일별 강의실 이동동선을 바로 확인할 수 있어요.

@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useTransition } from "react"
+import { useTransition } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { Dialog } from "@base-ui/react/dialog"
 import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react"
 import type { Course } from "@/lib/types"
 import { CourseCard } from "@/components/course-card"
@@ -10,6 +11,7 @@ import { formatSemesterLabel } from "@/lib/timetable/schedule"
 import { cn } from "@/lib/utils"
 
 export function AddCourseModal({
+  open,
   semester,
   query,
   department,
@@ -23,6 +25,7 @@ export function AddCourseModal({
   viewerDepartment,
   onClose,
 }: {
+  open: boolean
   semester: string
   query: string
   department: string
@@ -41,14 +44,6 @@ export function AddCourseModal({
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [onClose])
-
   function goToPage(nextPage: number) {
     const params = new URLSearchParams(searchParams.toString())
     if (nextPage <= 1) params.delete("page")
@@ -61,34 +56,39 @@ export function AddCourseModal({
   const hasFilters = Boolean(query) || department !== "전체" || grade !== "전체" || category !== "전체"
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" onClick={onClose} role="presentation">
-      <div
-        className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-t-2xl border border-border bg-card shadow-elevated sm:rounded-2xl"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label="과목 추가"
-      >
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose()
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
+        <Dialog.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+          <Dialog.Popup className="flex max-h-[85svh] w-full max-w-3xl flex-col rounded-t-2xl border border-border bg-card shadow-elevated outline-none sm:rounded-2xl">
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
           <div>
-            <h2 className="font-display text-lg font-bold text-foreground">과목 추가</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">{formatSemesterLabel(semester)}에 개설된 과목만 보여드려요</p>
+            <Dialog.Title className="font-display text-lg font-bold text-foreground">과목 추가</Dialog.Title>
+            <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
+              {formatSemesterLabel(semester)}에 개설된 과목만 보여드려요
+            </Dialog.Description>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
+          <Dialog.Close
             aria-label="닫기"
-            className="shrink-0 rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:size-8"
           >
             <X className="size-5" aria-hidden="true" />
-          </button>
+          </Dialog.Close>
         </div>
 
         <div className="border-b border-border px-5 py-3">
           <SemesterCourseFilterBar query={query} department={department} departments={departments} grade={grade} category={category} />
         </div>
 
-        <div className={cn("min-h-0 flex-1 overflow-y-auto px-5 py-4 transition-opacity", isPending && "opacity-60")}>
+        <div
+          aria-busy={isPending}
+          className={cn("min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 transition-opacity", isPending && "opacity-60")}
+        >
           {browsableCourses.length === 0 ? (
             <p className="rounded-xl border border-dashed border-border bg-background p-6 text-center text-sm text-muted-foreground">
               조건에 맞는 과목이 없어요. 다른 과목명이나 학과로 찾아보세요.
@@ -118,7 +118,7 @@ export function AddCourseModal({
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
             </button>
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground" role="status" aria-live="polite" aria-atomic="true">
               {isPending && <Loader2 className="size-3.5 animate-spin text-muted-foreground" aria-hidden="true" />}
               {page} / {browsableTotalPages} 페이지
             </span>
@@ -133,7 +133,9 @@ export function AddCourseModal({
             </button>
           </div>
         )}
-      </div>
-    </div>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

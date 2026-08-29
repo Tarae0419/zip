@@ -40,7 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8 md:px-6">{children}</main>
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-8 md:px-6">{children}</main>
     </div>
   )
 }

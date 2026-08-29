@@ -18,7 +18,7 @@ export function WeeklyTimetable({
 }: {
   cart: CartCourse[]
   activeCourseId?: string | null
-  onSessionClick?: (courseId: string) => void
+  onSessionClick?: (courseId: string, trigger: HTMLButtonElement) => void
 }) {
   const accentByCourseId = new Map(cart.map((course, i) => [course.id, CHART_ACCENTS[i % CHART_ACCENTS.length]]))
   const allSessions = cart.flatMap((course) => buildSessionsForCourse(course))
@@ -79,7 +79,7 @@ export function WeeklyTimetable({
                     <button
                       key={`${session.courseId}-${day}-${i}`}
                       type="button"
-                      onClick={() => onSessionClick?.(session.courseId)}
+                      onClick={(event) => onSessionClick?.(session.courseId, event.currentTarget)}
                       className={cn(
                         // inset-x-1(양옆 여백)을 주면 그 여백 틈으로 뒤 정각 격자선이 계속 보였다 —
                         // 여백은 없애 칸 폭을 꽉 채우되, 모서리는 rounded-md 정도면 격자선과 안 겹쳐

@@ -39,7 +39,7 @@ export default async function CurriculumPage() {
   return (
     <div className="min-h-svh">
       <AppHeader />
-      <main className="mx-auto max-w-6xl px-4 py-10 md:px-6">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-10 md:px-6">
         <div className="max-w-2xl">
           <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">
             AI 커리큘럼 설계

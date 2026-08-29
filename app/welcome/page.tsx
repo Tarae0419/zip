@@ -61,7 +61,7 @@ export default function WelcomePage() {
           </div>
         </header>
 
-        <main>
+        <main id="main-content" tabIndex={-1}>
           <section className="relative overflow-hidden mx-auto max-w-3xl px-4 py-16 text-center md:py-24 md:px-6">
             <Firefly />
             <Firefly side="right" delayMs={-4500} />
